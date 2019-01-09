@@ -17,6 +17,8 @@
 #include <sys/time.h>
 
 #include "webserver.h"
+#include "files.h" // will be created by Makefile
+#include "utils.h"
 #include "main.h"
 
 
@@ -65,17 +67,43 @@ static void setup_signal_handlers() {
 }
 
 enum {
+  oWriteOutFiles,
   oWebserverPort,
   oWebserverPath,
   oHelp
 };
 
 static struct option options[] = {
+  {"write-out-files", required_argument, 0, oWriteOutFiles},
   {"webserver-port", required_argument, 0, oWebserverPort},
   {"webserver-path", required_argument, 0, oWebserverPath},
   {"help", no_argument, 0, oHelp},
   {0, 0, 0, 0}
 };
+
+int write_out_files(const char *path) {
+  struct content *c;
+  int rc;
+
+  c = g_content;
+  while (c) {
+    // create dirname part
+    rc = create_path(c->path);
+    if (rc == EXIT_FAILURE) {
+      return EXIT_FAILURE;
+    }
+
+    // create basename file
+    rc = create_file(c->path, c->data, c->size);
+      if (rc == EXIT_FAILURE) {
+      return EXIT_FAILURE;
+    }
+
+    c += 1;
+  }
+
+  return EXIT_SUCCESS;
+}
 
 int file_exists(const char path[]) {
   return access(path, F_OK) != -1;
@@ -98,10 +126,9 @@ int main(int argc, char **argv) {
     index = 0;
     int c = getopt_long(argc, argv, "", options, &index);
 
-    switch (c)
-    {
-    case oTrackLocalhost:
-      g_track_localhost = atoi(optarg);
+    switch (c) {
+    case oWriteOutFiles:
+      write_out_files(optarg);
       break;
     case oWebserverPort:
       webserver_port = atoi(optarg);
@@ -137,9 +164,6 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  printf("JSON output file: %s\n", g_json_output ? g_json_output : "none");
-  printf("Device timeout: %s\n", formatDuration(g_device_timeout));
-  printf("Track Localhost: %s\n", g_track_localhost ? "on" : "off");
   printf("Webserver port: %d\n", webserver_port);
   printf("Webserver path: %s\n", webserver_path ? webserver_path : "internal");
 
@@ -181,15 +205,6 @@ int main(int argc, char **argv) {
 
       //fprintf(stderr, "select() %s\n", strerror(errno));
       return EXIT_FAILURE;
-    }
-
-    for (i = 0; i < g_pcap_num; i++) {
-      if (FD_ISSET(pcap_get_selectable_fd(g_pcap[i]), &rset)) {
-        if (pcap_dispatch(g_pcap[i], 1, g_pcbs[i], NULL) < 0) {
-          fprintf(stderr, "pcap_dispatch() %s\n", strerror(errno));
-          return EXIT_FAILURE;
-        }
-      }
     }
 
     webserver_after_select();
