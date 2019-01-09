@@ -8,10 +8,9 @@
 
 #include <microhttpd.h>
 
-#include "data.h"
 #include "utils.h"
 #include "main.h"
-#include "files.h"
+#include "files.h" // will be created by Makefile
 #include "webserver.h"
 
 
@@ -138,8 +137,8 @@ static int send_response(void *cls, struct MHD_Connection *connection,
   char content_path[256];
   uint8_t *content_data;
   size_t content_size;
-  struct device *device;
-  int is_localhost;
+  //struct device *device;
+  //int is_localhost;
   FILE *fp;
   int ret;
 
@@ -155,7 +154,7 @@ static int send_response(void *cls, struct MHD_Connection *connection,
 
   if (0 == strcmp(url, "/device-observatory.json")) {
     // Fetch JSON data
-
+/*
     is_localhost = is_localhost_addr(
       connection_info->client_addr
     );
@@ -163,15 +162,15 @@ static int send_response(void *cls, struct MHD_Connection *connection,
     device = find_device_by_ip(
       connection_info->client_addr
     );
-
+*/
     fp = open_memstream((char**) &content_data, &content_size);
-    if (is_localhost) {
+    /*if (is_localhost) {
       // get all device info for localhost access
       write_devices_json(fp);
     } else {
      // get only own device info
       write_device_json(fp, device);
-    }
+    }*/
     fclose(fp);
 
     response = MHD_create_response_from_buffer(content_size, content_data, MHD_RESPMEM_MUST_FREE);

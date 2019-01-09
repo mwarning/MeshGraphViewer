@@ -1,15 +1,10 @@
 CC ?= gcc
 CFLAGS ?= -O2
 CFLAGS += -std=gnu99 -Wall -pedantic -Werror -fno-strict-aliasing -Wwrite-strings
-LFLAGS += -lpcap
-SRC = src/main.c
-
-# Add webserver and include web ui files
-CFLAGS +=
 LFLAGS += -lmicrohttpd
-SRC += src/webserver.c src/files.h
+SRC = src/main.c src/webserver.c src/utils.c src/files.c
 
-.PHONY: all clean debug src/files.h
+.PHONY: all clean debug files
 
 
 #all: CFLAGS += -DDEBUG
@@ -17,22 +12,33 @@ all: $(SRC)
 	$(CC) $(CFLAGS) $(LFLAGS) $(SRC) -o graph-viewer
 
 # Include files in www into files.h
-src/files.h: $(wildcard www/*)
+src/files.c: $(wildcard www/*)
+	num=`find www/ -type f | wc -l`
+
+	# write src/files.h
 	@rm -f src/files.h
-	@for file in `find www/ -type f`; do \
-		xxd -i $$file >> src/files.h; \
-	done
 	@echo "struct content { const char *path; unsigned char* data; unsigned int size; };" >> src/files.h
-	@echo "struct content g_content[] = {" >> src/files.h
-	@for file in `find www/ -type f`; do \
+	@echo "struct content g_content[$$num+1];" >> src/files.h
+
+	# write src/files.c
+	@rm -f src/files.c
+	@echo "#include \"files.h\"" >> src/files.c
+	@for file in `find www/ -type f -printf "%P "`; do \
 		id=$$(echo $$file | tr '/.' '_'); \
-		echo "  {\"/$${file#www/}\", &$$id[0], sizeof($$id)}," >> src/files.h; \
+		(echo "unsigned char $$id[$$num+1] = {"; \
+		xxd -i < www/$$file; \
+		echo "};") >> src/files.c; \
 	done
-	@echo "  {0, 0, 0}" >> src/files.h
-	@echo "};" >> src/files.h
+	@echo "g_content = {" >> src/files.c
+	@for file in `find www/ -type f -printf "%P "`; do \
+		id=$$(echo $$file | tr '/.' '_'); \
+		echo "  {\"/$$file\", &$$id[0], sizeof($$id)}," >> src/files.c; \
+	done
+	@echo "  {0, 0, 0}" >> src/files.c
+	@echo "};" >> src/files.c
 
 debug: CFLAGS += -DDEBUG
 debug: all
 
 clean:
-	rm -f graph-viewer
+	rm -f graph-viewer src/files.h src/files.c
