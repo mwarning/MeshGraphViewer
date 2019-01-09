@@ -10,6 +10,7 @@
 	<script src="js/d3.v5.min.js"></script>
 
 	<script src="js/utils.js"></script>
+	<script src="js/graph.js"></script>
 	<script src="js/draw.js"></script>
 	<script src="js/edit.js"></script>
 	<script src="js/show.js"></script>
@@ -17,13 +18,10 @@
 
 	<script>
 		var graph;
-		var file;
 		var edit;
-		var sim;
 		var show;
 		var control;
-		var chart;
-		var stateid = 0;
+		//var stateid = 0;
 
 		function globalUpdateGraph() {
 			send('/cmd/graph', {}, function(data) {
@@ -43,9 +41,6 @@
 		function globalUpdate() {
 			globalUpdateGraph();
 			globalUpdateNodes();
-			// move out of sim
-			sim.getAlgorithm();
-			sim.updateStats();
 		}
 
 		function init() {
@@ -58,13 +53,22 @@
 			control = createControl(graph);
 
 			//poller();
-			globalUpdate();
+			//globalUpdate();
+			graph.updateGraph(
+				[{mac: 1}, {mac: 2}],
+				[{source: 1, target: 2, source_tq: 1, target_tq: 1}]
+			);
 		}
 	</script>
 </head>
 <body onload="init()">
 	<div id="container">
 		<div id="toolbar">
+			<div class="tab">
+				<button class="tablinks" onclick="showTab(event, 'edit')">Edit</button>
+				<button class="tablinks" onclick="showTab(event, 'show')">Show</button>
+				<button class="tablinks" onclick="showTab(event, 'control')">Control</button>
+			</div>
 			<div id="edit" class="tabcontent">
 				<fieldset>
 					<legend>Select</legend>
@@ -227,6 +231,40 @@
 					</div>
 				</fieldset>
 			</div>
+
+			<div id="show" class="tabcontent">
+				<fieldset>
+					<legend>Inspect</legend>
+					<div class="enum">
+						<label>Type:</label>
+						<span id="show_type">-</span>
+					</div>
+					<div class="enum">
+						<label>Path:</label>
+						<span id="show_path">/</span>
+					</div>
+					<div class="equal">
+						<input type="button" onclick="show.showSelectedObject()" value="Show" />
+					</div>
+					<div class="equal">
+						<table>
+							<thead>
+								<tr>
+									<th onclick="sortLexial(this)">Key</th>
+									<th onclick="sortLexial(this)">Value</th>
+								</tr>
+							</thead>
+							<tbody id="show_object_tbody">
+							</tbody>
+							<tr id="show_no_items">
+								<td colspan="2">No Items</td>
+							</tr>
+						</table>
+					</div>
+				</fieldset>
+			</div>
+		</div>
+		<div id="graph" class="graph">
 		</div>
 	</div>
 	<noscript>
