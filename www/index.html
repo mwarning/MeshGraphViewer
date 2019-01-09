@@ -9,14 +9,9 @@
 	<!-- Source: http://d3js.org -->
 	<script src="js/d3.v5.min.js"></script>
 
-	<script src="js/ws.js"></script>
-	<script src="js/chart.js"></script>
 	<script src="js/utils.js"></script>
 	<script src="js/draw.js"></script>
-	<script src="js/graph.js"></script>
-	<script src="js/file.js"></script>
 	<script src="js/edit.js"></script>
-	<script src="js/sim.js"></script>
 	<script src="js/show.js"></script>
 	<script src="js/control.js"></script>
 
@@ -58,10 +53,7 @@
 			document.getElementsByClassName('tablinks')[0].click();
 
 			graph = createGraph('graph');
-			chart = createChart('chart');
-			file = createFile(graph);
 			edit = createEdit(graph);
-			sim = createSim(graph, chart);
 			show = createShow(graph);
 			control = createControl(graph);
 
@@ -73,104 +65,6 @@
 <body onload="init()">
 	<div id="container">
 		<div id="toolbar">
-			<div class="tab">
-				<!-- <button class="tablinks" onclick="send('/nodes.json', {}, function(data) {alert(data); });">Test</button>-->
-				<button class="tablinks" onclick="showTab(event, 'file')">File</button>
-				<button class="tablinks" onclick="showTab(event, 'edit')">Edit</button>
-				<button class="tablinks" onclick="showTab(event, 'show')">Show</button>
-				<button class="tablinks" onclick="showTab(event, 'control')">Control</button>
-				<button class="tablinks" onclick="showTab(event, 'sim')">Simulate</button>
-			</div>
-			<div id="file" class="tabcontent">
-				<fieldset>
-					<legend>Load</legend>
-					<div class="enum">
-						<input type="button" onclick="file.loadData($('file_input').files, $('url_input').value)" value="Load" />
-						<div>
-							<input type="text" id="url_input" value="" />
-							<input type="file" id="file_input" accept=".json" onchange="displayFileName(this);" />
-							<label onclick="$('file_input').click()">Select</label>
-						</div>
-					</div>
-				</fieldset>
-				<fieldset>
-					<legend>Save</legend>
-					<div class="enum">
-						<input type="button" onclick="file.saveFile(getText('save_format'), getInt('save_indent'))" value="Save" />
-						<select id="save_format">
-							<option value="netjson_netgraph">NetJSON NetworkGraph</option>
-							<option value="meshviewer">Meshviewer meshviewer.json</option>
-							<option value="meshviewer_graph">Meshviewer graph.json</option>
-							<option value="meshviewer_nodes">Meshviewer nodes.json</option>
-						</select>
-					</div>
-					<div class="enum">
-						<div>
-						<label>Indentation:</label>
-						<select id="save_indent">
-							<option value="-2">Tabs</option>
-							<option value="-1">None</option>
-							<option value="2" selected="selected">2 Spaces</option>
-							<option value="4">4 Spaces</option>
-						</select>
-						</div>
-					</div>
-				</fieldset>
-
-				<fieldset>
-					<legend>Load Algorithm</legend>
-					<div class="enum">
-						<input type="button" onclick="sim.setAlgorithm($('algorithm'));" value="Load" />
-						<select id="algorithm">
-							<option value="random" selected="selected">Random Routing</option>
-							<option value="distance_vector">Distance Vector</option>
-							<option value="game_of_life">Game Of Life</option>
-							<option value="spring_coordinates">Spring Coordinates</option>
-							<option value="distance_enumeration">Distance Enumeration</option>
-							<option value="vivaldi">Vivaldi Coordinates</option>
-						</select>
-					</div>
-				</fieldset>
-				<fieldset>
-					<legend>Test</legend>
-					<div class="enum">
-						<input type="button" onclick="send('/cmd/load_test', {name: 'test'}, function(){ globalUpdate(); });" value="Load" />
-					</div>
-				</fieldset>
-			</div>
-
-			<div id="show" class="tabcontent">
-				<fieldset>
-					<legend>Inspect</legend>
-					<div class="enum">
-						<label>Type:</label>
-						<span id="show_type">-</span>
-					</div>
-					<div class="enum">
-						<label>Path:</label>
-						<span id="show_path">/</span>
-					</div>
-					<div class="equal">
-						<input type="button" onclick="show.showSelectedObject()" value="Show" />
-					</div>
-					<div class="equal">
-						<table>
-							<thead>
-								<tr>
-									<th onclick="sortLexial(this)">Key</th>
-									<th onclick="sortLexial(this)">Value</th>
-								</tr>
-							</thead>
-							<tbody id="show_object_tbody">
-							</tbody>
-							<tr id="show_no_items">
-								<td colspan="2">No Items</td>
-							</tr>
-						</table>
-					</div>
-				</fieldset>
-			</div>
-
 			<div id="edit" class="tabcontent">
 				<fieldset>
 					<legend>Select</legend>
@@ -333,93 +227,6 @@
 					</div>
 				</fieldset>
 			</div>
-
-			<div id="sim" class="tabcontent">
-				<fieldset>
-					<legend>Simulator</legend>
-					<div class="equal">
-						<select id="sim_steps" title="Steps to execute in succession">
-							<option value="1">1</option>
-							<option value="10">10</option>
-							<option value="100">100</option>
-							<option value="1000">1000</option>
-							<option value="10000">10^4</option>
-							<option value="100000">10^5</option>
-						</select>
-						<select id="sim_delay" title="Delay between single steps">
-							<option value="0">0s</option>
-							<option value="250">1/4s</option>
-							<option value="500">1/2s</option>
-							<option value="1000">1s</option>
-							<option value="2000">2s</option>
-							<option value="5000">5s</option>
-						</select>
-						<input type="button" onclick="sim.toggleRun(getInt('sim_steps'), getFloat('sim_delay'))" id="sim_toggle" value="Start" />
-						<!--<input type="button" onclick="sim.updateGraph()" value="graph" />
-						<input type="button" onclick="sim.updateStats()" value="state" />-->
-						<input type="button" onclick="sim.reset()" value="reset" />
-					</div>
-					<div class="equal">
-						<div>
-							<label>Total Steps:</label>
-							<span id="sim_steps_total">0</span>
-						</div>
-						<div>
-							<label>Steps Duration:</label>
-							<span id="sim_duration_total">0 ms</span>
-						</div>
-					</div>
-				</fieldset>
-				<fieldset>
-					<legend>Algorithm Info</legend>
-					<div id="algo_name">-</div>
-					<div id="algo_description">-</div>
-				</fieldset>
-				<fieldset>
-					<legend>Traffic Statistics</legend>
-					<div class="enum">
-						<label>Test Num:</label>
-						<span id="test_num">0</span>
-					</div>
-					 <div class="enum">
-						<label>Test Count:</label>
-						<span id="test_count">0</span>
-					</div>
-					<div class="enum">
-						<label>Sim Steps:</label>
-						<span id="stepnums">-</span>
-					</div>
-					<div class="enum">
-						<label>Test Cost:</label>
-						<span id="test_packet_costs">0</span>
-					</div>
-					<div class="enum">
-						<label>Comm Cost:</label>
-						<span id="comm_packet_costs">0</span>
-					</div>
-					<div class="enum">
-						<label>Deployed:</label>
-						<span id="deployed_test_packets">0</span>
-					</div>
-					<div class="enum">
-						<label>Received:</label>
-						<span id="received_test_packets">0</span>
-					</div>
-				</fieldset>
-				<fieldset>
-					<legend>Misc</legend>
-					<div class="equal">
-						<input type="button" onclick="" value="To Fixed Positions" />
-						<input type="button" onclick="" value="Disable Animation" />
-					</div>
-				</fieldset>
-				<fieldset>
-					<legend>Chart</legend>
-					<div id="chart"></div>
-				</fieldset>
-			</div>
-		</div>
-		<div id="graph" class="graph">
 		</div>
 	</div>
 	<noscript>

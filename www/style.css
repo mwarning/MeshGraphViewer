@@ -29,35 +29,6 @@
   overflow: hidden;
 }
 
-#chart path {
-  stroke: steelblue;
-  stroke-width: 2;
-  fill: none;
-}
-
-#chart svg {
-  height: auto;
-  width: auto;
-}
-
-#chart .axis path {
-  fill: none;
-  stroke: grey;
-  stroke-width: 1;
-  shape-rendering: crispEdges;
-}
-
-#chart .error-line {
-  stroke: #b30059;
-  stroke-dasharray: 2,2;
-}
-
-#chart .error-cap-top, #chart .error-cap-bottom {
-  stroke: #b30059;
-  stroke-width: 2px;
-  stroke-type: solid;
-}
-
 /* Style the tab */
 div.tab {
   overflow: hidden;
