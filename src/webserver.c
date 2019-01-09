@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
 #include <microhttpd.h>
 
@@ -35,8 +36,7 @@ static uint8_t *get_included_file(size_t *content_size, const char url[])
   return NULL;
 }
 
-static uint8_t *read_file(size_t *size, const char path[])
-{
+static uint8_t *read_file(size_t *size, const char path[]) {
   uint8_t *fdata;
   long fsize;
   FILE *fp;
@@ -147,13 +147,30 @@ static int send_response(void *cls, struct MHD_Connection *connection,
     goto error;
   }
 
-  debug("connection from IP address: %s\n", str_addr(connection_info->client_addr));
+  debug("Connection from IP address: %s\n", str_addr(connection_info->client_addr));
 
   content_data = NULL;
   content_size = 0;
-
-  if (0 == strcmp(url, "/device-observatory.json")) {
+/*
+  if (0 == strcmp(url, "/cmd_remove_links")) {
+    //execute();
+  } else if (0 == strcmp(url, "/cmd_remove_nodes")) {
+   //execute();
+  } else if (0 == strcmp(url, "/cmd_add_links")) {
+    //execute();
+  } else if (0 == strcmp(url, "/cmd_add_nodes")) {
+    //execute();
+  } else*/ if (0 == strcmp(url, "/graph.json")) {
     // Fetch JSON data
+
+    content_data = read_file(&content_size, "graph.json");
+    mode = MHD_RESPMEM_MUST_FREE;
+
+    response = MHD_create_response_from_buffer(content_size, content_data, mode);
+    MHD_add_response_header(response, "Content-Type", "application/json");
+    ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+    return ret;
+
 /*
     is_localhost = is_localhost_addr(
       connection_info->client_addr
@@ -164,6 +181,7 @@ static int send_response(void *cls, struct MHD_Connection *connection,
     );
 */
     fp = open_memstream((char**) &content_data, &content_size);
+
     /*if (is_localhost) {
       // get all device info for localhost access
       write_devices_json(fp);

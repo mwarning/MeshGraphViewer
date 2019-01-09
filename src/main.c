@@ -32,6 +32,7 @@ static int g_is_running;
 
 // Current time
 time_t g_now = 0;
+char* g_json_file = NULL;
 
 
 static void unix_signal_handler(int signo) {
@@ -67,6 +68,7 @@ static void setup_signal_handlers() {
 }
 
 enum {
+  oJsonFile,
   oWriteOutFiles,
   oWebserverPort,
   oWebserverPath,
@@ -74,6 +76,7 @@ enum {
 };
 
 static struct option options[] = {
+  {"json-file", required_argument, 0, oJsonFile},
   {"write-out-files", required_argument, 0, oWriteOutFiles},
   {"webserver-port", required_argument, 0, oWebserverPort},
   {"webserver-path", required_argument, 0, oWebserverPath},
@@ -127,6 +130,9 @@ int main(int argc, char **argv) {
     int c = getopt_long(argc, argv, "", options, &index);
 
     switch (c) {
+    case oJsonFile:
+      g_json_file = strdup(optarg);
+      break;
     case oWriteOutFiles:
       write_out_files(optarg);
       break;
