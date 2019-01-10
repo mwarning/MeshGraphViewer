@@ -20,7 +20,6 @@
 
 static struct MHD_Daemon *g_webserver;
 static const char *g_webserver_path;
-static time_t g_graph_mtime = 0;
 
 
 // Lookup files content included by files.h
@@ -93,30 +92,84 @@ const char *get_mimetype(const char str[]) {
   return "application/octet-stream";
 }
 
+struct arguments {
+  char *nodes;
+  char *links;
+};
+
 /*
-static int get_host_value_callback(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
-{
-  const char **host = (const char **)cls;
-  if (MHD_HEADER_KIND != kind) {
-    *host = NULL;
-    return MHD_NO;
+int count_commas(const char *str) {
+  int c;
+  int i;
+
+  c = 0;
+  i = 0;
+  while (str[i]) {
+    c += (str[i] == ',');
+    i += 1;
   }
 
-  if (!strcmp("Host", key)) {
-    *host = value;
-    return MHD_NO;
+  if (i) {
+   return c + 1;
+  } else {
+    return 0;
   }
-
-  return MHD_YES;
 }
-MHD_get_connection_values(connection, MHD_HEADER_KIND, get_host_value_callback, &host);
 
-static int counter_iterator(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
-{
-  return MHD_YES;
+static void parse_numbers(struct arguments *args, const char *values) {
+   //parse numbers
+   int n = count_commas(values);
+   printf("n: %d\n", n);
+   args->nodes = (uint16_t*) malloc(sizeof(uint16_t) * n);
+   args->nodes_count = n;
+
+   int i = 0;
+   const char *next = values;
+    while (1) {
+      args->nodes[i] = atoi(next);
+      next = strchr(next, ',');
+      if (next) {
+        next += 1;
+        i += 1;
+      } else {
+        break;
+      }
+    }
 }
-element_counter = MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, counter_iterator, NULL);
 */
+static char *sanitize_nodes(const char *value) {
+  char *data = strdup(value);
+
+  int i = 0;
+  while (data[i]) {
+    if (data[i] == ',') {
+      data[i] = ' ';
+    } else if (data[i] < '0' || data[i] > '9') {
+      // invalid content
+      free(data);
+      return NULL;
+    }
+    i += 1;
+  }
+
+  return data;
+}
+
+static int get_values(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
+  struct arguments *args = (struct arguments *)cls;
+
+  printf("key: %s, value: %s\n", key, value);
+
+  if (strcmp(key, "nodes") == 0) {
+    args->nodes = sanitize_nodes(value);
+  }
+
+  if (strcmp(key, "links") == 0) {
+    args->links = sanitize_nodes(value);
+  }
+
+  return MHD_YES;
+}
 
 static int send_json(struct MHD_Connection *connection, const char* data, unsigned len) {
   struct MHD_Response *response;
@@ -135,9 +188,8 @@ static int send_empty_json(struct MHD_Connection *connection) {
 }
 
 static int send_response(void *cls, struct MHD_Connection *connection,
-  const char *url, const char *method, const char *version,
-  const char *upload_data, size_t *upload_data_size, void **con_cls)
-{
+      const char *url, const char *method, const char *version,
+      const char *upload_data, size_t *upload_data_size, void **con_cls) {
   const union MHD_ConnectionInfo *connection_info;
   enum MHD_ResponseMemoryMode mode;
   struct MHD_Response *response;
@@ -162,30 +214,32 @@ static int send_response(void *cls, struct MHD_Connection *connection,
       return send_empty_json(connection);
     }
 
-    //TODO: extract arguments
+    struct arguments args = {0};
+    MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, get_values, &args);
 
+    printf("execute %s\n", g_call);
     char buf[512];
-    ret = execute_ret(buf, sizeof(buf), "%s %s %s' '%s'", g_call, url + strlen("/cmd/"), "", "");
-    if (ret) {
-      return send_json(connection, buf, strlen(buf));
+    ret = execute_ret(buf, sizeof(buf), "./%s %s %s", g_call, args.nodes, args.links);
+    free(args.nodes);
+    free(args.links);
+
+    printf("%s\n", buf);
+
+    if (ret == 0) {
+      if (buf[0]) {
+        return send_json(connection, buf, strlen(buf));
+      } else {
+        return send_empty_json(connection);
+      }
     } else {
       fprintf(stderr, "error from %s\n", g_call);
       return send_empty_json(connection);
     }
   } else if (0 == strcmp(url, "/cmd/graph")) {
     // Fetch JSON data
-
-    struct stat attr;
-
     if (g_graph == NULL) {
       goto not_found;
-    } else if (stat(g_graph, &attr) != 0) {
-      return send_empty_json(connection);
-    } else if (attr.st_mtime == g_graph_mtime) {
-      return send_empty_json(connection);
     } else {
-      g_graph_mtime = attr.st_mtime;
-
       content_data = read_file(&content_size, g_graph);
       mode = MHD_RESPMEM_MUST_FREE;
 

@@ -12,38 +12,15 @@
 	<script src="js/utils.js"></script>
 	<script src="js/graph.js"></script>
 	<script src="js/draw.js"></script>
-	<script src="js/edit.js"></script>
 	<script src="js/show.js"></script>
 	<script src="js/control.js"></script>
 
 	<script>
 		var graph;
-		var edit;
 		var show;
 		var control;
-/*
-		function globalUpdateGraph() {
-			send('/cmd/graph', {}, function(data) {
-				var json = JSON.parse(data);
-				if (json.nodes && json.links) {
-					graph.updateGraph(json.nodes, json.links);
-				}
-			});
-		}
 
-		// rename to updateData
-		function globalUpdateNodes() {
-			send('/cmd/data', {}, function(data) {
-				var json = JSON.parse(data);
-				if (json.nodes) {
-					graph.updateData(json.nodes);
-				}
-			});
-		}
-*/
 		function globalUpdate() {
-			//globalUpdateGraph();
-			//globalUpdateNodes();
 			send('/cmd/graph', {}, function(data) {
 				var json = JSON.parse(data);
 				if (json.nodes && json.links) {
@@ -57,7 +34,6 @@
 			document.getElementsByClassName('tablinks')[0].click();
 
 			graph = createGraph('graph');
-			edit = createEdit(graph);
 			show = createShow(graph);
 			control = createControl(graph);
 
@@ -76,11 +52,16 @@
 			</div>
 			<div id="edit" class="tabcontent">
 				<fieldset>
-					<legend>Select</legend>
+					<legend>Graph</legend>
+					<div class="equal">
+						<input type="button" onclick="globalUpdate()" value="Reload" />
+					</div>
+				</fieldset>
+				<fieldset>
+					<legend>Selection</legend>
 					<div class="equal">
 						<input type="button" onclick="graph.extendSelection()" value="extend" />
 						<input type="button" onclick="graph.clearSelection()" value="unselect" />
-						<input type="button" onclick="graph.removeSelection()" value="remove" />
 					</div>
 				</fieldset>
 				<fieldset>
@@ -88,8 +69,10 @@
 					<div class="equal">
 						<input type="button" onclick="graph.connectSelectedNodes()" value="connect" />
 						<input type="button" onclick="graph.disconnectSelectedNodes()" value="disconnect" />
+						<input type="button" onclick="graph.removeSelectedItems()" value="remove" />
 					</div>
 				</fieldset>
+			<!--
 				<fieldset>
 					<legend>Misc</legend>
 					<div class="enum">
@@ -109,64 +92,6 @@
 						</div>
 					</div>
 				</fieldset>
-			<!--
-				<fieldset>
-					<legend>Add Primitives</legend>
-					<div class="enum">
-						<div>
-							<input type="button" onclick="edit.addNodes(1)" value="Node" />
-						</div>
-					</div>
-					<div class="enum">
-						<div>
-							<input type="button" onclick="edit.addLine(getInt('line_n'), getBool('line_close'))" value="Line" />
-						</div>
-						<div class="equal">
-							<input type="number" id="line_n" min="1" max="999" value="3" />
-							<input type="checkbox" id="line_close" />
-							<span>Loop</span>
-						</div>
-					</div>
-					<div class="enum">
-						<div>
-							<input type="button" onclick="edit.addStar(getInt('star_n'))" value="Star" />
-						</div>
-						<div class="equal">
-							<input type="number" id="star_n" min="1" max="999" value="4" />
-						</div>
-					</div>
-					<div class="enum">
-						<div>
-							<input type="button" onclick="edit.addLattice4(getInt('lattice4_x'), getInt('lattice4_y'))" value="4-Lattice" />
-						</div>
-						<div class="equal">
-							<input type="number" id="lattice4_x" min="1" max="999" value="3" />
-							<span>x</span>
-							<input type="number" id="lattice4_y" min="1" max="999" value="3" />
-						</div>
-					</div>
-					<div class="enum">
-						<div>
-							<input type="button" onclick="edit.addLattice8(getInt('lattice8_x'), getInt('lattice8_y'))" value="8-Lattice" />
-						</div>
-						<div class="equal">
-							<input type="number" id="lattice8_x" min="1" max="999" value="3" />
-							<span>x</span>
-							<input type="number" id="lattice8_y" min="1" max="999" value="3" />
-						</div>
-					</div>
-					<div class="enum">
-						<div>
-							<input type="button" onclick="edit.addTree(getInt('tree_c'), getInt('tree_d'))" value="Tree" />
-						</div>
-						<div class="equal">
-							<input type="number" id="tree_c" min="1" max="999" value="8" />
-							<label title="Add additional random connections to the tree.">Extra:</label>
-							<input type="number" id="tree_d" min="0" max="999" value="0" />
-						</div>
-					</div>
-				</fieldset>
-			-->
 				<fieldset>
 					<legend>Link Parameters</legend>
 					<div class="enum">
@@ -199,18 +124,11 @@
 						<input type="button" onclick="edit.setLinkParameters('bandwidth_value', 'quality_value', 'quality_generation', 'channel_value')" value="Set" />
 					</div>
 				</fieldset>
+			-->
 				<fieldset>
 					<legend>Animation</legend>
 					<div class="equal">
 						<input type="button" onclick="graph.toggleAnimation()" value="toggle" />
-					</div>
-				</fieldset>
-				<fieldset>
-					<legend>Miscellaneous</legend>
-					<div class="equal">
-						<input type="button" onclick="edit.removeUnconnected()" value="remove single" />
-						<input type="button" onclick="graph.resetView()" value="reset view" />
-						<input type="button" onclick="graph.removeGraph()" value="remove graph" />
 					</div>
 				</fieldset>
 				<fieldset>

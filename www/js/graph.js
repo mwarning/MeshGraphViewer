@@ -439,7 +439,7 @@ function createGraph(graph_id) {
 	}
 
 	// Remove selected items
-	self.removeSelection = function () {
+	self.removeSelectedItems = function () {
 		var selectedNodes = draw.getSelectedIntNodes();
 		var selectedLinks = draw.getSelectedIntLinks();
 		var node_ids = selectedNodes.map(d => d.index);
