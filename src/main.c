@@ -22,21 +22,27 @@
 #include "main.h"
 
 
-static const char *help_text = "\n"
-  " --graph <json-file>  Graph topology in JSON format.\n"
-  " --data <json-file>  Extra node meta data in JSON format.\n"
-  " --call <program>  Call an external program when an action on the graph view is performed\n"
-  "       <program> [<command>] [..]\n"
-  "       Command list:\n"
-  "         get-link-prop|set-link-prop\n"
-  "         get-node-prop|set-node-prop\n"
-  "         add-link|del-link\n"
-  " --webserver-port <port>	Port for the build-in webserver. Set to 0 to disable webserver. Default: 8080\n"
-  " --webserver-path <path>	Root folder for the build-in webserver. Default: internal\n"
-  " --help				Display this help\n";
+static const char *g_help_text =
+  "Display a graph via a web server. Pass back events to interact with the graph.\n"
+  "\n"
+  " --graph <json-file>      Graph topology in JSON format.\n"
+  " --data <json-file>       Extra node meta data in JSON format.\n"
+  " --call <program>         Call an external program when an action on the graph view is performed.\n"
+  "                            <program> [<command>] [..]\n"
+  "                          Command list:\n"
+  "                            get-link-prop|set-link-prop\n"
+  "                            get-node-prop|set-node-prop\n"
+  "                            add-link|del-link\n"
+  " --webserver-port <port>  Port for the build-in webserver. Set to 0 to disable webserver. Default: 8000\n"
+  " --webserver-path <path>  Root folder for the build-in webserver. Default: internal\n"
+  " --write-out-files <path> Write included html/js/css files to disk.\n"
+  " --version                Print version.\n"
+  " --help                   Display this help.\n";
 
 // Run state
 static int g_is_running;
+
+static const char *g_version = "0.0.1";
 
 // Current time
 time_t g_now = 0;
@@ -85,6 +91,7 @@ enum {
   oWriteOutFiles,
   oWebserverPort,
   oWebserverPath,
+  oVersion,
   oHelp
 };
 
@@ -95,6 +102,7 @@ static struct option options[] = {
   {"write-out-files", required_argument, 0, oWriteOutFiles},
   {"webserver-port", required_argument, 0, oWebserverPort},
   {"webserver-path", required_argument, 0, oWebserverPath},
+  {"version", no_argument, 0, oVersion},
   {"help", no_argument, 0, oHelp},
   {0, 0, 0, 0}
 };
@@ -139,9 +147,6 @@ int main(int argc, char **argv) {
   int rc;
   int i;
 
-  // some test default
-  g_graph_file = "graph.json";
-
   i = 1;
   while (i) {
     index = 0;
@@ -170,14 +175,17 @@ int main(int argc, char **argv) {
     case oWebserverPath:
       webserver_path = optarg;
       break;
+    case oVersion:
+      printf("%s\n", g_version);
+      return EXIT_SUCCESS;
     case oHelp:
-      printf("%s", help_text);
-      return 0;
+      printf("%s\n", g_help_text);
+      return EXIT_SUCCESS;
     case -1:
       // End of options reached
       for (i = optind; i < argc; i++) {
         fprintf(stderr, "Unknown option: %s\n", argv[i]);
-        return 1;
+        return EXIT_FAILURE;
       }
       i = 0;
       break;

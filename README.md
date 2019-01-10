@@ -4,17 +4,32 @@
 
 Read a graph file from disk and display a fancy graph. Interactions with the graph (selection, deletion, etc.) can be passed to external programs.
 
-Written in C and JavaScript. Uses d3.js and libmicrohttpd.
+Written in C and JavaScript. Build on top of d3.js and libmicrohttpd.
 
 Arguments:
 
-* `--bind <address>`: Bind to this address. Default is `127.0.0.1:8000`.
-* `-w <file>`: JSON file in NetJson format or a UNIX socket.
-* `--ignore-external-commands`:
-* `--on-delete-nodes <cmd>`:
-* `--on-delete-links <cmd>`:
-* `--on-disconnect-nodes <cmd>`:
-* `--on-connect-nodes <cmd>`:
+* `--graph <json-file>`: Graph topology in JSON format.
+* `--data <json-file>`: Extra node meta data in JSON format.
+* `--call <program>`: Call an external program when an action on the graph view is performed.  
+    `<program> [<command>] [..]`  
+  Command list:  
+    `get-link-prop`|`set-link-prop`  
+    `get-node-prop`|`set-node-prop`  
+    `add-link`|`del-link`
+* `--webserver-port <port>`: Port for the build-in webserver. Set to 0 to disable webserver. Default: 8000
+* `--webserver-path <path>`: Root folder for the build-in webserver. Default: internal
+* `--write-out-files <path>`: Write included html/js/css files to disk.
+* `--version`: Print version.
+* `--help`: Display help.
+
+## Build Dependencies
+
+- xxd tool to include html/js/css data into binary
+- libmicrohttpd development headers
+
+## Run Dependencies
+
+- libmicrohttpd library
 
 ## TODO
 
