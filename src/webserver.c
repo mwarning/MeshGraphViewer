@@ -20,15 +20,11 @@
 
 static struct MHD_Daemon *g_webserver;
 static const char *g_webserver_path;
-static time_t graph_file_mtime = 0;
-
-//static const char *msg_404 = "<html><head><title>Error 404</title></head><body>Error 404</body></html>";
-//static const char *msg_304 = "<html><head><title>Not Modified 304</title></head><body>Not Modified 304</body></html>";
+static time_t g_graph_mtime = 0;
 
 
 // Lookup files content included by files.h
-static uint8_t *get_included_file(size_t *content_size, const char url[])
-{
+static uint8_t *get_included_file(size_t *content_size, const char url[]) {
   struct content *e = g_content;
   while (e->path) {
     if (0 == strcmp(e->path, url)) {
@@ -41,46 +37,11 @@ static uint8_t *get_included_file(size_t *content_size, const char url[])
   return NULL;
 }
 
-static uint8_t *read_file(size_t *size, const char path[]) {
-  uint8_t *fdata;
-  long fsize;
-  FILE *fp;
-
-  fp = fopen(path, "rb");
-  if (NULL == fp)
-    return NULL;
-
-  fseek(fp, 0, SEEK_END);
-  fsize = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-
-  fdata = malloc(fsize);
-  fread(fdata, fsize, 1, fp);
-  fclose(fp);
-
-  *size = fsize;
-
-  return fdata;
-}
-
-static int is_suffix(const char path[], const char prefix[])
-{
-  int pathlen = strlen(path);
-  int prefixlen = strlen(prefix);
-
-  if (prefixlen >= pathlen) {
-    return 0;
-  }
-
-  return (0 == memcmp(path + (pathlen - prefixlen), prefix, prefixlen));
-}
-
 /*
  * Check if the path consist of "[a-zA-Z0-9.\_-]*".
  * But does not contain "..".
  */
-static int is_valid_path(const char path[])
-{
+static int is_valid_path(const char path[]) {
   char prev;
   int c;
   int i;
@@ -131,6 +92,31 @@ const char *get_mimetype(const char str[]) {
 
   return "application/octet-stream";
 }
+
+/*
+static int get_host_value_callback(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+{
+  const char **host = (const char **)cls;
+  if (MHD_HEADER_KIND != kind) {
+    *host = NULL;
+    return MHD_NO;
+  }
+
+  if (!strcmp("Host", key)) {
+    *host = value;
+    return MHD_NO;
+  }
+
+  return MHD_YES;
+}
+MHD_get_connection_values(connection, MHD_HEADER_KIND, get_host_value_callback, &host);
+
+static int counter_iterator(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+{
+  return MHD_YES;
+}
+element_counter = MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, counter_iterator, NULL);
+*/
 
 static int send_json(struct MHD_Connection *connection, const char* data, unsigned len) {
   struct MHD_Response *response;
@@ -186,23 +172,21 @@ static int send_response(void *cls, struct MHD_Connection *connection,
       fprintf(stderr, "error from %s\n", g_call);
       return send_empty_json(connection);
     }
-  } else if (0 == strcmp(url, "/cmd/data")) {
-    return send_empty_json(connection);
   } else if (0 == strcmp(url, "/cmd/graph")) {
     // Fetch JSON data
 
     struct stat attr;
 
-    if (g_graph_file == NULL) {
+    if (g_graph == NULL) {
       goto not_found;
-    } else if (stat(g_graph_file, &attr) != 0) {
+    } else if (stat(g_graph, &attr) != 0) {
       return send_empty_json(connection);
-    } else if (attr.st_mtime == graph_file_mtime) {
+    } else if (attr.st_mtime == g_graph_mtime) {
       return send_empty_json(connection);
     } else {
-      graph_file_mtime = attr.st_mtime;
+      g_graph_mtime = attr.st_mtime;
 
-      content_data = read_file(&content_size, g_graph_file);
+      content_data = read_file(&content_size, g_graph);
       mode = MHD_RESPMEM_MUST_FREE;
 
       response = MHD_create_response_from_buffer(content_size, content_data, mode);

@@ -243,16 +243,8 @@ function createGraph(graph_id) {
 	function nodeId(n) {
 		return n.index; //o.mac;
 	}
-
+/*
 	self.updateData = function (data) {
-		/*
-		var nodeDict = {};
-
-		intNodes.forEach(function (e) {
-			nodeDict[nodeId(e)] = e;
-		});
-		*/
-
 		for (i in data) {
 			if (i < intNodes.length) {
 				intNodes[i].o = data[i];
@@ -262,6 +254,7 @@ function createGraph(graph_id) {
 		force.alpha(1).restart();
 		redraw();
 	}
+*/
 /*
 	// TODO: move 
 	self.switchToMeta = function () {
@@ -353,6 +346,7 @@ function createGraph(graph_id) {
 		force.nodes(intNodes);
 		forceLink.links(intLinks);
 
+		// remove selected items that do not exist anymore
 		draw.filterSelections(intNodes, intLinks);
 
 		force.alpha(1).restart();
@@ -367,24 +361,12 @@ function createGraph(graph_id) {
 				globalUpdateGraph();
 			}
 		);
-		/*
-		intNodes = [];
-		intLinks = [];
-
-		//updateGraphStatistics();
-
-		force.nodes(intNodes);
-		forceLink.links(intLinks);
-
-		force.alpha(1).restart();
-		resizeCanvas();
-		*/
 	}
 
 	self.disconnectSelectedNodes = function () {
 		var selectedNodes = draw.getSelectedIntNodes();
 		var node_ids = selectedNodes.map(d => d.index);
-		send("/cmd/disconnect", { nodes: node_ids }, function() {
+		send("/cmd/call", { cmd: "disconnect", nodes: node_ids }, function() {
 			//todo: deselect links
 			//poll removed?
 			globalUpdateGraph(); //how to get a meaningfull diff?
@@ -394,7 +376,7 @@ function createGraph(graph_id) {
 	self.connectSelectedNodes = function () {
 		var selectedNodes = draw.getSelectedIntNodes();
 		var node_ids = selectedNodes.map(d => d.index);
-		send("/cmd/connect", { nodes: node_ids }, function() {
+		send("/cmd/call", { cmd: "connect", nodes: node_ids }, function() {
 			//TODO: deselect links
 			globalUpdateGraph(); //how to get a meaningfull diff?
 		});
@@ -467,7 +449,7 @@ function createGraph(graph_id) {
 			link_ids.push([d.source.index, d.target.index]);
 		});
 
-		send("/cmd/remove", { links: link_ids, nodes: node_ids }, function() {
+		send("/cmd/call", { cmd: "remove", links: link_ids, nodes: node_ids }, function() {
 			globalUpdateGraph();
 		});
 	};

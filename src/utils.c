@@ -12,9 +12,48 @@
 #include "utils.h"
 
 
+uint8_t *read_file(size_t *size, const char path[]) {
+  uint8_t *fdata;
+  long fsize;
+  FILE *fp;
+
+  fp = fopen(path, "rb");
+  if (NULL == fp) {
+    return NULL;
+  }
+
+  fseek(fp, 0, SEEK_END);
+  fsize = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+
+  fdata = malloc(fsize);
+  fread(fdata, fsize, 1, fp);
+  fclose(fp);
+
+  *size = fsize;
+
+  return fdata;
+}
+
+int is_suffix(const char path[], const char prefix[]) {
+  int pathlen = strlen(path);
+  int prefixlen = strlen(prefix);
+
+  if (prefixlen >= pathlen) {
+    return 0;
+  }
+
+  return (0 == memcmp(path + (pathlen - prefixlen), prefix, prefixlen));
+}
+
 int is_executable(const char path[]) {
   struct stat sb;
   return (stat(path, &sb) == 0 && sb.st_mode & S_IXUSR);
+}
+
+int is_file(const char path[]) {
+  struct stat sb;
+  return (stat(path, &sb) == 0 &&  S_ISREG(sb.st_mode) != 0);
 }
 
 static int _execute_ret(char* msg, int msg_len, const char *cmd) {

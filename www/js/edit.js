@@ -1,9 +1,9 @@
 
 function createEdit(graph) {
 	var self = {};
-
+/*
 	self.addNodes = function (count) {
-		send('/cmd/add_nodes', {count: count}, globalUpdate);
+		send('/cmd/call', {cmd: "add_nodes", count: count}, globalUpdate);
 	}
 
 	self.addLine = function (count, close) {
@@ -28,6 +28,8 @@ function createEdit(graph) {
 	self.addTree = function (count, intra = 0) {
 		send('/cmd/add_tree', {count: count, intra: intra}, globalUpdate);
 	}
+*/
+
 
 	self.removeUnconnected = function () {
 		send('/cmd/remove_unconnected', {}, globalUpdate);

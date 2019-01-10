@@ -14,7 +14,11 @@
 // Number of elements in an array
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
+uint8_t *read_file(size_t *size, const char path[]);
+int is_suffix(const char path[], const char prefix[]);
+
 int is_executable(const char path[]);
+int is_file(const char path[]);
 
 int execute(const char fmt[], ...);
 int execute_ret(char* msg, int msg_len, const char fmt[], ...);

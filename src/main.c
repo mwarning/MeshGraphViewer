@@ -26,7 +26,6 @@ static const char *g_help_text =
   "Display a graph via a web server. Pass back events to interact with the graph.\n"
   "\n"
   " --graph <json-file>      Graph topology in JSON format.\n"
-  " --data <json-file>       Extra node meta data in JSON format.\n"
   " --call <program>         Call an external program when an action on the graph view is performed.\n"
   "                            <program> [<command>] [..]\n"
   "                          Command list:\n"
@@ -36,6 +35,7 @@ static const char *g_help_text =
   " --webserver-port <port>  Port for the build-in webserver. Set to 0 to disable webserver. Default: 8000\n"
   " --webserver-path <path>  Root folder for the build-in webserver. Default: internal\n"
   " --write-out-files <path> Write included html/js/css files to disk.\n"
+  " --open                   Show graph in browser.\n"
   " --version                Print version.\n"
   " --help                   Display this help.\n";
 
@@ -47,8 +47,7 @@ static const char *g_version = "0.0.1";
 // Current time
 time_t g_now = 0;
 
-const char* g_graph_file = NULL;
-const char* g_data_file = NULL;
+const char* g_graph = NULL;
 const char* g_call = NULL;
 
 
@@ -86,22 +85,22 @@ static void setup_signal_handlers() {
 
 enum {
   oGraph,
-  oData,
   oCall,
   oWriteOutFiles,
   oWebserverPort,
   oWebserverPath,
+  oOpen,
   oVersion,
   oHelp
 };
 
 static struct option options[] = {
   {"graph", required_argument, 0, oGraph},
-  {"data", required_argument, 0, oData},
   {"call", required_argument, 0, oCall},
   {"write-out-files", required_argument, 0, oWriteOutFiles},
   {"webserver-port", required_argument, 0, oWebserverPort},
   {"webserver-path", required_argument, 0, oWebserverPath},
+  {"open", no_argument, 0, oOpen},
   {"version", no_argument, 0, oVersion},
   {"help", no_argument, 0, oHelp},
   {0, 0, 0, 0}
@@ -139,6 +138,7 @@ int main(int argc, char **argv) {
   int webserver_port = 8000;
   const char *webserver_path = NULL;
   struct timeval tv;
+  int open_browser = 0;
   fd_set rset;
   fd_set wset;
   fd_set xset;
@@ -154,10 +154,11 @@ int main(int argc, char **argv) {
 
     switch (c) {
     case oGraph:
-      g_graph_file = strdup(optarg);
-      break;
-    case oData:
-      g_data_file = strdup(optarg);
+      if (!is_file(optarg)) {
+        fprintf(stderr, "%s does not exist\n", optarg);
+        return EXIT_FAILURE;
+      }
+      g_graph = strdup(optarg);
       break;
     case oCall:
       if (!is_executable(optarg)) {
@@ -174,6 +175,9 @@ int main(int argc, char **argv) {
       break;
     case oWebserverPath:
       webserver_path = optarg;
+      break;
+    case oOpen:
+      open_browser = 1;
       break;
     case oVersion:
       printf("%s\n", g_version);
@@ -194,6 +198,11 @@ int main(int argc, char **argv) {
     }
   }
 
+  if (g_graph == NULL) {
+    fprintf(stderr, "Missing --graph <path>\n");
+    return EXIT_FAILURE;
+  }
+
   if (webserver_port < 0) {
     fprintf(stderr, "Invalid webserver port\n");
     return EXIT_FAILURE;
@@ -204,14 +213,16 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  printf("Webserver port: %d\n", webserver_port);
-  printf("Webserver path: %s\n", webserver_path ? webserver_path : "internal");
-
   setup_signal_handlers();
 
   rc = webserver_start(webserver_path, webserver_port);
   if (rc == EXIT_FAILURE) {
     return EXIT_FAILURE;
+  }
+
+  if (open_browser) {
+    //TODO: open in one window only
+    execute("xdg-open http://localhost:%d", webserver_port);
   }
 
   g_is_running = 1;

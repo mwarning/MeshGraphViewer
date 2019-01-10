@@ -7,7 +7,7 @@ Written in C and JavaScript. Build on top of d3.js and libmicrohttpd.
 Arguments:
 
 * `--graph` *json-file*  
-  Graph topology in JSON format.
+  Graph topology and data in JSON format.
 * `--call` *program*  
   Call an external program when an action on the graph view is performed.  
     `<program> [<command>] [..]`  
@@ -15,6 +15,8 @@ Arguments:
     `get-link-prop`|`set-link-prop`  
     `get-node-prop`|`set-node-prop`  
     `add-link`|`del-link`
+* `--open`  
+  Show graph in browser.
 * `--webserver-port` *port*  
   Port for the build-in webserver. Default: 8000
 * `--webserver-path` *path*  

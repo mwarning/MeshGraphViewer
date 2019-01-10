@@ -21,7 +21,7 @@
 		var edit;
 		var show;
 		var control;
-
+/*
 		function globalUpdateGraph() {
 			send('/cmd/graph', {}, function(data) {
 				var json = JSON.parse(data);
@@ -40,10 +40,16 @@
 				}
 			});
 		}
-
+*/
 		function globalUpdate() {
-			globalUpdateGraph();
-			globalUpdateNodes();
+			//globalUpdateGraph();
+			//globalUpdateNodes();
+			send('/cmd/graph', {}, function(data) {
+				var json = JSON.parse(data);
+				if (json.nodes && json.links) {
+					graph.updateGraph(json.nodes, json.links);
+				}
+			});
 		}
 
 		function init() {
@@ -103,6 +109,7 @@
 						</div>
 					</div>
 				</fieldset>
+			<!--
 				<fieldset>
 					<legend>Add Primitives</legend>
 					<div class="enum">
@@ -159,6 +166,7 @@
 						</div>
 					</div>
 				</fieldset>
+			-->
 				<fieldset>
 					<legend>Link Parameters</legend>
 					<div class="enum">
