@@ -25,15 +25,19 @@
 		function globalUpdateGraph() {
 			send('/cmd/graph', {}, function(data) {
 				var json = JSON.parse(data);
-				graph.updateGraph(json.nodes, json.links);
+				if (json.nodes && json.links) {
+					graph.updateGraph(json.nodes, json.links);
+				}
 			});
 		}
 
 		// rename to updateData
 		function globalUpdateNodes() {
-			send('/cmd/nodes', {}, function(data) {
+			send('/cmd/data', {}, function(data) {
 				var json = JSON.parse(data);
-				graph.updateData(json.nodes);
+				if (json.nodes) {
+					graph.updateData(json.nodes);
+				}
 			});
 		}
 
@@ -52,11 +56,7 @@
 			control = createControl(graph);
 
 			//poller();
-			//globalUpdate();
-			graph.updateGraph(
-				[{mac: 1}, {mac: 2}],
-				[{source: 1, target: 2, source_tq: 1, target_tq: 1}]
-			);
+			globalUpdate();
 		}
 	</script>
 </head>

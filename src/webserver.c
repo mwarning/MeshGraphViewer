@@ -6,6 +6,9 @@
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <microhttpd.h>
 
@@ -17,8 +20,10 @@
 
 static struct MHD_Daemon *g_webserver;
 static const char *g_webserver_path;
+static time_t graph_file_mtime = 0;
 
-static const char *error_404 = "<html><head><title>Error 404</title></head><body>Error 404</body></html>";
+//static const char *msg_404 = "<html><head><title>Error 404</title></head><body>Error 404</body></html>";
+//static const char *msg_304 = "<html><head><title>Not Modified 304</title></head><body>Not Modified 304</body></html>";
 
 
 // Lookup files content included by files.h
@@ -127,6 +132,22 @@ const char *get_mimetype(const char str[]) {
   return "application/octet-stream";
 }
 
+static int send_json(struct MHD_Connection *connection, const char* data, unsigned len) {
+  struct MHD_Response *response;
+  int ret;
+
+  response = MHD_create_response_from_buffer(len, (char*) data, MHD_RESPMEM_PERSISTENT);
+  MHD_add_response_header(response, "Content-Type", "application/json");
+  ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+  MHD_destroy_response(response);
+
+  return ret;
+}
+
+static int send_empty_json(struct MHD_Connection *connection) {
+  return send_json(connection, "{}", 2);
+}
+
 static int send_response(void *cls, struct MHD_Connection *connection,
   const char *url, const char *method, const char *version,
   const char *upload_data, size_t *upload_data_size, void **con_cls)
@@ -137,9 +158,6 @@ static int send_response(void *cls, struct MHD_Connection *connection,
   char content_path[256];
   uint8_t *content_data;
   size_t content_size;
-  //struct device *device;
-  //int is_localhost;
-  FILE *fp;
   int ret;
 
   connection_info = MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
@@ -151,27 +169,48 @@ static int send_response(void *cls, struct MHD_Connection *connection,
 
   content_data = NULL;
   content_size = 0;
-/*
-  if (0 == strcmp(url, "/cmd_remove_links")) {
-    //execute();
-  } else if (0 == strcmp(url, "/cmd_remove_nodes")) {
-   //execute();
-  } else if (0 == strcmp(url, "/cmd_add_links")) {
-    //execute();
-  } else if (0 == strcmp(url, "/cmd_add_nodes")) {
-    //execute();
-  } else*/ if (0 == strcmp(url, "/graph.json")) {
+
+  if (0 == strcmp(url, "/cmd/call")) {
+    if (!g_call) {
+      fprintf(stderr, "no command handler set\n");
+      return send_empty_json(connection);
+    }
+
+    //TODO: extract arguments
+
+    char buf[512];
+    ret = execute_ret(buf, sizeof(buf), "%s %s %s' '%s'", g_call, url + strlen("/cmd/"), "", "");
+    if (ret) {
+      return send_json(connection, buf, strlen(buf));
+    } else {
+      fprintf(stderr, "error from %s\n", g_call);
+      return send_empty_json(connection);
+    }
+  } else if (0 == strcmp(url, "/cmd/data")) {
+    return send_empty_json(connection);
+  } else if (0 == strcmp(url, "/cmd/graph")) {
     // Fetch JSON data
 
-    content_data = read_file(&content_size, "graph.json");
-    mode = MHD_RESPMEM_MUST_FREE;
+    struct stat attr;
 
-    response = MHD_create_response_from_buffer(content_size, content_data, mode);
-    MHD_add_response_header(response, "Content-Type", "application/json");
-    ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
-    return ret;
+    if (g_graph_file == NULL) {
+      goto not_found;
+    } else if (stat(g_graph_file, &attr) != 0) {
+      return send_empty_json(connection);
+    } else if (attr.st_mtime == graph_file_mtime) {
+      return send_empty_json(connection);
+    } else {
+      graph_file_mtime = attr.st_mtime;
 
+      content_data = read_file(&content_size, g_graph_file);
+      mode = MHD_RESPMEM_MUST_FREE;
+
+      response = MHD_create_response_from_buffer(content_size, content_data, mode);
+      MHD_add_response_header(response, "Content-Type", "application/json");
+      ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+    }
 /*
+
     is_localhost = is_localhost_addr(
       connection_info->client_addr
     );
@@ -179,28 +218,29 @@ static int send_response(void *cls, struct MHD_Connection *connection,
     device = find_device_by_ip(
       connection_info->client_addr
     );
-*/
+
     fp = open_memstream((char**) &content_data, &content_size);
 
-    /*if (is_localhost) {
+    if (is_localhost) {
       // get all device info for localhost access
       write_devices_json(fp);
     } else {
      // get only own device info
       write_device_json(fp, device);
-    }*/
+    }
     fclose(fp);
 
     response = MHD_create_response_from_buffer(content_size, content_data, MHD_RESPMEM_MUST_FREE);
     MHD_add_response_header(response, "Content-Type", "application/json");
     ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+    */
   } else {
     if (0 == strcmp(url, "/")) {
       url = "/index.html";
     }
 
     if (!is_valid_path(url)) {
-      goto error;
+      goto not_found;
     }
 
     // Try to fetch external file first
@@ -215,11 +255,10 @@ static int send_response(void *cls, struct MHD_Connection *connection,
     if (NULL == content_data) {
       content_data = get_included_file(&content_size, url);
       mode = MHD_RESPMEM_PERSISTENT;
-    }
-
-    // Error if no file was found
-    if (NULL == content_data) {
-      goto error;
+      // Error if no file was found
+      if (NULL == content_data) {
+        goto not_found;
+      }
     }
 
     response = MHD_create_response_from_buffer(content_size, content_data, mode);
@@ -232,11 +271,25 @@ static int send_response(void *cls, struct MHD_Connection *connection,
   return ret;
 
 error:
-  response = MHD_create_response_from_buffer(strlen(error_404), (char *)error_404, MHD_RESPMEM_PERSISTENT);
-  MHD_add_response_header(response, "Content-Type", "text/html; charset=utf-8");
+  response = MHD_create_response_from_buffer(0, NULL, MHD_RESPMEM_PERSISTENT);
+  //MHD_add_response_header(response, "Content-Type", "text/html; charset=utf-8");
+  ret = MHD_queue_response(connection, MHD_HTTP_INTERNAL_SERVER_ERROR, response);
+  MHD_destroy_response(response);
+  return ret;
+not_found:
+  response = MHD_create_response_from_buffer(0, NULL, MHD_RESPMEM_PERSISTENT);
+  //MHD_add_response_header(response, "Content-Type", "text/html; charset=utf-8");
   ret = MHD_queue_response(connection, MHD_HTTP_NOT_FOUND, response);
   MHD_destroy_response(response);
   return ret;
+/*
+not_modified:
+  response = MHD_create_response_from_buffer(0, NULL, MHD_RESPMEM_PERSISTENT);
+  //MHD_add_response_header(response, "Content-Type", "text/html; charset=utf-8");
+  ret = MHD_queue_response(connection, MHD_HTTP_NOT_MODIFIED, response);
+  MHD_destroy_response(response);
+  return ret;
+*/
 }
 
 int webserver_start(const char path[], int port)

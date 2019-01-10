@@ -14,6 +14,8 @@
 // Number of elements in an array
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
+int is_executable(const char path[]);
+
 int execute(const char fmt[], ...);
 int execute_ret(char* msg, int msg_len, const char fmt[], ...);
 

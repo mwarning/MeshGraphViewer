@@ -12,6 +12,11 @@
 #include "utils.h"
 
 
+int is_executable(const char path[]) {
+  struct stat sb;
+  return (stat(path, &sb) == 0 && sb.st_mode & S_IXUSR);
+}
+
 static int _execute_ret(char* msg, int msg_len, const char *cmd) {
   struct sigaction sa, oldsa;
   FILE *fp;

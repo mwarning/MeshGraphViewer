@@ -23,6 +23,14 @@
 
 
 static const char *help_text = "\n"
+  " --graph <json-file>  Graph topology in JSON format.\n"
+  " --data <json-file>  Extra node meta data in JSON format.\n"
+  " --call <program>  Call an external program when an action on the graph view is performed\n"
+  "       <program> [<command>] [..]\n"
+  "       Command list:\n"
+  "         get-link-prop|set-link-prop\n"
+  "         get-node-prop|set-node-prop\n"
+  "         add-link|del-link\n"
   " --webserver-port <port>	Port for the build-in webserver. Set to 0 to disable webserver. Default: 8080\n"
   " --webserver-path <path>	Root folder for the build-in webserver. Default: internal\n"
   " --help				Display this help\n";
@@ -32,7 +40,10 @@ static int g_is_running;
 
 // Current time
 time_t g_now = 0;
-char* g_json_file = NULL;
+
+const char* g_graph_file = NULL;
+const char* g_data_file = NULL;
+const char* g_call = NULL;
 
 
 static void unix_signal_handler(int signo) {
@@ -68,7 +79,9 @@ static void setup_signal_handlers() {
 }
 
 enum {
-  oJsonFile,
+  oGraph,
+  oData,
+  oCall,
   oWriteOutFiles,
   oWebserverPort,
   oWebserverPath,
@@ -76,7 +89,9 @@ enum {
 };
 
 static struct option options[] = {
-  {"json-file", required_argument, 0, oJsonFile},
+  {"graph", required_argument, 0, oGraph},
+  {"data", required_argument, 0, oData},
+  {"call", required_argument, 0, oCall},
   {"write-out-files", required_argument, 0, oWriteOutFiles},
   {"webserver-port", required_argument, 0, oWebserverPort},
   {"webserver-path", required_argument, 0, oWebserverPath},
@@ -113,7 +128,7 @@ int file_exists(const char path[]) {
 }
 
 int main(int argc, char **argv) {
-  int webserver_port = 8080;
+  int webserver_port = 8000;
   const char *webserver_path = NULL;
   struct timeval tv;
   fd_set rset;
@@ -124,14 +139,27 @@ int main(int argc, char **argv) {
   int rc;
   int i;
 
+  // some test default
+  g_graph_file = "graph.json";
+
   i = 1;
   while (i) {
     index = 0;
     int c = getopt_long(argc, argv, "", options, &index);
 
     switch (c) {
-    case oJsonFile:
-      g_json_file = strdup(optarg);
+    case oGraph:
+      g_graph_file = strdup(optarg);
+      break;
+    case oData:
+      g_data_file = strdup(optarg);
+      break;
+    case oCall:
+      if (!is_executable(optarg)) {
+        fprintf(stderr, "%s is not executable\n", optarg);
+        return EXIT_FAILURE;
+      }
+      g_call = strdup(optarg);
       break;
     case oWriteOutFiles:
       write_out_files(optarg);
@@ -153,8 +181,6 @@ int main(int argc, char **argv) {
       }
       i = 0;
       break;
-    //case '?':
-    //  return 1;
     default:
       return EXIT_FAILURE;
     }
@@ -193,15 +219,6 @@ int main(int argc, char **argv) {
     FD_ZERO(&xset);
 
     maxfd = 0;
-/*
-    for (i = 0; i < g_pcap_num; i++) {
-      int fd = pcap_get_selectable_fd(g_pcap[i]);
-      FD_SET(fd, &rset);
-      if (fd > maxfd) {
-        maxfd = fd;
-      }
-    }
-*/
     webserver_before_select(&rset, &wset, &xset, &maxfd);
 
     if (select(maxfd + 1, &rset, &wset, &xset, &tv) < 0) {
