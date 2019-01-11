@@ -227,12 +227,7 @@ function createGraph(graph_id) {
 		resizeCanvas();
 		redraw();
 	});
-/*
-	function updateGraphStatistics() {
-		$$('graph_nodes_count').nodeValue = intNodes.length;
-		$$('graph_links_count').nodeValue = intLinks.length;
-	}
-*/
+
 	// Create a bidirectional link identifier
 	function linkId(source, target) {
 		var smac = source.o.mac;
@@ -277,6 +272,8 @@ function createGraph(graph_id) {
 
 	// Update graph
 	self.updateGraph = function (nodes, links) {
+		console.log("updateGraph");
+
 		// For fast node/link lookup
 		var nodeDict = {};
 		var linkDict = {};
@@ -299,21 +296,21 @@ function createGraph(graph_id) {
 		// Center new nodes at last click location
 		var px = lastClick[0] - mx;
 		var py = lastClick[1] - my;
-//console.log("px: " + px + ", py: " + py);
 
 		function addNode(node) {
 			var id = node.mac;
 			if (id in nodeDict) {
 				var n = nodeDict[id];
 				// Update existing node
+				n.o = node;
 				intNodes.push(n);
 				return n;
 			} else {
 				var n = {};
 				nodeDict[id] = n;
+				// intialize node position with center offset + geo position
 				n.x = node.x + px;
 				n.y = node.y + py;
-				//where to store geo info?
 				n.o = node;
 				intNodes.push(n);
 				return n;
@@ -358,7 +355,7 @@ function createGraph(graph_id) {
 		draw.clearSelection();
 
 		send("/cmd/clear", {}, function() {
-				globalUpdateGraph();
+				request_graph();
 			}
 		);
 	}
@@ -367,9 +364,7 @@ function createGraph(graph_id) {
 		var selectedNodes = draw.getSelectedIntNodes();
 		var node_ids = selectedNodes.map(d => d.index);
 		send("/cmd/call", { cmd: "disconnect", nodes: node_ids }, function() {
-			//todo: deselect links
-			//poll removed?
-			globalUpdateGraph(); //how to get a meaningfull diff?
+			request_graph();
 		});
 	}
 
@@ -377,8 +372,7 @@ function createGraph(graph_id) {
 		var selectedNodes = draw.getSelectedIntNodes();
 		var node_ids = selectedNodes.map(d => d.index);
 		send("/cmd/call", { cmd: "connect", nodes: node_ids }, function() {
-			//TODO: deselect links
-			globalUpdateGraph(); //how to get a meaningfull diff?
+			request_graph();
 		});
 	}
 
@@ -450,7 +444,7 @@ function createGraph(graph_id) {
 		});
 
 		send("/cmd/call", { cmd: "remove", links: link_ids, nodes: node_ids }, function() {
-			globalUpdateGraph();
+			request_graph();
 		});
 	};
 

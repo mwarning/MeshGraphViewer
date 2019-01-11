@@ -20,8 +20,25 @@
 		var show;
 		var control;
 
-		function globalUpdate() {
-			send('/cmd/graph', {}, function(data) {
+		function run_update_loop() {
+			var interval_ms = 200;
+
+			function looped_request_graph() {
+				send("/cmd/graph", {}, function(data) {
+					var json = JSON.parse(data);
+					if (json.nodes && json.links) {
+						graph.updateGraph(json.nodes, json.links);
+					}
+
+					setTimeout(looped_request_graph, interval_ms);
+				});
+			}
+
+			looped_request_graph();
+		}
+
+		function request_graph() {
+			send("/cmd/graph", {}, function(data) {
 				var json = JSON.parse(data);
 				if (json.nodes && json.links) {
 					graph.updateGraph(json.nodes, json.links);
@@ -37,8 +54,7 @@
 			show = createShow(graph);
 			control = createControl(graph);
 
-			//poller();
-			globalUpdate();
+			run_update_loop();
 		}
 	</script>
 </head>
@@ -54,7 +70,7 @@
 				<fieldset>
 					<legend>Graph</legend>
 					<div class="equal">
-						<input type="button" onclick="globalUpdate()" value="Reload" />
+						<input type="button" onclick="request_graph()" value="Reload" />
 					</div>
 				</fieldset>
 				<fieldset>
