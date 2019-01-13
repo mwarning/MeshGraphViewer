@@ -17,8 +17,9 @@
 uint8_t *read_file(size_t *size, const char path[]);
 int is_suffix(const char path[], const char prefix[]);
 
-int is_executable(const char path[]);
+int is_program(const char path[]);
 int is_file(const char path[]);
+int is_directory(const char path[]);
 
 int execute(const char fmt[], ...);
 int execute_ret(char* msg, int msg_len, const char fmt[], ...);

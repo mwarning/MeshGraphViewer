@@ -25,8 +25,11 @@
 static const char *g_help_text =
   "Display a graph via a web server. Pass back events to interact with the graph.\n"
   "\n"
-  " --graph <json-file>      Graph topology in JSON format.\n"
-  " --call <program>         Call an external program when an action on the graph view is performed.\n"
+  "  Usage: graph-tool <graph-file> [<call-program>]\n"
+  "\n"
+  " --graph <json-file>      Graph topology in JSON format. May be first unnamed argument.\n"
+  " --call <program>         Call an external program when an action on the graph\n"
+  "                          view is performed. May be second unnamed argument\n"
   "                            <program> [<command>] [..]\n"
   "                          Command list:\n"
   "                            get-link-prop|set-link-prop\n"
@@ -130,10 +133,6 @@ int write_out_files(const char *path) {
   return EXIT_SUCCESS;
 }
 
-int file_exists(const char path[]) {
-  return access(path, F_OK) != -1;
-}
-
 int main(int argc, char **argv) {
   int webserver_port = 8000;
   const char *webserver_path = NULL;
@@ -154,22 +153,14 @@ int main(int argc, char **argv) {
 
     switch (c) {
     case oGraph:
-      if (!is_file(optarg)) {
-        fprintf(stderr, "%s does not exist\n", optarg);
-        return EXIT_FAILURE;
-      }
       g_graph = strdup(optarg);
       break;
     case oCall:
-      if (!is_executable(optarg)) {
-        fprintf(stderr, "%s is not executable\n", optarg);
-        return EXIT_FAILURE;
-      }
       g_call = strdup(optarg);
       break;
     case oWriteOutFiles:
       write_out_files(optarg);
-      break;
+      return EXIT_SUCCESS;
     case oWebserverPort:
       webserver_port = atoi(optarg);
       break;
@@ -186,11 +177,6 @@ int main(int argc, char **argv) {
       printf("%s\n", g_help_text);
       return EXIT_SUCCESS;
     case -1:
-      // End of options reached
-      for (i = optind; i < argc; i++) {
-        fprintf(stderr, "Unknown option: %s\n", argv[i]);
-        return EXIT_FAILURE;
-      }
       i = 0;
       break;
     default:
@@ -198,8 +184,30 @@ int main(int argc, char **argv) {
     }
   }
 
+  // handle remaining arguments
+  for (i = optind; i < argc; i++) {
+    if (!g_graph) {
+      g_graph = strdup(argv[i]);
+    } else if (!g_call) {
+      g_call = strdup(argv[i]);
+    } else {
+      fprintf(stderr, "Unknown option: %s\n", argv[i]);
+      return EXIT_FAILURE;
+    }
+  }
+
   if (g_graph == NULL) {
-    fprintf(stderr, "Missing --graph <path>\n");
+    fprintf(stderr, "Missing input file\n");
+    return EXIT_FAILURE;
+  }
+
+  if (g_call && !is_program(g_call)) {
+    fprintf(stderr, "Program is not executable: %s\n", g_call);
+    return EXIT_FAILURE;
+  }
+
+  if (g_graph && !is_file(g_graph)) {
+    fprintf(stderr, "Graph file does not exist: %s\n", g_graph);
     return EXIT_FAILURE;
   }
 
@@ -208,7 +216,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (webserver_path && !file_exists(webserver_path)) {
+  if (webserver_path && !is_directory(webserver_path)) {
     fprintf(stderr, "Invalid webserver path: %s\n", webserver_path);
     return EXIT_FAILURE;
   }
@@ -220,10 +228,15 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+  printf("Listen on http://localhost:%d\n", webserver_port);
+
   if (open_browser) {
-    //TODO: open in one window only
     execute("xdg-open http://localhost:%d", webserver_port);
   }
+
+  // TODO: understand server/client path in git clone git@github.com:mwarning/unix-domain-socket-example.git
+  const char *unix_path = "/tmp/graph.sock";
+  int unix_fd = create_unix_socket(unix_path);
 
   g_is_running = 1;
   while (g_is_running) {
@@ -238,10 +251,20 @@ int main(int argc, char **argv) {
     FD_ZERO(&xset);
 
     maxfd = 0;
+
+    // add unix domain socket
+    if (unix_fd > 0) {
+      //handle_unix_socket
+      FD_SET(unix_fd, &rset);
+      if (unix_fd > maxfd) {
+        maxfd = unix_fd;
+      }
+    }
+
     webserver_before_select(&rset, &wset, &xset, &maxfd);
 
     if (select(maxfd + 1, &rset, &wset, &xset, &tv) < 0) {
-      if( errno == EINTR ) {
+      if (errno == EINTR) {
         continue;
       }
 
@@ -249,7 +272,15 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
 
+    if (FD_ISSET(unix_fd, &rset)) {
+      handle_unix_socket(unix_fd);
+    }
+
     webserver_after_select();
+  }
+
+  if (unix_fd > 0) {
+    destroy_unix_socket(unix_fd, unix_path);
   }
 
   return EXIT_SUCCESS;

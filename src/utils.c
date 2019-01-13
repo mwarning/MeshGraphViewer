@@ -46,14 +46,19 @@ int is_suffix(const char path[], const char prefix[]) {
   return (0 == memcmp(path + (pathlen - prefixlen), prefix, prefixlen));
 }
 
-int is_executable(const char path[]) {
+int is_program(const char path[]) {
   struct stat sb;
-  return (stat(path, &sb) == 0 && sb.st_mode & S_IXUSR);
+  return (stat(path, &sb) == 0) && (sb.st_mode & S_IXUSR) && S_ISREG(sb.st_mode);
+}
+
+int is_directory(const char path[]) {
+  struct stat sb;
+  return (stat(path, &sb) == 0) && S_ISDIR(sb.st_mode);
 }
 
 int is_file(const char path[]) {
   struct stat sb;
-  return (stat(path, &sb) == 0 &&  S_ISREG(sb.st_mode) != 0);
+  return (stat(path, &sb) == 0) && S_ISREG(sb.st_mode);
 }
 
 static int _execute_ret(char* msg, int msg_len, const char *cmd) {

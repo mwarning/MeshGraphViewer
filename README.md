@@ -20,9 +20,9 @@ Arguments:
 * `--webserver-port` *port*  
   Port for the build-in webserver. Default: 8000
 * `--webserver-path` *path*  
-  Root folder for the build-in webserver. Default: internal
+  Root folder for the build-in webserver. For development. Default: internal
 * `--write-out-files` *path*  
-  Write included html/js/css files to disk.
+  Write included html/js/css files to disk. For development.
 * `--version`  
   Print version.
 * `--help`  
