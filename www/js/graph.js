@@ -238,53 +238,23 @@ function createGraph(graph_id) {
 	function nodeId(n) {
 		return n.index; //o.mac;
 	}
-/*
-	self.updateData = function (data) {
-		for (i in data) {
-			if (i < intNodes.length) {
-				intNodes[i].o = data[i];
-			}
-		}
-
-		force.alpha(1).restart();
-		redraw();
-	}
-*/
-/*
-	// TODO: move 
-	self.switchToMeta = function () {
-		intNodes.forEach(function(n) {
-			var meta = n.o.meta;
-			if ('meta' in n.o) {
-				n.o.client_count = findValue(meta, 'clients', '').toString();
-			}
-			if ('node_name' in n.o) {
-				n.o.node_name = findValue(meta, 'hostname', n.o.mac);
-			}
-			if ('client_count' in n.o) {
-				n.o.client_count = findValue(meta, 'clients', '').toString();
-			}
-		});
-		intLinks.forEach(function(n) {
-			var meta = n.o.meta;
-		});
-	}*/
 
 	// Update graph
-	self.updateGraph = function (nodes, links) {
-		console.log("updateGraph");
-
+	self.updateGraph = function (nodes, links, is_update = false) {
 		// For fast node/link lookup
 		var nodeDict = {};
 		var linkDict = {};
 
-		intNodes.forEach(function (e) {
-			nodeDict[nodeId(e)] = e;
-		});
+		if (is_update) {
+			// Keep existing data
+			intNodes.forEach(function (e) {
+				nodeDict[nodeId(e)] = e;
+			});
 
-		intLinks.forEach(function (e) {
-			linkDict[linkId(e.source, e.target)] = e;
-		});
+			intLinks.forEach(function (e) {
+				linkDict[linkId(e.source, e.target)] = e;
+			});
+		}
 
 		intNodes = [];
 		intLinks = [];

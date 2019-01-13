@@ -219,7 +219,7 @@ function createDraw() {
 		var highlightedLinks_count = highlightedLinks.length;
 		var selectedNodes_count = selectedNodes.length;
 		var selectedLinks_count = selectedLinks.length;
-
+/*
 	 	//check if removing stuff really removed selected items
 		console.log("beg removed selected items: "
 			+ (highlightedNodes_count) + " "
@@ -227,7 +227,7 @@ function createDraw() {
 			+ (selectedNodes_count) + " "
 			+ (selectedLinks_count)
 		);
-
+*/
 		highlightedNodes = highlightedNodes.filter(function(e) {
 			return (intNodes.indexOf(e) !== -1);
 		});
@@ -243,13 +243,14 @@ function createDraw() {
 		selectedLinks = selectedLinks.filter(function(e) {
 			return (intLinks.indexOf(e) !== -1);
 		});
-
-	console.log("end removed selected items: "
-		+ (highlightedNodes_count - highlightedNodes.length) + " "
-		+ (highlightedLinks_count - highlightedLinks.length) + " "
-		+ (selectedNodes_count - selectedNodes.length) + " "
-		+ (selectedLinks_count - selectedLinks.length)
-	);
+/*
+		console.log("end removed selected items: "
+			+ (highlightedNodes_count - highlightedNodes.length) + " "
+			+ (highlightedLinks_count - highlightedLinks.length) + " "
+			+ (selectedNodes_count - selectedNodes.length) + " "
+			+ (selectedLinks_count - selectedLinks.length)
+		);
+*/
 	}
 
 	self.selectNode = function (node) {
