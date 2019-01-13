@@ -151,7 +151,7 @@ static int create_path_element(const char *path, int len) {
 
   int rc = mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   if (rc != 0 && errno != EEXIST) {
-    fprintf( stderr, "Error creating '%s': %s\n", buf, strerror(errno));
+    fprintf( stderr, "Error creating directory '%s': %s\n", buf, strerror(errno));
     return EXIT_FAILURE;
   }
 
@@ -162,12 +162,16 @@ int create_path(const char* path) {
   int len;
   char *e;
 
+  if (path[0] == '/') {
+    path += 1;
+  }
+
   len = 0;
   while (1) {
     e = strchr(path + len, '/');
     if (e) {
       len = (int) (e - path);
-      if (create_path_element(path, len) == EXIT_FAILURE) {
+      if (len && create_path_element(path, len) == EXIT_FAILURE) {
         return EXIT_FAILURE;
       }
       len += 1;
@@ -177,7 +181,7 @@ int create_path(const char* path) {
     }
   }
 
-  return create_path_element(path, len);
+  return EXIT_SUCCESS;
 }
 
 int create_file(const char* path, uint8_t *data, size_t len) {
@@ -186,7 +190,7 @@ int create_file(const char* path, uint8_t *data, size_t len) {
 
   file = fopen(path, "wb");
   if (file == NULL) {
-    fprintf(stderr, "Error creating '%s': %s\n", path, strerror(errno));
+    fprintf(stderr, "Error creating file '%s': %s\n", path, strerror(errno));
     return EXIT_FAILURE;
   }
 
@@ -194,7 +198,7 @@ int create_file(const char* path, uint8_t *data, size_t len) {
   fclose(file);
 
   if (written != len) {
-    fprintf( stderr, "Error creating '%s': %s\n", path, strerror(errno));
+    fprintf(stderr, "Error creating file '%s': %s\n", path, strerror(errno));
     return EXIT_FAILURE;
   }
 

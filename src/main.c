@@ -109,26 +109,35 @@ static struct option options[] = {
   {0, 0, 0, 0}
 };
 
-int write_out_files(const char *path) {
+int write_out_files(const char *target) {
   struct content *c;
   int rc;
 
+  if (target && chdir(target) == -1) {
+    printf("Failed to change directory to %s: %s\n", target, strerror(errno));
+    return EXIT_FAILURE;
+  }
+
   c = g_content;
-  while (c) {
+  while (c->path) {
+    printf("create %s\n", c->path + 1);
+
     // create dirname part
-    rc = create_path(c->path);
+    rc = create_path(c->path + 1);
     if (rc == EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
 
     // create basename file
-    rc = create_file(c->path, c->data, c->size);
-      if (rc == EXIT_FAILURE) {
+    rc = create_file(c->path + 1, c->data, c->size);
+    if (rc == EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
 
     c += 1;
   }
+
+  printf("done\n");
 
   return EXIT_SUCCESS;
 }
@@ -159,13 +168,12 @@ int main(int argc, char **argv) {
       g_call = strdup(optarg);
       break;
     case oWriteOutFiles:
-      write_out_files(optarg);
-      return EXIT_SUCCESS;
+      return write_out_files(optarg);
     case oWebserverPort:
       webserver_port = atoi(optarg);
       break;
     case oWebserverPath:
-      webserver_path = optarg;
+      webserver_path = strdup(optarg);
       break;
     case oOpen:
       open_browser = 1;
