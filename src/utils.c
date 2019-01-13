@@ -108,7 +108,7 @@ abort:
 }
 
 int execute(const char fmt[], ...) {
-  char cmd[512];
+  char cmd[1024];
   va_list vlist;
   int rc;
 
@@ -117,7 +117,7 @@ int execute(const char fmt[], ...) {
   va_end(vlist);
 
   if (rc < 0 || rc >= sizeof(cmd)) {
-    debug(LOG_ERR, "Format string too small or encoding error.");
+    fprintf(stderr, "Format string too small or encoding error.");
     return -1;
   }
 
@@ -125,7 +125,7 @@ int execute(const char fmt[], ...) {
 }
 
 int execute_ret(char* msg, int msg_len, const char fmt[], ...) {
-  char cmd[512];
+  char cmd[1024];
   va_list vlist;
   int rc;
 
@@ -134,7 +134,7 @@ int execute_ret(char* msg, int msg_len, const char fmt[], ...) {
   va_end(vlist);
 
   if (rc < 0 || rc >= sizeof(cmd)) {
-    debug(LOG_ERR, "Format string too small or encoding error.");
+    fprintf(stderr, "Format string too small or encoding error.");
     return -1;
   }
 

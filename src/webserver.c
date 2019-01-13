@@ -135,38 +135,29 @@ static int send_not_modified(struct MHD_Connection *connection) {
 }
 */
 
-static char *sanitize_cmd(const char *value) {
-  char *data = strdup(value);
-
+static char *validate_cmd(const char *data) {
   int i = 0;
   while (data[i]) {
     if ((data[i] < 'a' || data[i] > 'z') && data[i] != '_') {
-      // invalid content
-      free(data);
       return NULL;
     }
     i += 1;
   }
 
-  return data;
+  return strdup(data);
 }
 
-static char *sanitize_number_list(const char *value) {
-  char *data = strdup(value);
-
+static char *validate_list(const char *data) {
   int i = 0;
+
   while (data[i]) {
-    if (data[i] == ',') {
-      data[i] = ' ';
-    } else if (data[i] < '0' || data[i] > '9') {
-      // invalid content
-      free(data);
+    if (data[i] != ',' && (data[i] < '0' || data[i] > '9')) {
       return NULL;
     }
     i += 1;
   }
 
-  return data;
+  return strdup(data);
 }
 
 struct arguments {
@@ -181,15 +172,15 @@ static int get_values(void *cls, enum MHD_ValueKind kind, const char *key, const
   debug("key: %s, value: %s\n", key, value);
 
   if (!args->cmd && strcmp(key, "cmd") == 0) {
-    args->cmd = sanitize_cmd(value);
+    args->cmd = validate_cmd(value);
   }
 
   if (!args->nodes && strcmp(key, "nodes") == 0) {
-    args->nodes = sanitize_number_list(value);
+    args->nodes = validate_list(value);
   }
 
   if (!args->links && strcmp(key, "links") == 0) {
-    args->links = sanitize_number_list(value);
+    args->links = validate_list(value);
   }
 
   return MHD_YES;
@@ -218,7 +209,7 @@ static int handle_call(struct MHD_Connection *connection) {
     return send_empty_json(connection);
   }
 
-  char buf[512];
+  char buf[512] = {0};
   ret = execute_ret(buf, sizeof(buf), "%s %s %s %s",
     g_call, args.cmd, empty_str(args.nodes), empty_str(args.links));
 
@@ -226,16 +217,10 @@ static int handle_call(struct MHD_Connection *connection) {
   free(args.nodes);
   free(args.links);
 
-  printf("%s\n", buf);
-
   if (ret == 0) {
-    if (buf[0]) {
-      return send_json(connection, buf, strlen(buf));
-    } else {
-      return send_empty_json(connection);
-    }
+    return send_empty_json(connection);
   } else {
-    fprintf(stderr, "error from %s\n", g_call);
+    fprintf(stderr, "Error from: %s\n", g_call);
     return send_empty_json(connection);
   }
 }
