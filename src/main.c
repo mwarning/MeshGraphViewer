@@ -267,10 +267,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  // TODO: understand server/client path in git clone git@github.com:mwarning/unix-domain-socket-example.git
-  const char *unix_path = "/tmp/graph.sock";
-  int unix_fd = create_unix_socket(unix_path);
-
   g_is_running = 1;
   while (g_is_running) {
     g_now = time(NULL);
@@ -285,15 +281,6 @@ int main(int argc, char **argv) {
 
     maxfd = 0;
 
-    // add unix domain socket
-    if (unix_fd > 0) {
-      //handle_unix_socket
-      FD_SET(unix_fd, &rset);
-      if (unix_fd > maxfd) {
-        maxfd = unix_fd;
-      }
-    }
-
     webserver_before_select(&rset, &wset, &xset, &maxfd);
 
     if (select(maxfd + 1, &rset, &wset, &xset, &tv) < 0) {
@@ -305,15 +292,7 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (FD_ISSET(unix_fd, &rset)) {
-      handle_unix_socket(unix_fd);
-    }
-
     webserver_after_select();
-  }
-
-  if (unix_fd > 0) {
-    destroy_unix_socket(unix_fd, unix_path);
   }
 
   return EXIT_SUCCESS;
