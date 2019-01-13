@@ -35,6 +35,7 @@ static const char *g_help_text =
   "                            get-link-prop|set-link-prop\n"
   "                            get-node-prop|set-node-prop\n"
   "                            add-link|del-link\n"
+  " --webserver-address <address> Address for the build-in webserver. Default: 127.0.0.1\n"
   " --webserver-port <port>  Port for the build-in webserver. Set to 0 to disable webserver. Default: 8000\n"
   " --webserver-path <path>  Root folder for the build-in webserver. Default: internal\n"
   " --write-out-files <path> Write included html/js/css files to disk.\n"
@@ -90,6 +91,7 @@ enum {
   oGraph,
   oCall,
   oWriteOutFiles,
+  oWebserverAddress,
   oWebserverPort,
   oWebserverPath,
   oOpen,
@@ -101,6 +103,7 @@ static struct option options[] = {
   {"graph", required_argument, 0, oGraph},
   {"call", required_argument, 0, oCall},
   {"write-out-files", required_argument, 0, oWriteOutFiles},
+  {"webserver-address", required_argument, 0, oWebserverAddress},
   {"webserver-port", required_argument, 0, oWebserverPort},
   {"webserver-path", required_argument, 0, oWebserverPath},
   {"open", no_argument, 0, oOpen},
@@ -143,8 +146,10 @@ int write_out_files(const char *target) {
 }
 
 int main(int argc, char **argv) {
+  const char *webserver_address = "127.0.0.1";
   int webserver_port = 8000;
   const char *webserver_path = NULL;
+  struct sockaddr_storage addr;
   struct timeval tv;
   int open_browser = 0;
   fd_set rset;
@@ -169,6 +174,9 @@ int main(int argc, char **argv) {
       break;
     case oWriteOutFiles:
       return write_out_files(optarg);
+    case oWebserverAddress:
+      webserver_address = strdup(optarg);
+      break;
     case oWebserverPort:
       webserver_port = atoi(optarg);
       break;
@@ -219,7 +227,16 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (webserver_port < 0) {
+  if (inet_pton(AF_INET, webserver_address, &addr) == 1) {
+    addr.ss_family = AF_INET;
+  } else if (inet_pton(AF_INET6, webserver_address, &addr) == 1) {
+    addr.ss_family = AF_INET6;
+  } else {
+    fprintf(stderr, "Invalid address %s\n", webserver_address);
+    return EXIT_FAILURE;
+  }
+
+  if (set_port(&addr, webserver_port) == EXIT_FAILURE) {
     fprintf(stderr, "Invalid webserver port\n");
     return EXIT_FAILURE;
   }
@@ -231,15 +248,23 @@ int main(int argc, char **argv) {
 
   setup_signal_handlers();
 
-  rc = webserver_start(webserver_path, webserver_port);
+  rc = webserver_start(webserver_path, (const struct sockaddr *) &addr);
   if (rc == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }
 
-  printf("Listen on http://localhost:%d\n", webserver_port);
-
+  if (addr.ss_family == AF_INET6) {
+    printf("Listen on http://[%s]:%d\n", webserver_address, webserver_port);
+  } else {
+    printf("Listen on http://%s:%d\n", webserver_address, webserver_port);
+  }
+  
   if (open_browser) {
-    execute("xdg-open http://localhost:%d", webserver_port);
+    if (addr.ss_family == AF_INET6) {
+      execute("xdg-open http://[%s]:%d", webserver_address, webserver_port);
+    } else {
+      execute("xdg-open http://%s:%d", webserver_address, webserver_port);
+    }
   }
 
   // TODO: understand server/client path in git clone git@github.com:mwarning/unix-domain-socket-example.git

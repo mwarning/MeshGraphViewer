@@ -334,7 +334,7 @@ static int send_response(void *cls, struct MHD_Connection *connection,
   }
 }
 
-int webserver_start(const char path[], int port) {
+int webserver_start(const char path[], const struct sockaddr *addr) {
   char pathbuf[256];
   char *p;
 
@@ -349,7 +349,10 @@ int webserver_start(const char path[], int port) {
     g_webserver_path = NULL;
   }
 
-  g_webserver = MHD_start_daemon(0, port, NULL, NULL, &send_response, NULL, MHD_OPTION_END);
+  g_webserver = MHD_start_daemon(MHD_USE_DUAL_STACK, 0, NULL, NULL, &send_response, NULL,
+    MHD_OPTION_SOCK_ADDR, addr,
+    MHD_OPTION_END
+  );
 
   if (g_webserver) {
     return EXIT_SUCCESS;

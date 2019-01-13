@@ -17,6 +17,8 @@ Arguments:
     `add-link`|`del-link`
 * `--open`  
   Show graph in browser.
+* `--webserver-address` *address*  
+  Address for the build-in webserver. Default: 127.0.0.1
 * `--webserver-port` *port*  
   Port for the build-in webserver. Default: 8000
 * `--webserver-path` *path*  

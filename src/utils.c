@@ -140,6 +140,23 @@ int execute_ret(char* msg, int msg_len, const char fmt[], ...) {
   return _execute_ret(msg, msg_len, cmd);
 }
 
+int set_port(struct sockaddr_storage *addr, int port) {
+  if (port < 1 || port > 65535) {
+    return EXIT_FAILURE;
+  }
+
+  switch (addr->ss_family) {
+    case AF_INET:
+      ((struct sockaddr_in *)addr)->sin_port = htons(port);
+      return EXIT_SUCCESS;
+    case AF_INET6:
+      ((struct sockaddr_in6 *)addr)->sin6_port = htons(port);
+      return EXIT_SUCCESS;
+    default:
+      return EXIT_FAILURE;
+  }
+}
+
 static int create_path_element(const char *path, int len) {
   char buf[64] = {0};
 

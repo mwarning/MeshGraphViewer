@@ -3,7 +3,7 @@
 
 #include <sys/select.h> 
 
-int webserver_start(const char path[], int port);
+int webserver_start(const char path[], const struct sockaddr *addr);
 void webserver_before_select(fd_set *rs, fd_set *ws, fd_set *es, int *max_fd);
 void webserver_after_select();
 
