@@ -1,6 +1,6 @@
 # Graph Viewer
 
-Read a graph file from disk and display a fancy graph. Interactions with the graph (selection, deletion, etc.) can be passed to external programs.
+Read a bidirectional graph file from disk and display a fancy graph. Interactions with the graph (selection, deletion, etc.) can be passed to external programs.
 
 Written in C and JavaScript. Build on top of d3.js and libmicrohttpd.
 
@@ -10,11 +10,9 @@ Arguments:
   Graph topology and data in JSON format.
 * `--call` *program*  
   Call an external program when an action on the graph view is performed.  
-    `<program> [<command>] [..]`  
-  Command list:  
-    `get-link-prop`|`set-link-prop`  
-    `get-node-prop`|`set-node-prop`  
-    `add-link`|`del-link`
+    `<program> [connect|disconnect|remove] [<nodes> [<links>]]`  
+  `<nodes>` is a comma separate string of node identifiers.  
+  `<links>` is a comma separate string of node identifiers pairs.
 * `--open`  
   Show graph in browser.
 * `--webserver-address` *address*  
