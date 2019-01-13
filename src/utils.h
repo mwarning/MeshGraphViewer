@@ -15,7 +15,7 @@
 // Number of elements in an array
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-int set_port(struct sockaddr_storage *addr, int port);
+int parse_addr(struct sockaddr_storage *addr, const char* src, int port);
 
 uint8_t *read_file(size_t *size, const char path[]);
 int is_suffix(const char path[], const char prefix[]);

@@ -46,7 +46,7 @@ static const char *g_help_text =
 // Run state
 static int g_is_running;
 
-static const char *g_version = "0.0.1";
+static const char *g_version = "0.0.2";
 
 // Current time
 time_t g_now = 0;
@@ -227,17 +227,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (inet_pton(AF_INET, webserver_address, &addr) == 1) {
-    addr.ss_family = AF_INET;
-  } else if (inet_pton(AF_INET6, webserver_address, &addr) == 1) {
-    addr.ss_family = AF_INET6;
-  } else {
-    fprintf(stderr, "Invalid address %s\n", webserver_address);
-    return EXIT_FAILURE;
-  }
-
-  if (set_port(&addr, webserver_port) == EXIT_FAILURE) {
-    fprintf(stderr, "Invalid webserver port\n");
+  if (parse_addr(&addr, webserver_address, webserver_port) == EXIT_FAILURE) {
+    fprintf(stderr, "Invalid webserver address or port\n");
     return EXIT_FAILURE;
   }
 

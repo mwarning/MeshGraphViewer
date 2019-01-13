@@ -178,7 +178,7 @@ struct arguments {
 static int get_values(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
   struct arguments *args = (struct arguments *)cls;
 
-  printf("key: %s, value: %s\n", key, value);
+  debug("key: %s, value: %s\n", key, value);
 
   if (!args->cmd && strcmp(key, "cmd") == 0) {
     args->cmd = sanitize_cmd(value);
@@ -195,25 +195,33 @@ static int get_values(void *cls, enum MHD_ValueKind kind, const char *key, const
   return MHD_YES;
 }
 
+static const char *empty_str(const char* s) {
+  if (s) {
+    return s;
+  } else {
+    return "";
+  }
+}
+
 static int handle_call(struct MHD_Connection *connection) {
   int ret;
 
   if (!g_call) {
-    fprintf(stderr, "no command handler set\n");
+    fprintf(stderr, "No command handler set\n");
     return send_empty_json(connection);
   }
 
   struct arguments args = {0};
   MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, get_values, &args);
   if (!args.cmd) {
-    fprintf(stderr, "no command send\n");
+    fprintf(stderr, "No command send\n");
     return send_empty_json(connection);
   }
 
-  printf("execute %s\n", g_call);
   char buf[512];
-  // TODO: how to split between nodes and links?
-  ret = execute_ret(buf, sizeof(buf), "%s %s %s %s", g_call, args.cmd, args.nodes, args.links);
+  ret = execute_ret(buf, sizeof(buf), "%s %s %s %s",
+    g_call, args.cmd, empty_str(args.nodes), empty_str(args.links));
+
   free(args.cmd);
   free(args.nodes);
   free(args.links);
@@ -349,7 +357,8 @@ int webserver_start(const char path[], const struct sockaddr *addr) {
     g_webserver_path = NULL;
   }
 
-  g_webserver = MHD_start_daemon(MHD_USE_DUAL_STACK, 0, NULL, NULL, &send_response, NULL,
+  int flags = (addr->sa_family == AF_INET6) ? MHD_USE_IPv6 : 0;
+  g_webserver = MHD_start_daemon(flags, 0, NULL, NULL, &send_response, NULL,
     MHD_OPTION_SOCK_ADDR, addr,
     MHD_OPTION_END
   );
