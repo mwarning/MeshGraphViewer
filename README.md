@@ -35,7 +35,7 @@ Arguments:
 Minimal graph data format example:
 ```
 {
-  "nodes": [{"mac": "a"}, {"mac": "b"}],
+  "nodes": [{"id": "a"}, {"id": "b"}],
   "links": [{"source": "a", "target": "b", "target_tq": 1, "source_tq": 1}]
 }
 ```
@@ -45,10 +45,10 @@ More elaborate example:
 {
   "nodes": [
     {
-      "mac": "a"
+      "id": "a"
     },
     {
-      "mac": "b",
+      "id": "b",
       "x": 100,
       "y": 200,
       "label": "Node B",
@@ -72,7 +72,7 @@ More elaborate example:
 
 Note:
 
-* `mac`/`source`/`target`: Node identifier. `source` and `target` are interchangeable.
+* `id`/`source`/`target`: Node identifier. `source` and `target` are interchangeable.
 * `target_tq`/`source_tq`: link quality in the range of `[0..1]`. Madatory.
 * `label`: Display a label on top of a node or link.
 * `name`: Display a name under a node.

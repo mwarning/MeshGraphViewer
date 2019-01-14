@@ -230,16 +230,19 @@ function createGraph(graph_id) {
 
 	// Create a bidirectional link identifier
 	function linkId(source, target) {
-		var smac = source.o.mac;
-		var tmac = target.o.mac;
-		return (smac > tmac) ? (tmac + '=>' + smac) : (smac + '=>' + tmac);
+		var sid = source.o.id;
+		var tid = target.o.id;
+		return (sid > tid) ? (tid + '=>' + sid) : (sid + '=>' + tid);
 	}
 
 	function nodeId(n) {
-		return n.index; //o.mac;
+		return n.o.id;
 	}
 
-	// Update graph
+	/* Update graph
+	* d3.js uses memebers x, y and index for own purposes.
+	* x and y may initialized with starting positions.
+	*/
 	self.updateGraph = function (nodes, links, is_update = false) {
 		// For fast node/link lookup
 		var nodeDict = {};
@@ -268,7 +271,7 @@ function createGraph(graph_id) {
 		var py = lastClick[1] - my;
 
 		function addNode(node) {
-			var id = node.mac;
+			var id = node.id;
 			if (id in nodeDict) {
 				var n = nodeDict[id];
 				// Update existing node
