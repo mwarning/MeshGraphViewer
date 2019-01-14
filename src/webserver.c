@@ -210,7 +210,7 @@ static int handle_call(struct MHD_Connection *connection) {
   }
 
   char buf[512] = {0};
-  ret = execute_ret(buf, sizeof(buf), "%s %s %s %s",
+  ret = execute_ret(buf, sizeof(buf), "%s '%s' '%s' '%s'",
     g_call, args.cmd, empty_str(args.nodes), empty_str(args.links));
 
   free(args.cmd);
