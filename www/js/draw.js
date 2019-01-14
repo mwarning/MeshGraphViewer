@@ -50,26 +50,26 @@ function createDraw() {
 
 	function drawDetailNode(d) {
 		if (transform.k > 1) {
-			if ('client_count' in d.o) {
+			if ('clients' in d.o) {
 				ctx.beginPath();
-				positionClients(ctx, d, Math.PI, d.o.client_count, 15);
+				positionClients(ctx, d, Math.PI, d.o.clients, 15);
 				ctx.fillStyle = clientColor;
 				ctx.fill();
 			}
 
-			if ('node_name' in d.o) {
-				//console.log("node_name: " + d.o.node_name);
+			if ('name' in d.o) {
+				//console.log("node_name: " + d.o.name);
 				ctx.beginPath();
 				ctx.textAlign = 'center';
 				ctx.fillStyle = '#fff';
-				ctx.fillText(d.o.node_name, d.x, d.y + 20);
+				ctx.fillText(d.o.name, d.x, d.y + 20);
 			}
 
-			if ('node_label' in d.o) {
+			if ('label' in d.o) {
 				ctx.beginPath();
 				ctx.textAlign = 'center';
 				ctx.fillStyle = 'black';
-				ctx.fillText(d.o.node_label, d.x, d.y + 3.5);
+				ctx.fillText(d.o.label, d.x, d.y + 3.5);
 			}
 		}
 	}
@@ -173,11 +173,11 @@ function createDraw() {
 		ctx.globalAlpha = 0.8;
 		ctx.lineWidth = 2.5;
 
-		if ('link_label' in d.o) {
+		if ('label' in d.o) {
 			ctx.beginPath();
 			ctx.textAlign = 'center';
 			ctx.fillStyle = 'black';
-			ctx.fillText(d.o.link_label, (d.source.x + to[0]) / 2, (d.source.y + to[1]) / 2 + 3);
+			ctx.fillText(d.o.label, (d.source.x + to[0]) / 2, (d.source.y + to[1]) / 2 + 3);
 		}
 	};
 
