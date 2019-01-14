@@ -305,15 +305,6 @@ static int handle_content(struct MHD_Connection *connection, const char *url) {
 static int send_response(void *cls, struct MHD_Connection *connection,
       const char *url, const char *method, const char *version,
       const char *upload_data, size_t *upload_data_size, void **con_cls) {
-  const union MHD_ConnectionInfo *connection_info;
-
-  connection_info = MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
-  if (!connection_info) {
-    return send_error(connection);
-  }
-
-  debug("Connection from IP address: %s\n", str_addr(connection_info->client_addr));
-
   if (0 == strcmp(url, "/cmd/call")) {
     return handle_call(connection);
   } else if (0 == strcmp(url, "/cmd/graph")) {

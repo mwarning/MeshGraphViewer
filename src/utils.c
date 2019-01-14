@@ -67,20 +67,21 @@ static int _execute_ret(char* msg, int msg_len, const char *cmd) {
   FILE *fp;
   int rc;
 
-  debug(LOG_DEBUG, "Executing command: %s", cmd);
+  debug("Executing command: %s", cmd);
 
   /* Temporarily get rid of SIGCHLD handler (see main.c), until child exits. */
-  debug(LOG_DEBUG,"Setting default SIGCHLD handler SIG_DFL");
+  debug("Setting default SIGCHLD handler SIG_DFL");
   sa.sa_handler = SIG_DFL;
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = SA_NOCLDSTOP | SA_RESTART;
   if (sigaction(SIGCHLD, &sa, &oldsa) == -1) {
-    debug(LOG_ERR, "sigaction() failed to set default SIGCHLD handler: %s", strerror(errno));
+    fprintf(stderr, "sigaction() failed to set default SIGCHLD handler: %s", strerror(errno));
+    return EXIT_FAILURE;
   }
 
   fp = popen(cmd, "r");
   if (fp == NULL) {
-    debug(LOG_ERR, "popen(): %s", strerror(errno));
+    fprintf(stderr, "popen(): %s", strerror(errno));
     rc = -1;
     goto abort;
   }
@@ -92,7 +93,7 @@ static int _execute_ret(char* msg, int msg_len, const char *cmd) {
   rc = pclose(fp);
 
   if (WIFSIGNALED(rc) != 0) {
-    debug(LOG_WARNING, "Command process exited due to signal %d", WTERMSIG(rc));
+    fprintf(stderr, "Command process exited due to signal %d", WTERMSIG(rc));
   }
 
   rc = WEXITSTATUS(rc);
@@ -101,7 +102,7 @@ abort:
 
   /* Restore signal handler */
   if (sigaction(SIGCHLD, &oldsa, NULL) == -1) {
-    debug(LOG_ERR, "sigaction() failed to restore SIGCHLD handler! Error %s", strerror(errno));
+    fprintf(stderr, "sigaction() failed to restore SIGCHLD handler! Error %s", strerror(errno));
   }
 
   return rc;
