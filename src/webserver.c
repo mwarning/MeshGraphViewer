@@ -187,11 +187,7 @@ static int get_values(void *cls, enum MHD_ValueKind kind, const char *key, const
 }
 
 static const char *empty_str(const char* s) {
-  if (s) {
-    return s;
-  } else {
-    return "";
-  }
+  return s ? s : "";
 }
 
 static int handle_call(struct MHD_Connection *connection) {
