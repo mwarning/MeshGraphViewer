@@ -7,10 +7,8 @@ SRC = src/main.c src/webserver.c src/utils.c src/files.c
 .PHONY: all clean debug files
 
 
-debug: CFLAGS += -DDEBUG
 all: $(SRC)
 	$(CC) $(CFLAGS) $(LFLAGS) $(SRC) -o graph-viewer
-
 
 # Include files in www into files.h/files.c
 src/files.c: $(wildcard www/*)
