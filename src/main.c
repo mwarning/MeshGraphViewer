@@ -46,7 +46,7 @@ static const char *g_help_text =
 // Run state
 static int g_is_running;
 
-static const char *g_version = "0.0.3";
+static const char *g_version = "0.1.0";
 
 // Current time
 time_t g_now = 0;
