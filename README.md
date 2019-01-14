@@ -12,7 +12,7 @@ Arguments:
   Graph topology and data in JSON format. File is reloaded when content changes.
 * `--call` *program*  
   Call an external program when an action on the graph view is performed.  
-    `<program> [connect|disconnect|remove] [<nodes> [<links>]]`  
+    `<program> [connect|disconnect|remove] '<nodes>' '<links>'`  
   `<nodes>` is a comma separate string of node identifiers.  
   `<links>` is a comma separate string of node identifiers pairs.
 * `--open`  
