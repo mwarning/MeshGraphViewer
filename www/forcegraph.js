@@ -1,5 +1,5 @@
 
-function createGraph(graph_id) {
+function createGraph(parent, sidebar) {
 	var draw = createDraw();
 	var d3Interpolate = d3;
 	var d3Zoom = d3;
@@ -10,9 +10,14 @@ function createGraph(graph_id) {
 	var d3Ease = d3;
 	var animationEnabled = true;
 
+	// add html
+	var el = document.createElement('div');
+	el.classList.add('graph');
+	el.setAttribute('id', 'graph');
+	parent.appendChild(el);
+
 	var self = this;
 	var lastClick = [0, 0];
-	var el = document.getElementById(graph_id);
 	var canvas;
 	var ctx;
 	var force;
@@ -87,7 +92,7 @@ function createGraph(graph_id) {
 		var k = pos[2];
 		var end = { k: k };
 
-		end.x = canvas.width / 2 - x * k;
+		end.x = (canvas.width + sidebar.getWidth()) / 2 - x * k;
 		end.y = canvas.height / 2 - y * k;
 
 		var start = { x: transform.x, y: transform.y, k: transform.k };
@@ -243,7 +248,7 @@ function createGraph(graph_id) {
 	* d3.js uses memebers x, y and index for own purposes.
 	* x and y may initialized with starting positions.
 	*/
-	self.updateGraph = function (nodes, links, is_update = false) {
+	self.setData = function (data, is_update = false) {
 		// For fast node/link lookup
 		var nodeDict = {};
 		var linkDict = {};
@@ -263,8 +268,8 @@ function createGraph(graph_id) {
 		intLinks = [];
 
 		// New nodes center
-		var mx = nodes.reduce(function(acc, e) { return acc + e.x; }, 0) / nodes.length;
-		var my = nodes.reduce(function(acc, e) { return acc + e.y; }, 0) / nodes.length;
+		var mx = data.nodes.reduce(function(acc, e) { return acc + e.x; }, 0) / data.nodes.length;
+		var my = data.nodes.reduce(function(acc, e) { return acc + e.y; }, 0) / data.nodes.length;
 
 		// Center new nodes at last click location
 		var px = lastClick[0] - mx;
@@ -310,8 +315,8 @@ function createGraph(graph_id) {
 			}
 		}
 
-		nodes.map(addNode);
-		links.map(addLink);
+		data.nodes.map(addNode);
+		data.links.map(addLink);
 
 		force.nodes(intNodes);
 		forceLink.links(intLinks);
@@ -461,6 +466,16 @@ function createGraph(graph_id) {
 		// Focus link if no ctrl key pressed
 		if (!(d3.event && (d3.event.ctrlKey || d3.event.metaKey))) {
 			moveTo([(link.source.x + link.target.x) / 2, (link.source.y + link.target.y) / 2, (ZOOM_MAX / 2) + ZOOM_MIN]);
+		}
+	};
+
+	self.destroy = function destroy() {
+		force.stop();
+		canvas.parentNode.removeChild(canvas);
+		force = null;
+
+		if (el.parentNode) {
+			el.parentNode.removeChild(el);
 		}
 	};
 

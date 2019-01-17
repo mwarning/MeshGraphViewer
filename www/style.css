@@ -2,8 +2,6 @@
 .graph {
   background: #333333;
   font: inherit;
-  height: 800px;
-  width: 1000px;
 
   canvas {
     display: block;
@@ -24,7 +22,6 @@
 }
 
 #graph {
-  width: 78%;
   float: left;
   overflow: hidden;
 }
