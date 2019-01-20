@@ -15,6 +15,8 @@ Arguments:
     `<program> [connect|disconnect|remove] '<nodes>' '<links>'`  
   `<nodes>` is a comma separate string of node identifiers.  
   `<links>` is a comma separate string of node identifiers pairs.
+* `--config` *json-file*  
+  Configuration file for map tile source and colors etc.
 * `--open`  
   Open browser and show graph.
 * `--webserver-address` *address*  

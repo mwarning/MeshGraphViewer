@@ -268,30 +268,43 @@ static int handle_content(struct MHD_Connection *connection, const char *url) {
   size_t content_size;
   int ret;
 
-  if (0 == strcmp(url, "/")) {
-    url = "/index.html";
-  }
-
   if (!is_valid_path(url)) {
     return send_error(connection);
   }
 
-  // Try to fetch external file first
-  if (g_webserver_path) {
-    snprintf(content_path, sizeof(content_path), "%s/%s", g_webserver_path, url);
-
-    content_data = read_file(&content_size, content_path);
-    mode = MHD_RESPMEM_MUST_FREE;
+  if (0 == strcmp(url, "/")) {
+    url = "/index.html";
   }
 
-  // Try to fetch internal files second
-  if (NULL == content_data) {
-    content_data = get_included_file(&content_size, url);
-    mode = MHD_RESPMEM_PERSISTENT;
-    // Error if no file was found
-    if (NULL == content_data) {
-      return send_not_found(connection);
+  // Serve entire graph when site was reloaded
+  if (0 == strcmp(url, "/index.html")) {
+    g_graph_mtime = 0;
+  }
+
+  if (0 == strcmp(url, "/config.json")) {
+    if (g_config) {
+      content_data = read_file(&content_size, g_config);
+      mode = MHD_RESPMEM_MUST_FREE;
+    } else {
+      return send_empty_json(connection);
     }
+  } else {
+    // Try to fetch external file first
+    if (g_webserver_path) {
+      snprintf(content_path, sizeof(content_path), "%s/%s", g_webserver_path, url);
+
+      content_data = read_file(&content_size, content_path);
+      mode = MHD_RESPMEM_MUST_FREE;
+    } else {
+      // Try to fetch internal files second
+      content_data = get_included_file(&content_size, url);
+      mode = MHD_RESPMEM_PERSISTENT;
+    }
+  }
+
+  // Error if no file was found
+  if (NULL == content_data) {
+    return send_not_found(connection);
   }
 
   response = MHD_create_response_from_buffer(content_size, content_data, mode);
@@ -343,15 +356,13 @@ int webserver_start(const char path[], const struct sockaddr *addr) {
   }
 }
 
-void webserver_before_select(fd_set *rs, fd_set *ws, fd_set *es, int *max_fd)
-{
+void webserver_before_select(fd_set *rs, fd_set *ws, fd_set *es, int *max_fd) {
   if (MHD_YES != MHD_get_fdset(g_webserver, rs, ws, es, max_fd)) {
     fprintf(stderr, "MHD_get_fdset(): %s", strerror(errno));
     exit(1);
   }
 }
 
-void webserver_after_select()
-{
+void webserver_after_select() {
   MHD_run(g_webserver);
 }

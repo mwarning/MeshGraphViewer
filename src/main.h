@@ -3,8 +3,8 @@
 
 #include <time.h>
 
-extern time_t g_now;
 extern const char* g_graph;
 extern const char* g_call;
+extern const char* g_config;
 
 #endif // _MAIN_H_

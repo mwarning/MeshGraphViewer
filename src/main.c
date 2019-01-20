@@ -35,6 +35,7 @@ static const char *g_help_text =
   "                            get-link-prop|set-link-prop\n"
   "                            get-node-prop|set-node-prop\n"
   "                            add-link|del-link\n"
+  " --config <path>          Use a JavaScript file with configuration settings.\n"
   " --webserver-address <address> Address for the build-in webserver. Default: 127.0.0.1\n"
   " --webserver-port <port>  Port for the build-in webserver. Set to 0 to disable webserver. Default: 8000\n"
   " --webserver-path <path>  Root folder for the build-in webserver. Default: internal\n"
@@ -48,12 +49,9 @@ static int g_is_running;
 
 static const char *g_version = "0.1.0";
 
-// Current time
-time_t g_now = 0;
-
 const char* g_graph = NULL;
 const char* g_call = NULL;
-
+const char* g_config = NULL;
 
 static void unix_signal_handler(int signo) {
   // exit on second stop request
@@ -90,6 +88,7 @@ static void setup_signal_handlers() {
 enum {
   oGraph,
   oCall,
+  oConfig,
   oWriteOutFiles,
   oWebserverAddress,
   oWebserverPort,
@@ -102,6 +101,7 @@ enum {
 static struct option options[] = {
   {"graph", required_argument, 0, oGraph},
   {"call", required_argument, 0, oCall},
+  {"config", required_argument, 0, oConfig},
   {"write-out-files", required_argument, 0, oWriteOutFiles},
   {"webserver-address", required_argument, 0, oWebserverAddress},
   {"webserver-port", required_argument, 0, oWebserverPort},
@@ -171,6 +171,9 @@ int main(int argc, char **argv) {
       break;
     case oCall:
       g_call = strdup(optarg);
+      break;
+    case oConfig:
+      g_config = strdup(optarg);
       break;
     case oWriteOutFiles:
       return write_out_files(optarg);
@@ -260,8 +263,6 @@ int main(int argc, char **argv) {
 
   g_is_running = 1;
   while (g_is_running) {
-    g_now = time(NULL);
-
     // Make select block for at most 1 second
     tv.tv_sec = 1;
     tv.tv_usec = 0;
