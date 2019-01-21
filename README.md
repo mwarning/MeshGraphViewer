@@ -98,6 +98,10 @@ Note:
 
 - libmicrohttpd library
 
+## Related Software
+
+* [graph-tool](https://graph-tool.skewed.de/)
+
 ## Authors
 
 The base of the JavaScript/CSS code was taken from the [MeshViewer](https://github.com/ffrgb/meshviewer) project.
