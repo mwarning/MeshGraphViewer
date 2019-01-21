@@ -29,7 +29,7 @@ function Button() { //ClientLayer, LabelLayer, L, LocationMarker) {
     var LocateButton = ButtonBase.extend({
       onAdd: function () {
         var button = L.DomUtil.create('button', 'ion-locate');
-        button.setAttribute('aria-label', 'button.tracking');
+        button.setAttribute('title', 'Tracking');
         L.DomEvent.disableClickPropagation(button);
         L.DomEvent.addListener(button, 'click', this.onClick, this);
 
@@ -46,7 +46,8 @@ function Button() { //ClientLayer, LabelLayer, L, LocationMarker) {
     var CoordsPickerButton = ButtonBase.extend({
       onAdd: function () {
         var button = L.DomUtil.create('button', 'ion-pin');
-        button.setAttribute('aria-label', 'button.location');
+        button.setAttribute('title', 'Location Picker');
+        button.appendChild(document.createTextNode("P"));
 
         // Click propagation isn't disabled as this causes problems with the
         // location picking mode; instead propagation is stopped in onClick().

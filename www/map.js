@@ -143,7 +143,7 @@ function createMap(parent, linkScale, sidebar, buttons) {
 		var inputs = document.querySelectorAll('.leaflet-control-layers-selector');
 		[].forEach.call(inputs, function (input) {
 			input.setAttribute('role', 'radiogroup');
-			input.setAttribute('aria-label', input.nextSibling.innerHTML.trim());
+			input.setAttribute('title', input.nextSibling.innerHTML.trim());
 		});
 	});
 

@@ -229,8 +229,8 @@
 	function attachButtonsDiv() {
 		/*
 		<div class="buttons">
-		<button class="ion-eye" aria-label="Switch View"></button>
-		<button class="ion-full-enter" aria-label="Toggle Fullscreen"></button>
+		<button class="ion-eye" title="Switch View"></button>
+		<button class="ion-full-enter" title="Toggle Fullscreen"></button>
 		</div>
 		*/
 		var buttons = document.createElement('div');
@@ -238,7 +238,8 @@
 
 		var buttonToggle = document.createElement('button');
 		buttonToggle.classList.add('ion-eye');
-		buttonToggle.setAttribute('aria-label', 'Switch View');
+		buttonToggle.setAttribute('title', 'Switch View');
+		buttonToggle.appendChild(document.createTextNode("S"));
 		buttonToggle.onclick = function onclick() {
 		if (my_graph) {
 			showMap();
@@ -252,7 +253,8 @@
 		if (config.fullscreen || config.fullscreenFrame && window.frameElement) {
 			var buttonFullscreen = document.createElement('button');
 			buttonFullscreen.classList.add('ion-full-enter');
-			buttonFullscreen.setAttribute('aria-label', 'Toggle Fullscreen');
+			buttonFullscreen.setAttribute('title', 'Toggle Fullscreen');
+			buttonFullscreen.appendChild(document.createTextNode("F"));
 			buttonFullscreen.onclick = function onclick() {
 				toggleFullscreen(buttonFullscreen);
 			};
@@ -321,7 +323,7 @@
 	</div>
 
 	<div class="sidebar hidden">
-		<button class="sidebarhandle" aria-handle="Toggle Sidebar" onclick="sidebar.onClick();"></button>
+		<button class="sidebarhandle" title="Toggle Sidebar" onclick="sidebar.onClick();">&lt;</button>
 		<div class="container">
 			<fieldset>
 				<legend>Change Selection</legend>
