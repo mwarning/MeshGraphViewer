@@ -6,6 +6,10 @@ Written in C and JavaScript. Build on top of d3.js and libmicrohttpd.
 
 ![graph and map view](screenshot.png)
 
+(Icons for side menu, fullscreen and location picker and view switch are not yet set.)
+
+## Usage
+
 Usage: `graph-tool <graph-file> [<call-program>]`
 
 Arguments:
