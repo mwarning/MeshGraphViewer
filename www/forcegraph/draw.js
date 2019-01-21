@@ -1,28 +1,4 @@
 
-function positionClients(ctx, p, startAngle, clients, startDistance) {
-	if (clients === 0) {
-		return;
-	}
-
-	var radius = 3;
-	var a = 1.2;
-
-	for (var orbit = 0, i = 0; i < clients; orbit++) {
-		var distance = startDistance + orbit * 2 * radius * a;
-		var n = Math.floor((Math.PI * distance) / (a * radius));
-		var delta = clients - i;
-
-		for (var j = 0; j < Math.min(delta, n); i++, j++) {
-			var angle = 2 * Math.PI / n * j;
-			var x = p.x + distance * Math.cos(angle + startAngle);
-			var y = p.y + distance * Math.sin(angle + startAngle);
-
-			ctx.moveTo(x, y);
-			ctx.arc(x, y, radius, 0, 2 * Math.PI);
-		}
-	}
-}
-
 function createDraw() {
 	var self = {};
 
@@ -52,13 +28,12 @@ function createDraw() {
 		if (transform.k > 1) {
 			if ('clients' in d.o) {
 				ctx.beginPath();
-				positionClients(ctx, d, Math.PI, d.o.clients, 15);
 				ctx.fillStyle = clientColor;
+				positionClients(ctx, d, Math.PI, d.o.clients, 15);
 				ctx.fill();
 			}
 
 			if ('name' in d.o) {
-				//console.log("node_name: " + d.o.name);
 				ctx.beginPath();
 				ctx.textAlign = 'center';
 				ctx.fillStyle = '#fff';

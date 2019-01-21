@@ -18,7 +18,7 @@ uint8_t *read_file(size_t *size, const char path[]) {
   long fsize;
   FILE *fp;
 
-  fp = fopen(path, "rb");
+  fp = fopen(path, "r");
   if (NULL == fp) {
     return NULL;
   }

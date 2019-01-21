@@ -3,114 +3,327 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>MeshNet Simulator</title>
+	<title>Graph Viewer</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="stylesheet" href="leaflet-1.3.4.css"/>
+
+	<script src="leaflet-1.3.4.js"></script>
 
 	<!-- Source: http://d3js.org -->
-	<script src="js/d3.v5.min.js"></script>
+	<script src="d3.v5.min.js"></script>
+	<script src="rbush-2.0.2.min.js"></script>
 
-	<script src="js/utils.js"></script>
-	<script src="js/graph.js"></script>
-	<script src="js/draw.js"></script>
-	<script src="js/show.js"></script>
-	<script src="js/control.js"></script>
+	<script src="utils.js"></script>
+	<script src="sidebar.js"></script>
+
+	<script src="forcegraph.js"></script>
+	<script src="forcegraph/draw.js"></script>
+
+	<script src="map.js"></script>
+	<script src="map/button.js"></script>
+	<script src="map/activearea.js"></script>
+	<script src="map/clientlayer.js"></script>
+	<script src="map/labellayer.js"></script>
+	<script src="map/locationmarker.js"></script>
+<style>
+	element {
+		position: relative;
+		outline: currentcolor none medium;
+	}
+
+	.content {
+		height: 100vh;
+		position: fixed;
+		width: 100%;
+
+		.buttons {
+			direction: rtl;
+			position: absolute;
+			unicode-bidi: bidi-override;
+			z-index: 1001;
+
+			button {
+				margin-left: 16px;
+			}
+		}
+	}
+
+	.stroke-first {
+		paint-order: stroke;
+	}
+
+	.pick-coordinates {
+		cursor: crosshair;
+	}
+
+	#graph.hidden {
+		display: none;
+	}
+
+	#map.hidden {
+		display: none;
+	}
+
+	.graph {
+		height: 100%;
+		width: 100%;
+	}
+
+	.map {
+		height: 100%;
+		width: 100%;
+	}
+
+	#content .buttons {
+		direction: rtl;
+		position: absolute;
+		right: 16px;
+		top: 16px;
+		unicode-bidi: bidi-override;
+		z-index: 1001;
+	}
+	button {
+		background: #fff;
+		border: 0;
+		border-radius: .9em;
+		color: #000;
+		cursor: pointer;
+		font-family: ionicons;
+		font-size: 1.6rem;
+		height: 1.8em;
+		line-height: 1.95;
+		opacity: .7;
+		outline: none;
+		padding: 0;
+		transition: box-shadow .5s, background-color .5s, color .5s;
+		width: 1.8em;
+	}
+
+	#content .buttons button {
+		margin-left: 16px;
+	}
+	#content .buttons {
+		direction: rtl;
+	}
+	button:hover {
+		color: #dc0067;
+	}
+
+.sidebar.hidden {
+		left: -556px;
+}
+
+.sidebar.hidden .sidebarhandle {
+		left: 16px;
+		transform: scale(-1, 1);
+}
+
+.sidebarhandle {
+		left: 572px;
+		position: fixed;
+		top: 16px;
+		transition: left .5s, color .5s, transform .5s;
+		z-index: 1010;
+}
+
+.sidebar {
+		box-sizing: border-box;
+		left: 0;
+		position: absolute;
+		transition: left .5s;
+		width: 540px;
+		z-index: 1005;
+ }
+
+.sidebar .container {
+		background: rgba(255,255,255,0.97);
+		border-right: 1px solid #e6e6e6;
+		min-height: 100vh;
+		overflow-y: visible;
+}
+
+.graph {
+		background: #333;
+		font: 11px Assistant,sans-serif;
+ }
+
+.leaflet-control-zoom a:hover {
+		color: #dc0067;
+}
+
+.leaflet-control-zoom a {
+		background: #fff;
+		border-radius: 5px 5px 0 0;
+		color: #000;
+		display: block;
+		font-size: 40px;
+		height: 46px;
+		text-align: center;
+		transition: background-color .5s, color .5s;
+		width: 46px;
+}
+a {
+		color: #1566a9;
+		text-decoration: none;
+}
+
+	</style>
 
 	<script>
-		var graph;
-		var show;
-		var control;
-
-		function handle_graph(data) {
-			var json = {};
-			try {
-				json = JSON.parse(data);
-			} catch (e) {
-				console.log(e);
+		var config = {
+		mapLayers: [{
+			'name': 'OpenStreetMap.HOT',
+			'url': 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+			'config': {
+				'maxZoom': 19,
+				'attribution': '&copy; Openstreetmap France | &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 			}
+		}],
+		clientZoom: 15,
+		nodeZoom: 18,
+		geo: null,
+		fixedCenter: [
+			// Northwest
+			[-5.0, 5.0],
+			// Southeast
+			[5.0, -5.0]
+		],
+		map_tqFrom: '#F02311',
+		map_tqTo: '#04C714',
+		fullscreen: true,
+		fullscreenFrame: true
+	};
 
-			if (json.nodes && json.links) {
-				graph.updateGraph(json.nodes, json.links);
-			}
+	var sidebar;
+	var buttons;
+	var my_graph;
+	var my_map;
+	var my_data = {nodes:[], links: []};
+
+	function showMap() {
+		if (my_graph) {
+			my_graph.destroy();
+			my_graph = null;
+		}
+		var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
+		var parent = $('content');
+		my_map = createMap(parent, linkScale, sidebar, buttons);
+		my_map.resetView();
+		my_map.setData(my_data);
+	}
+
+	function showGraph() {
+		if (my_map) {
+			my_map.destroy();
+			my_map = null;
+		}
+		var parent = $('content');
+		my_graph = createGraph(parent, sidebar);
+		my_graph.setData(my_data);
+	}
+
+	//from js/gui.js
+	//TODO: use static html
+	function attachButtonsDiv() {
+		/*
+		<div class="buttons">
+		<button class="ion-eye" aria-label="Switch View"></button>
+		<button class="ion-full-enter" aria-label="Toggle Fullscreen"></button>
+		</div>
+		*/
+		var buttons = document.createElement('div');
+		buttons.classList.add('buttons');
+
+		var buttonToggle = document.createElement('button');
+		buttonToggle.classList.add('ion-eye');
+		buttonToggle.setAttribute('aria-label', 'Switch View');
+		buttonToggle.onclick = function onclick() {
+		if (my_graph) {
+			showMap();
+		} else {
+			showGraph();
+		}
+		};
+
+		buttons.appendChild(buttonToggle);
+
+		if (config.fullscreen || config.fullscreenFrame && window.frameElement) {
+			var buttonFullscreen = document.createElement('button');
+			buttonFullscreen.classList.add('ion-full-enter');
+			buttonFullscreen.setAttribute('aria-label', 'Toggle Fullscreen');
+			buttonFullscreen.onclick = function onclick() {
+				toggleFullscreen(buttonFullscreen);
+			};
+
+			buttons.appendChild(buttonFullscreen);
 		}
 
-		function run_update_loop() {
-			var interval_ms = 250;
+		return buttons;
+	}
 
-			function looped_request_graph() {
-				send("/cmd/graph", {}, function(data) {
-					handle_graph(data);
-					setTimeout(looped_request_graph, interval_ms);
-				});
-			}
-
-			looped_request_graph();
+	function handle_graph(data) {
+		var json = {};
+		try {
+			json = JSON.parse(data);
+		} catch (e) {
+			console.log(e);
 		}
 
-		function request_graph() {
+		if (json.nodes && json.links) {
+			if (my_graph) {
+				my_graph.setData(json);
+				my_data = json;
+			}
+
+			if (my_map) {
+				my_map.setData(json);
+				my_data = json;
+			}
+		}
+	}
+
+	function run_update_loop() {
+		var interval_ms = 250;
+
+		function looped_request_graph() {
 			send("/cmd/graph", {}, function(data) {
 				handle_graph(data);
+				setTimeout(looped_request_graph, interval_ms);
 			});
 		}
 
-		function init() {
-			// Select first tab
-			document.getElementsByClassName('tablinks')[0].click();
+		looped_request_graph();
+	}
 
-			graph = createGraph('graph');
-			show = createShow(graph);
-			control = createControl(graph);
+	function init() {
+		send("/config.json", {}, function(data) {
+			config = Object.assign(config, JSON.parse(data));
+			sidebar = createSidebar()(); //document.body);
+
+			// extends leaflet with activearea
+			createActiveArea();
+			createClientLayer();
+
+			buttons = attachButtonsDiv();
+			document.getElementById('content').appendChild(buttons);
+
+			showMap();
 
 			run_update_loop();
-		}
-	</script>
+		});
+	}
+</script>
 </head>
 <body onload="init()">
-	<div id="container">
-		<div id="toolbar">
-			<div class="tab">
-				<button class="tablinks" onclick="showTab(event, 'edit')">Edit</button>
-				<button class="tablinks" onclick="showTab(event, 'show')">Show</button>
-				<button class="tablinks" onclick="showTab(event, 'control')">Control</button>
-			</div>
-			<div id="edit" class="tabcontent">
-				<fieldset>
-					<legend>Selection</legend>
-					<div class="equal">
-						<input type="button" onclick="graph.extendSelection()" value="extend" />
-						<input type="button" onclick="graph.clearSelection()" value="unselect" />
-					</div>
-				</fieldset>
-				<fieldset>
-					<legend>Modify</legend>
-					<div class="equal">
-						<input type="button" onclick="graph.connectSelectedNodes()" value="connect" />
-						<input type="button" onclick="graph.disconnectSelectedNodes()" value="disconnect" />
-						<input type="button" onclick="graph.removeSelectedItems()" value="remove" />
-					</div>
-				</fieldset>
-				<fieldset>
-					<legend>Animation</legend>
-					<div class="equal">
-						<input type="button" onclick="graph.toggleAnimation()" value="toggle" />
-					</div>
-				</fieldset>
-			</div>
+	<div id="content" class="content">
+	</div>
 
-			<div id="control" class="tabcontent">
-				<fieldset>
-					<legend title="Send a string to each selected node">Send Command</legend>
-					<div class="enum">
-						<input type="text" value="" id="command_request" />
-						<input type="button" value="send" onclick="control.sendCommand(getText('command_request'))" />
-					</div>
-					<div class="equal">
-						<textarea id="command_reply" rows="40" cols="55"></textarea>
-					</div>
-				</fieldset>
-			</div>
-
-			<div id="show" class="tabcontent">
-				<fieldset>
+	<div class="sidebar hidden" onclick="sidebar.onClick();">
+		<button class="sidebarhandle" aria-handle="Toggle Sidebar"></button>
+		<div class="container">
+			<header>Stuff</header>
+			<!--
+			 <fieldset>
 					<legend>Inspect</legend>
 					<div class="enum">
 						<label>Type:</label>
@@ -138,12 +351,11 @@
 							</tr>
 						</table>
 					</div>
-				</fieldset>
-			</div>
-		</div>
-		<div id="graph" class="graph">
+		</fieldset>
+	-->
 		</div>
 	</div>
+
 	<noscript>
 		<strong>JavaScript required</strong>
 	</noscript>
