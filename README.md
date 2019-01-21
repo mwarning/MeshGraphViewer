@@ -2,7 +2,7 @@
 
 Read a simple json graph file from disk and display a fancy interactive graph. Interactions with the graph (selection, deletion, etc.) can be passed to external programs.
 
-Written in an unholy combination of C and JavaScript. Build with d3.js, leaflet.js and libmicrohttpd.
+Written in an unholy combination of C and JavaScript. Build with [d3js](https://d3js.org/), [leafletjs](https://leafletjs.com/) and [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/).
 
 ![graph and map view](screenshot.png)
 
