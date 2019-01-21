@@ -1,8 +1,8 @@
 # Graph Viewer
 
-Read a simple graph file from disk and display a fancy interactive graph. Interactions with the graph (selection, deletion, etc.) can be passed to external programs.
+Read a simple json graph file from disk and display a fancy interactive graph. Interactions with the graph (selection, deletion, etc.) can be passed to external programs.
 
-Written in C and JavaScript. Build on top of d3.js and libmicrohttpd.
+Written in an unholy combination of C and JavaScript. Build with d3.js, leaflet.js and libmicrohttpd.
 
 ![graph and map view](screenshot.png)
 
@@ -104,7 +104,6 @@ The base of the JavaScript/CSS code was taken from the [MeshViewer](https://gith
 
 ## TODO
 
-- Display a geographical map (e.g. Open Street Map) with height map.
 - Use web sockets or JS code, so not polling is needed.
 - Use a GUI toolkit. So no webserver/JS is needed.
 
