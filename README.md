@@ -6,8 +6,6 @@ Written in an unholy combination of C and JavaScript. Build with [d3js](https://
 
 ![graph and map view](screenshot.png)
 
-(Icons for side menu, fullscreen and location picker and view switch are not yet set.)
-
 ## Usage
 
 Usage: `graph-tool <graph-file> [<call-program>]`
