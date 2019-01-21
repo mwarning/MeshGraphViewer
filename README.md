@@ -6,6 +6,8 @@ Written in an unholy combination of C and JavaScript. Build with [d3js](https://
 
 ![graph and map view](screenshot.png)
 
+Topological and geographical view of the same graph. Switch between view with the `S` icon.
+
 ## Usage
 
 Usage: `graph-tool <graph-file> [<call-program>]`
