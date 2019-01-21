@@ -321,38 +321,21 @@ a {
 	<div class="sidebar hidden" onclick="sidebar.onClick();">
 		<button class="sidebarhandle" aria-handle="Toggle Sidebar"></button>
 		<div class="container">
-			<header>Stuff</header>
-			<!--
-			 <fieldset>
-					<legend>Inspect</legend>
-					<div class="enum">
-						<label>Type:</label>
-						<span id="show_type">-</span>
-					</div>
-					<div class="enum">
-						<label>Path:</label>
-						<span id="show_path">/</span>
-					</div>
-					<div class="equal">
-						<input type="button" onclick="show.showSelectedObject()" value="Show" />
-					</div>
-					<div class="equal">
-						<table>
-							<thead>
-								<tr>
-									<th onclick="sortLexial(this)">Key</th>
-									<th onclick="sortLexial(this)">Value</th>
-								</tr>
-							</thead>
-							<tbody id="show_object_tbody">
-							</tbody>
-							<tr id="show_no_items">
-								<td colspan="2">No Items</td>
-							</tr>
-						</table>
-					</div>
-		</fieldset>
-	-->
+			<fieldset>
+				<legend>Change Selection</legend>
+				<div>
+					<input type="button" onclick="if (my_graph) { my_graph.extendSelection(); }" value="extend" />
+					<input type="button" onclick="if (my_graph) { my_graph.clearSelection(); }" value="unselect" />
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>Modify Graph</legend>
+				<div>
+					<input type="button" onclick="if (my_graph) { my_graph.connectSelectedNodes(); }" value="connect" />
+					<input type="button" onclick="if (my_graph) { my_graph.disconnectSelectedNodes(); }" value="disconnect" />
+					<input type="button" onclick="if (my_graph) { my_graph.removeSelectedItems(); }" value="remove" />
+				</div>
+			</fieldset>
 		</div>
 	</div>
 
