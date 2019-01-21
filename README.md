@@ -1,6 +1,6 @@
 # Graph Viewer
 
-Read a bidirectional graph file from disk and display a fancy interactive graph. Interactions with the graph (selection, deletion, etc.) can be passed to external programs.
+Read a simple graph file from disk and display a fancy interactive graph. Interactions with the graph (selection, deletion, etc.) can be passed to external programs.
 
 Written in C and JavaScript. Build on top of d3.js and libmicrohttpd.
 
