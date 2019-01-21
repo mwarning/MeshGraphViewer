@@ -82,6 +82,7 @@
 		unicode-bidi: bidi-override;
 		z-index: 1001;
 	}
+
 	button {
 		background: #fff;
 		border: 0;
@@ -102,56 +103,58 @@
 	#content .buttons button {
 		margin-left: 16px;
 	}
+
 	#content .buttons {
 		direction: rtl;
 	}
+
 	button:hover {
 		color: #dc0067;
 	}
 
-.sidebar.hidden {
+	.sidebar.hidden {
 		left: -556px;
-}
+	}
 
-.sidebar.hidden .sidebarhandle {
+	.sidebar.hidden .sidebarhandle {
 		left: 16px;
 		transform: scale(-1, 1);
-}
+	}
 
-.sidebarhandle {
+	.sidebarhandle {
 		left: 572px;
 		position: fixed;
 		top: 16px;
 		transition: left .5s, color .5s, transform .5s;
 		z-index: 1010;
-}
+	}
 
-.sidebar {
+	.sidebar {
 		box-sizing: border-box;
 		left: 0;
 		position: absolute;
 		transition: left .5s;
 		width: 540px;
 		z-index: 1005;
- }
+	}
 
-.sidebar .container {
+	.sidebar .container {
 		background: rgba(255,255,255,0.97);
 		border-right: 1px solid #e6e6e6;
 		min-height: 100vh;
 		overflow-y: visible;
-}
+	}
 
-.graph {
+	.graph {
 		background: #333;
 		font: 11px Assistant,sans-serif;
- }
+	}
 
-.leaflet-control-zoom a:hover {
+	.leaflet-control-zoom a:hover {
 		color: #dc0067;
-}
+	}
 
-.leaflet-control-zoom a {
+	.leaflet-control-zoom a {
 		background: #fff;
 		border-radius: 5px 5px 0 0;
 		color: #000;
@@ -161,12 +164,11 @@
 		text-align: center;
 		transition: background-color .5s, color .5s;
 		width: 46px;
-}
-a {
+	}
+	a {
 		color: #1566a9;
 		text-decoration: none;
-}
-
+	}
 	</style>
 
 	<script>
