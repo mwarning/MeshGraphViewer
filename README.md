@@ -4,6 +4,8 @@ Read a simple graph file from disk and display a fancy interactive graph. Intera
 
 Written in C and JavaScript. Build on top of d3.js and libmicrohttpd.
 
+![graph and map view](screenshot.png)
+
 Usage: `graph-tool <graph-file> [<call-program>]`
 
 Arguments:
