@@ -102,11 +102,6 @@ Note:
 
 The base of the JavaScript/CSS code was taken from the [MeshViewer](https://github.com/ffrgb/meshviewer) project.
 
-## TODO
-
-- Use web sockets or JS code, so not polling is needed.
-- Use a GUI toolkit. So no webserver/JS is needed.
-
 ## License
 
 All JavaScript/CSS code is AGPL-3 because it is the original license, everything else is MIT.
