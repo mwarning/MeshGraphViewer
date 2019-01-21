@@ -1,9 +1,6 @@
 
-function $(id) {
-	if (id[0] == '.') {
-		return document.getElementsByClass(id);
-	}
-	return document.getElementById(id);
+function $(selector) {
+	return document.querySelector(selector);
 }
 
 function positionClients(ctx, p, startAngle, clients, startDistance) {

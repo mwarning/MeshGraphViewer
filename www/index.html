@@ -206,7 +206,7 @@ a {
 			my_graph = null;
 		}
 		var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
-		var parent = $('content');
+		var parent = $('#content');
 		my_map = createMap(parent, linkScale, sidebar, buttons);
 		my_map.resetView();
 		my_map.setData(my_data);
@@ -217,7 +217,7 @@ a {
 			my_map.destroy();
 			my_map = null;
 		}
-		var parent = $('content');
+		var parent = $('#content');
 		my_graph = createGraph(parent, sidebar);
 		my_graph.setData(my_data);
 	}
