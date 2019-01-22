@@ -1,142 +1,286 @@
 
-.graph {
-  background: #333333;
-  font: inherit;
+element {
+	position: relative;
+	outline: currentcolor none medium;
+}
 
-  canvas {
-    display: block;
-    position: absolute;
-  }
+.content {
+	height: 100vh;
+	position: fixed;
+	width: 100%;
+
+	.buttons {
+		direction: rtl;
+		position: absolute;
+		unicode-bidi: bidi-override;
+		z-index: 1001;
+
+		button {
+			margin-left: 16px;
+		}
+	}
+}
+
+.stroke-first {
+	paint-order: stroke;
+}
+
+.pick-coordinates {
+	cursor: crosshair;
+}
+
+#graph.hidden {
+	display: none;
+}
+
+#map.hidden {
+	display: none;
+}
+
+.graph {
+	height: 100%;
+	width: 100%;
+}
+
+.map {
+	height: 100%;
+	width: 100%;
+}
+
+#content .buttons {
+	direction: rtl;
+	position: absolute;
+	right: 16px;
+	top: 16px;
+	unicode-bidi: bidi-override;
+	z-index: 1001;
+}
+
+button {
+	background: #fff;
+	border: 0;
+	border-radius: .9em;
+	color: #000;
+	cursor: pointer;
+	font-family: ionicons;
+	font-size: 1.6rem;
+	height: 1.8em;
+	line-height: 1.95;
+	opacity: .7;
+	outline: none;
+	padding: 0;
+	transition: box-shadow .5s, background-color .5s, color .5s;
+	width: 1.8em;
+}
+
+#content .buttons button {
+	margin-left: 16px;
+}
+
+#content .buttons {
+	direction: rtl;
+}
+
+button:hover {
+	color: #dc0067;
+}
+
+.sidebar.hidden {
+	left: -556px;
+}
+
+.sidebar.hidden .sidebarhandle {
+	left: 16px;
+	transform: scale(-1, 1);
+}
+
+.sidebarhandle {
+	left: 572px;
+	position: fixed;
+	top: 16px;
+	transition: left .5s, color .5s, transform .5s;
+	z-index: 1010;
+}
+
+.sidebar {
+	box-sizing: border-box;
+	left: 0;
+	position: absolute;
+	transition: left .5s;
+	width: 540px;
+	z-index: 1005;
+}
+
+.sidebar .container {
+	background: rgba(255,255,255,0.97);
+	border-right: 1px solid #e6e6e6;
+	min-height: 100vh;
+	overflow-y: visible;
+}
+
+.graph {
+	background: #333;
+	font: 11px Assistant,sans-serif;
+}
+
+.leaflet-control-zoom a:hover {
+	color: #dc0067;
+}
+
+.leaflet-control-zoom a {
+	background: #fff;
+	border-radius: 5px 5px 0 0;
+	color: #000;
+	display: block;
+	font-size: 40px;
+	height: 46px;
+	text-align: center;
+	transition: background-color .5s, color .5s;
+	width: 46px;
+}
+a {
+	color: #1566a9;
+	text-decoration: none;
+}
+
+.graph {
+	background: #333333;
+	font: inherit;
+
+	canvas {
+		display: block;
+		position: absolute;
+	}
 }
 
 #container {
-  height: auto;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
+	height: auto;
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
 }
 
 #toolbar {
-  width: 22%;
-  float: left;
+	width: 22%;
+	float: left;
 }
 
 #graph {
-  float: left;
-  overflow: hidden;
+	float: left;
+	overflow: hidden;
 }
 
 /* Style the tab */
 div.tab {
-  overflow: hidden;
-  border: 1px solid #ccc;
-  background-color: #f1f1f1;
+	overflow: hidden;
+	border: 1px solid #ccc;
+	background-color: #f1f1f1;
 }
 
 /* Style the buttons inside the tab */
 div.tab button {
-  background-color: inherit;
-  float: left;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-size: 1.3em;
-  transition: 0.2s;
+	background-color: inherit;
+	float: left;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	font-size: 1.3em;
+	transition: 0.2s;
 }
 
 /* Change background color of buttons on hover */
 div.tab button:hover {
-  background-color: #ddd;
+	background-color: #ddd;
 }
 
 /* Create an active/current tablink class */
 div.tab button.active {
-  background-color: #ccc;
+	background-color: #ccc;
 }
 
 /* Style the tab content */
 .tabcontent {
-  /*display: none;*/
-  border-top: none;
+	/*display: none;*/
+	border-top: none;
 }
 
 th {
-  width: 4em;
+	width: 4em;
 }
 
 /* Remove dotted outline on buttons */
 button::-moz-focus-inner {
-  border: 0;
+	border: 0;
 }
 
 input[type="number"] {
-  width: auto;
-  margin: auto;
-  max-width: 3.2em;
+	width: auto;
+	margin: auto;
+	max-width: 3.2em;
 }
 
 input[type="text"] {
-  width: 14em;
+	width: 14em;
 }
 
 input[type="button"] {
-  width: auto;
-  text-align: center;
+	width: auto;
+	text-align: center;
 }
 
 input[type="file"] {
-  display: none;
+	display: none;
 }
 
 input[type="checkbox"] {
-  text-align: center;
-  vertical-align: middle;
-  margin: 0 0 0 0.5em;
+	text-align: center;
+	vertical-align: middle;
+	margin: 0 0 0 0.5em;
 }
 
 fieldset td {
-  text-align: center;
+	text-align: center;
 }
 
 fieldset {
-  margin: 0.1em;
-  padding: 0.2em;
-  width: auto;
-  border: 0.1em solid #000;
+	margin: 0.1em;
+	padding: 0.2em;
+	width: auto;
+	border: 0.1em solid #000;
 }
 
 fieldset * {
-  margin: 0.12em 0.3em;
-  white-space: nowrap;
+	margin: 0.12em 0.3em;
+	white-space: nowrap;
 }
 
 fieldset .equal {
-  display: flex;
-  justify-content: space-around;
+	display: flex;
+	justify-content: space-around;
 }
 
 fieldset .enum {
-  height: 1.75em;
+	height: 1.75em;
 }
 
 fieldset .enum > input:first-child {
-  width: 6em;
+	width: 6em;
 }
 
 fieldset .enum > :first-child {
-  width: 8em;
+	width: 8em;
 }
 
 fieldset .enum > * {
-  float: left;
-  margin: 0.1em;
+	float: left;
+	margin: 0.1em;
 }
 
 fieldset > * {
-  clear: both;
+	clear: both;
 }
 
 body {
-  padding: 0;
-  margin: 0;
+	padding: 0;
+	margin: 0;
 }
