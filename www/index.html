@@ -15,6 +15,7 @@
 
 	<script src="utils.js"></script>
 	<script src="sidebar.js"></script>
+	<script src="selection.js"></script>
 
 	<script src="forcegraph.js"></script>
 	<script src="forcegraph/draw.js"></script>
@@ -53,9 +54,42 @@
 
 	var sidebar;
 	var buttons;
+	var selection;
 	var my_graph;
 	var my_map;
 	var my_data = {nodes:[], links: []};
+
+
+	function removeGraph () {
+		send("/cmd/clear", {}, function() {
+				request_graph();
+			}
+		);
+	}
+
+	function disconnectSelectedNodes () {
+		var node_ids = selection.getSelectedNodes();
+		send("/cmd/call", { cmd: "disconnect", nodes: node_ids }, function() {
+			request_graph();
+		});
+	}
+
+	function connectSelectedNodes () {
+		var node_ids = selection.getSelectedNodes();
+		send("/cmd/call", { cmd: "connect", nodes: node_ids }, function() {
+			request_graph();
+		});
+	}
+
+	// Remove selected items
+	function removeSelectedItems () {
+		var node_ids = selection.getSelectedNodes();
+		var links_ids = selection.getSelectedLinks();
+
+		send("/cmd/call", { cmd: "remove", links: link_ids, nodes: node_ids }, function() {
+			request_graph();
+		});
+	};
 
 	function showMap() {
 		if (my_graph) {
@@ -64,7 +98,7 @@
 		}
 		var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
 		var parent = $('#content');
-		my_map = createMap(parent, linkScale, sidebar, buttons);
+		my_map = createMap(parent, selection, linkScale, sidebar, buttons);
 		my_map.resetView();
 		my_map.setData(my_data);
 	}
@@ -75,7 +109,7 @@
 			my_map = null;
 		}
 		var parent = $('#content');
-		my_graph = createGraph(parent, sidebar);
+		my_graph = createGraph(parent, selection, sidebar);
 		my_graph.setData(my_data);
 	}
 
@@ -120,7 +154,7 @@
 		return buttons;
 	}
 
-	function handle_graph(data) {
+	function handle_data(data) {
 		var json = {};
 		try {
 			json = JSON.parse(data);
@@ -129,6 +163,9 @@
 		}
 
 		if (json.nodes && json.links) {
+			// remove selected items that do not exist anymore
+			selection.filterSelections(json.nodes, json.links);
+
 			if (my_graph) {
 				my_graph.setData(json);
 				my_data = json;
@@ -141,12 +178,18 @@
 		}
 	}
 
+	function request_graph() {
+		send("/cmd/graph", {}, function(data) {
+			handle_data(data);
+		});
+	}
+
 	function run_update_loop() {
 		var interval_ms = 250;
 
 		function looped_request_graph() {
 			send("/cmd/graph", {}, function(data) {
-				handle_graph(data);
+				handle_data(data);
 				setTimeout(looped_request_graph, interval_ms);
 			});
 		}
@@ -157,7 +200,8 @@
 	function init() {
 		send("/config.json", {}, function(data) {
 			config = Object.assign(config, JSON.parse(data));
-			sidebar = createSidebar()(); //document.body);
+			sidebar = createSidebar()();
+			selection = createSelection();
 
 			// extends leaflet with activearea
 			createActiveArea();
@@ -166,7 +210,7 @@
 			buttons = attachButtonsDiv();
 			document.getElementById('content').appendChild(buttons);
 
-			showMap();
+			showGraph();
 
 			run_update_loop();
 		});
@@ -183,16 +227,16 @@
 			<fieldset>
 				<legend>Change Selection</legend>
 				<div>
-					<input type="button" onclick="if (my_graph) { my_graph.extendSelection(); }" value="extend" />
-					<input type="button" onclick="if (my_graph) { my_graph.clearSelection(); }" value="unselect" />
+					<input type="button" onclick="selection.extendSelection(my_data); if (my_graph) { my_graph.redraw(); }" value="extend" />
+					<input type="button" onclick="selection.clearSelection(); if (my_graph) { my_graph.redraw(); }" value="unselect" />
 				</div>
 			</fieldset>
 			<fieldset>
 				<legend>Modify Graph</legend>
 				<div>
-					<input type="button" onclick="if (my_graph) { my_graph.connectSelectedNodes(); }" value="connect" />
-					<input type="button" onclick="if (my_graph) { my_graph.disconnectSelectedNodes(); }" value="disconnect" />
-					<input type="button" onclick="if (my_graph) { my_graph.removeSelectedItems(); }" value="remove" />
+					<input type="button" onclick="connectSelectedNodes();" value="connect" />
+					<input type="button" onclick="disconnectSelectedNodes();" value="disconnect" />
+					<input type="button" onclick="removeSelectedItems();" value="remove" />
 				</div>
 			</fieldset>
 		</div>

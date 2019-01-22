@@ -1,5 +1,5 @@
 
-function createMap(parent, linkScale, sidebar, buttons) {
+function createMap(parent, selection, linkScale, sidebar, buttons) {
 	var self = this;
 	var savedView;
 
@@ -240,25 +240,21 @@ function createMap(parent, linkScale, sidebar, buttons) {
 	};
 
 	self.resetView = function resetView() {
-		//button.disableTracking();
 		highlight = undefined;
 		updateView();
 	};
 
 	self.gotoNode = function gotoNode(d) {
-		//button.disableTracking();
 		highlight = { type: 'node', o: d };
 		updateView();
 	};
 
 	self.gotoLink = function gotoLink(d) {
-		//button.disableTracking();
 		highlight = { type: 'link', o: d[0] };
 		updateView();
 	};
 
 	self.gotoLocation = function gotoLocation(d) {
-		//button.disableTracking();
 		map.setView([d.lat, d.lng], d.zoom);
 	};
 

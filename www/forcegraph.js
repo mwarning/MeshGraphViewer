@@ -1,6 +1,6 @@
 
-function createGraph(parent, sidebar) {
-	var draw = createDraw();
+function createGraph(parent, selection, sidebar) {
+	var draw = createDraw(selection);
 	var d3Interpolate = d3;
 	var d3Zoom = d3;
 	var d3Force = d3;
@@ -235,8 +235,8 @@ function createGraph(parent, sidebar) {
 
 	// Create a bidirectional link identifier
 	function linkId(source, target) {
-		var sid = source.o.id;
-		var tid = target.o.id;
+		var sid = source.id;
+		var tid = target.id;
 		return (sid > tid) ? (tid + '=>' + sid) : (sid + '=>' + tid);
 	}
 
@@ -260,7 +260,7 @@ function createGraph(parent, sidebar) {
 			});
 
 			intLinks.forEach(function (e) {
-				linkDict[linkId(e.source, e.target)] = e;
+				linkDict[linkId(e.source.o, e.target.o)] = e;
 			});
 		}
 
@@ -298,7 +298,7 @@ function createGraph(parent, sidebar) {
 		function addLink(link) {
 			var source = nodeDict[link.source];
 			var target = nodeDict[link.target];
-			var id = linkId(source, target);
+			var id = linkId(source.o, target.o);
 
 			if (id in linkDict) {
 				var l = linkDict[id];
@@ -321,37 +321,8 @@ function createGraph(parent, sidebar) {
 		force.nodes(intNodes);
 		forceLink.links(intLinks);
 
-		// remove selected items that do not exist anymore
-		draw.filterSelections(intNodes, intLinks);
-
 		force.alpha(1).restart();
 		redraw();
-		//updateGraphStatistics();
-	}
-
-	self.removeGraph = function () {
-		draw.clearSelection();
-
-		send("/cmd/clear", {}, function() {
-				request_graph();
-			}
-		);
-	}
-
-	self.disconnectSelectedNodes = function () {
-		var selectedNodes = draw.getSelectedIntNodes();
-		var node_ids = selectedNodes.map(d => d.index);
-		send("/cmd/call", { cmd: "disconnect", nodes: node_ids }, function() {
-			request_graph();
-		});
-	}
-
-	self.connectSelectedNodes = function () {
-		var selectedNodes = draw.getSelectedIntNodes();
-		var node_ids = selectedNodes.map(d => d.index);
-		send("/cmd/call", { cmd: "connect", nodes: node_ids }, function() {
-			request_graph();
-		});
 	}
 
 	self.toggleAnimation = function toggleAnimation() {
@@ -364,106 +335,23 @@ function createGraph(parent, sidebar) {
 		animationEnabled = !animationEnabled;
 	}
 
-	self.extendSelection = function extendSelection() {
-		var selectedNodes = {};
-		var selectedLinks = {};
-
-		// Map node id to array of link objects
-		var connections = {};
-
-		intNodes.forEach(function(n) {
-			connections[n.index] = [];
-		});
-
-		intLinks.forEach(function(l) {
-			connections[l.source.index].push(l);
-			connections[l.target.index].push(l);
-		});
-
-		function selectNode(n) {
-			selectedNodes[n.index] = n;
-			if (n.index in connections) {
-				connections[n.index].forEach(function(l) {
-					if (!(l.index in selectedLinks)) {
-						selectedLinks[l.index] = l;
-					}
-					if (!(l.source.index in selectedNodes)) {
-						selectNode(l.source);
-					}
-					if (!(l.target.index in selectedNodes)) {
-						selectNode(l.target);
-					}
-				});
-			}
-		}
-
-		draw.getSelectedIntNodes().forEach(function (e) {
-			selectNode(e);
-		});
-
-		draw.getSelectedIntLinks().forEach(function (e) {
-			selectNode(e.source);
-			selectNode(e.target);
-		});
-
-		draw.setSelection(Object.values(selectedNodes), Object.values(selectedLinks));
-		redraw();
-	}
-
-	// Remove selected items
-	self.removeSelectedItems = function () {
-		var selectedNodes = draw.getSelectedIntNodes();
-		var selectedLinks = draw.getSelectedIntLinks();
-		var node_ids = selectedNodes.map(d => d.index);
-		var link_ids = [];
-
-		selectedLinks.forEach(d => {
-			link_ids.push([d.source.index, d.target.index]);
-		});
-
-		send("/cmd/call", { cmd: "remove", links: link_ids, nodes: node_ids }, function() {
-			request_graph();
-		});
-	};
-
-	self.getSelectedIntNodes = function () {
-		return draw.getSelectedIntNodes();
-	}
-
-	self.getSelectedIntLinks = function () {
-		return draw.getSelectedIntLinks();
-	}
-
-	self.getIntNodes = function () {
-		return intNodes;
-	}
-
-	self.getIntLinks = function () {
-		return intLinks;
-	}
-
-	self.clearSelection = function () {
-		draw.clearSelection();
-		redraw();
-	}
-
 	self.resetView = function () {
 		moveTo([0, 0, (ZOOM_MIN + 1) / 2], true);
 	};
 
-	self.selectNode = function (node) {
-		draw.selectNode(node);
-
+	function selectNode (node) {
 		// Focus node if no ctrl key pressed
+		selection.selectNode(node.o.id);
+
 		if (!(d3.event && (d3.event.ctrlKey || d3.event.metaKey))) {
 			moveTo([node.x, node.y, (ZOOM_MAX + 1) / 2]);
 		}
 	};
 
-	self.selectLink = function (link) {
-		draw.selectLink(link);
-
+	function selectLink (link) {
 		// Focus link if no ctrl key pressed
+		selection.selectLink(link.o.source + "," + link.o.target);
+
 		if (!(d3.event && (d3.event.ctrlKey || d3.event.metaKey))) {
 			moveTo([(link.source.x + link.target.x) / 2, (link.source.y + link.target.y) / 2, (ZOOM_MAX / 2) + ZOOM_MIN]);
 		}

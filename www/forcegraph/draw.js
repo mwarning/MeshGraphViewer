@@ -1,5 +1,5 @@
 
-function createDraw() {
+function createDraw(selection) {
 	var self = {};
 
 	var ctx;
@@ -29,7 +29,7 @@ function createDraw() {
 			if ('clients' in d.o) {
 				ctx.beginPath();
 				ctx.fillStyle = clientColor;
-				positionClients(ctx, d, Math.random() * 2 * Math.PI, d.o.clients, 15);
+				positionClients(ctx, d, Math.PI, d.o.clients, 15);
 				ctx.fill();
 			}
 
@@ -49,8 +49,8 @@ function createDraw() {
 		}
 	}
 
-	function drawHighlightNode(d) {
-		if (highlightedNodes.includes(d)) {
+	function drawHighlightedNode(d) {
+		if (selection.isHighlightedNode(d.o.id)) {
 			ctx.arc(d.x, d.y, NODE_RADIUS * 1.5, 0, 2 * Math.PI);
 			ctx.fillStyle = highlightColor;
 			ctx.fill();
@@ -59,7 +59,7 @@ function createDraw() {
 	}
 
 	function drawSelectedNode(d) {
-		if (selectedNodes.includes(d)) {
+		if (selection.isSelectedNode(d.o.id)) {
 			ctx.arc(d.x, d.y, NODE_RADIUS * 1.5, 0, 2 * Math.PI);
 			ctx.fillStyle = selectColor;
 			ctx.fill();
@@ -67,8 +67,8 @@ function createDraw() {
 		}
 	}
 
-	function drawHighlightLink(d, to) {
-		if (highlightedLinks.includes(d)) {
+	function drawHighlightedLink(d, to) {
+		if (selection.isHighlightedLink(d.source.o.id + "," + d.target.o.id)) {
 			ctx.lineTo(to[0], to[1]);
 			ctx.strokeStyle = highlightColor;
 			ctx.lineWidth = LINE_RADIUS * 2;
@@ -79,8 +79,8 @@ function createDraw() {
 		return to;
 	}
 
-	function drawSelectLink(d, to) {
-		if (selectedLinks.includes(d)) {
+	function drawSelectedLink(d, to) {
+		if (selection.isSelectedLink(d.source.o.id + "," + d.target.o.id)) {
 			ctx.lineTo(to[0], to[1]);
 			ctx.strokeStyle = selectColor;
 			ctx.lineWidth = LINE_RADIUS * 2;
@@ -98,7 +98,7 @@ function createDraw() {
 		ctx.beginPath();
 
 		drawSelectedNode(d);
-		drawHighlightNode(d);
+		drawHighlightedNode(d);
 
 		if ('ring_color' in d.o) {
 			ctx.arc(d.x, d.y, 8, 0, 2 * Math.PI);
@@ -131,8 +131,8 @@ function createDraw() {
 		ctx.moveTo(d.source.x, d.source.y);
 		var to = [d.target.x, d.target.y];
 
-		to = drawSelectLink(d, to);
-		to = drawHighlightLink(d, to);
+		to = drawSelectedLink(d, to);
+		to = drawHighlightedLink(d, to);
 
 		var grd = ctx.createLinearGradient(d.source.x, d.source.y, d.target.x, d.target.y);
 		grd.addColorStop(0.45, linkScale(d.o.source_tq)); //source_tq));
@@ -158,102 +158,6 @@ function createDraw() {
 
 	self.setCTX = function setCTX(newValue) {
 		ctx = newValue;
-	};
-
-	self.getSelectedIntNodes = function () {
-		return selectedNodes;
-	};
-
-	self.getSelectedIntLinks = function () {
-		return selectedLinks;
-	};
-
-	self.clearSelection = function () {
-		selectedNodes = [];
-		selectedLinks = [];
-	};
-
-	self.setSelection = function (nodes, links) {
-		selectedNodes = nodes;
-		selectedLinks = links;
-	};
-
-	self.setHighlight = function (nodes, links) {
-		highlightedNodes = nodes;
-		highlightedLinks = links;
-	};
-
-	self.clearHighlight = function () {
-		highlightedNodes = [];
-		highlightedLinks = [];
-	};
-
-	// Remove selected/highlighted nodes/links that were deleted
-	self.filterSelections = function (intNodes, intLinks) {
-		var highlightedNodes_count = highlightedNodes.length;
-		var highlightedLinks_count = highlightedLinks.length;
-		var selectedNodes_count = selectedNodes.length;
-		var selectedLinks_count = selectedLinks.length;
-/*
-	 	//check if removing stuff really removed selected items
-		console.log("beg removed selected items: "
-			+ (highlightedNodes_count) + " "
-			+ (highlightedLinks_count) + " "
-			+ (selectedNodes_count) + " "
-			+ (selectedLinks_count)
-		);
-*/
-		highlightedNodes = highlightedNodes.filter(function(e) {
-			return (intNodes.indexOf(e) !== -1);
-		});
-
-		highlightedLinks = highlightedLinks.filter(function(e) {
-			return (intLinks.indexOf(e) !== -1);
-		});
-
-		selectedNodes = selectedNodes.filter(function(e) {
-			return (intNodes.indexOf(e) !== -1);
-		});
-
-		selectedLinks = selectedLinks.filter(function(e) {
-			return (intLinks.indexOf(e) !== -1);
-		});
-/*
-		console.log("end removed selected items: "
-			+ (highlightedNodes_count - highlightedNodes.length) + " "
-			+ (highlightedLinks_count - highlightedLinks.length) + " "
-			+ (selectedNodes_count - selectedNodes.length) + " "
-			+ (selectedLinks_count - selectedLinks.length)
-		);
-*/
-	}
-
-	self.selectNode = function (node) {
-		if (d3.event && (d3.event.ctrlKey || d3.event.metaKey)) {
-			var i = selectedNodes.indexOf(node);
-			if (i < 0) {
-				selectedNodes.push(node);
-			} else {
-				selectedNodes.splice(i, 1);
-			}
-		} else {
-			selectedNodes = [node];
-			selectedLinks = [];
-		}
-	};
-
-	self.selectLink = function (link) {
-		if (d3.event && (d3.event.ctrlKey || d3.event.metaKey)) {
-			var i = selectedLinks.indexOf(link);
-			if (i < 0) {
-				selectedLinks.push(link);
-			} else {
-				selectedLinks.splice(i, 1);
-			}
-		} else {
-			selectedNodes = [];
-			selectedLinks = [link];
-		}
 	};
 
 	self.setTransform = function (newValue) {

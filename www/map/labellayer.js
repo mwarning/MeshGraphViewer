@@ -23,11 +23,6 @@ function createLabelLayer() {
 		return (d * 100).toFixed(0) + '%';
 	}
 
-	function hasLocation(d) {
-		return Math.abs(d.x) < 90 &&
-			Math.abs(d.y) < 180;
-	}
-
 	function subtract(a, b) {
 		var ids = {};
 
@@ -127,8 +122,7 @@ function createLabelLayer() {
 			};
 
 			m.on('click', function () {
-				//router.fullUrl({ node: d.id /*node_id*/ });
-				console.log("clicked node " + d.o.name);
+				selection.selectNode(d.o.id);
 			});
 
 			m.bindTooltip(/*helper.*/ escape(d.o.name));
@@ -159,8 +153,7 @@ function createLabelLayer() {
 				'<br><strong>' + /*helper.*/ showDistance(d) + ' / ' + /*helper.*/ showTq(d.o.source_tq) + ' - ' + /*helper.*/ showTq(d.o.target_tq) + /*'<br>' + d.type +*/ '</strong>');
 
 			line.on('click', function () {
-				//router.fullUrl({ link: d.id });
-				console.log("clicked on link " + d.id);
+				selection.selectLink(d.o.source + "," + d.o.target);
 			});
 
 			dict[d.id] = line;
@@ -219,17 +212,7 @@ function createLabelLayer() {
 			// - minZoom (inclusive)
 			// - label (string)
 			// - color (string)
-			var labelsOnline = this.data.map(prepareLabel(null, 11, 8, true));
-			//var labelsOffline = d.offline.map(prepareLabel(config.icon.offline.color, 9, 5, false));
-			//var labelsNew = d.new.map(prepareLabel(config.map.labelNewColor, 11, 8, true));
-			//var labelsLost = d.lost.map(prepareLabel(config.icon.lost.color, 11, 8, true));
-
-			var labels = []
-				//.concat(labelsNew)
-				//.concat(labelsLost)
-				.concat(labelsOnline)
-				//.concat(labelsOffline);
-
+			var labels = this.data.map(prepareLabel(null, 11, 8, true));
 			var minZoom = this.options.minZoom;
 			var maxZoom = this.options.maxZoom;
 

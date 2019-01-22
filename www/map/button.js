@@ -1,6 +1,5 @@
-//define(['map/clientlayer', 'map/labellayer', 'leaflet', 'map/locationmarker'],
-function Button() { //ClientLayer, LabelLayer, L, LocationMarker) {
-    //'use strict';
+
+function Button() {
     var self = {};
 
     var ButtonBase = L.Control.extend({
@@ -47,7 +46,7 @@ function Button() { //ClientLayer, LabelLayer, L, LocationMarker) {
       onAdd: function () {
         var button = L.DomUtil.create('button', 'ion-pin');
         button.setAttribute('title', 'Location Picker');
-        button.appendChild(document.createTextNode("P"));
+        button.appendChild(document.createTextNode("L"));
 
         // Click propagation isn't disabled as this causes problems with the
         // location picking mode; instead propagation is stopped in onClick().
@@ -96,22 +95,6 @@ function Button() { //ClientLayer, LabelLayer, L, LocationMarker) {
           disableCoords();
         }
       });
-/*
-      function enableTracking() {
-        map.locate({
-          watch: true,
-          enableHighAccuracy: true,
-          setView: true
-        });
-        locateUserButton.set(true);
-      }
-
-      self.disableTracking = function disableTracking() {
-        map.stopLocate();
-        self.locationError();
-        locateUserButton.set(false);
-      };
-*/
 
       function enableCoords() {
         map.getContainer().classList.add('pick-coordinates');
@@ -148,7 +131,6 @@ function Button() { //ClientLayer, LabelLayer, L, LocationMarker) {
       };
 
       self.init = function init() {
-        //addButton(locateUserButton);
         addButton(showCoordsPickerButton);
       };
 
