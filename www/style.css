@@ -1,9 +1,4 @@
 
-element {
-	position: relative;
-	outline: currentcolor none medium;
-}
-
 .content {
 	height: 100vh;
 	position: fixed;
@@ -62,7 +57,6 @@ button {
 	border-radius: .9em;
 	color: #000;
 	cursor: pointer;
-	font-family: ionicons;
 	font-size: 1.6rem;
 	height: 1.8em;
 	line-height: 1.95;
