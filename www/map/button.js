@@ -46,7 +46,7 @@ function Button() {
       onAdd: function () {
         var button = L.DomUtil.create('button', 'ion-pin');
         button.setAttribute('title', 'Location Picker');
-        button.appendChild(document.createTextNode("L"));
+        button.appendChild(document.createTextNode("P"));
 
         // Click propagation isn't disabled as this causes problems with the
         // location picking mode; instead propagation is stopped in onClick().
@@ -109,7 +109,6 @@ function Button() {
       }
 
       function showCoordinates(e) {
-        //router.fullUrl({ zoom: map.getZoom(), lat: e.latlng.lat, lng: e.latlng.lng });
         alert(e.latlng.lat + ", " + e.latlng.lng);
         disableCoords();
       }
