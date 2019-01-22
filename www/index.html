@@ -84,7 +84,7 @@
 	// Remove selected items
 	function removeSelectedItems () {
 		var node_ids = selection.getSelectedNodes();
-		var links_ids = selection.getSelectedLinks();
+		var link_ids = selection.getSelectedLinks();
 
 		send("/cmd/call", { cmd: "remove", links: link_ids, nodes: node_ids }, function() {
 			request_graph();

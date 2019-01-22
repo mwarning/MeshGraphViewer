@@ -19,11 +19,11 @@ function createSelection() {
 	};
 
 	self.getSelectedNodes = function () {
-		return self.selectedNodes;
+		return selectedNodes;
 	}
 
 	self.getSelectedLinks = function () {
-		return self.selectedLinks;
+		return selectedLinks;
 	}
 
 	self.extendSelection = function (data) {

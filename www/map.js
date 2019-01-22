@@ -204,7 +204,7 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 		if (nodes.length) {
 			return [[min_x, min_y], [max_x, max_y]];
 		} else {
-			return [[0.0, 0.0], [0.0, 0.0]];
+			return [[5.0, 5.0], [0.0, 0.0]];
 		}
 	}
 
@@ -228,6 +228,7 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 			} else if (savedView) {
 				map.setView(savedView.center, savedView.zoom);
 			} else {
+
 				setView(nodesBounds);
 			}
 		} else {
