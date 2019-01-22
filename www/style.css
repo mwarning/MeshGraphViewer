@@ -277,4 +277,6 @@ fieldset > * {
 body {
 	padding: 0;
 	margin: 0;
+	background: #fff;
+	color: #000;
 }
