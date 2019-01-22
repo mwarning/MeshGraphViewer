@@ -2,6 +2,7 @@
 function createMap(parent, selection, linkScale, sidebar, buttons) {
 	var self = this;
 	var savedView;
+	var nodesBounds;
 
 	var map;
 	var layerControl;
@@ -179,6 +180,34 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 		return m;
 	}
 
+	function nodesBounds(nodes) {
+		var min_x = Number.POSITIVE_INFINITY;
+		var max_x = Number.NEGATIVE_INFINITY;
+		var min_y = Number.POSITIVE_INFINITY;
+		var max_y = Number.NEGATIVE_INFINITY;
+
+		nodes.forEach(function (d) {
+			if (d.x < min_x) {
+				min_x = d.x;
+			}
+			if (d.x > max_x) {
+				max_x = d.x;
+			}
+			if (d.y < min_y) {
+				min_y = d.y;
+			}
+			if (d.y > max_y) {
+				max_y = d.y;
+			}
+		});
+
+		if (nodes.length) {
+			return [[min_x, min_y], [max_x, max_y]];
+		} else {
+			return [[0.0, 0.0], [0.0, 0.0]];
+		}
+	}
+
 	function updateView(nopanzoom) {
 		resetMarkerStyles(nodeDict, linkDict);
 		var m;
@@ -198,15 +227,15 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 				goto(m);
 			} else if (savedView) {
 				map.setView(savedView.center, savedView.zoom);
-			} else if (config.fixedCenter) {
-				setView(config.fixedCenter);
 			} else {
-				//TODO: focus on content
+				setView(nodesBounds);
 			}
+		} else {
+			setView(nodesBounds);
 		}
 	}
 
-	self.setData = function setData(data) {
+	self.setData = function (data) {
 		{
 			// some preprocessing
 			var nodes = [];
@@ -233,6 +262,7 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 		nodeDict = {};
 		linkDict = {};
 
+		nodesBounds = nodesBounds(nodes);
 		clientLayer.setData(data);
 		labelLayer.setData(data, map, nodeDict, linkDict, linkScale);
 
