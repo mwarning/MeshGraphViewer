@@ -72,7 +72,7 @@ function createClientLayer() {
 				if (('clients' in d.node.o) && d.node.o.clients > 0) {
 					ctx.beginPath();
 					ctx.fillStyle = "#dc0067";
-					positionClients(ctx, p, 0 /*d.startAngle*/, d.node.o.clients, startDistance);
+					positionClients(ctx, p, Math.random() * 2 * Math.PI, d.node.o.clients, startDistance);
 					ctx.fill();
 				}
 			});

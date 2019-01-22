@@ -29,7 +29,7 @@ function createDraw() {
 			if ('clients' in d.o) {
 				ctx.beginPath();
 				ctx.fillStyle = clientColor;
-				positionClients(ctx, d, Math.PI, d.o.clients, 15);
+				positionClients(ctx, d, Math.random() * 2 * Math.PI, d.o.clients, 15);
 				ctx.fill();
 			}
 
