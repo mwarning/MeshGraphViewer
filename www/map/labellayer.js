@@ -332,7 +332,7 @@ function createLabelLayer() {
 			}
 
 			labels.filter(function (d) {
-				return tilePoint.z >= d.label.minZoom;
+				return (tilePoint.z >= d.label.minZoom) && (d.label.label.length > 0);
 			}).forEach(drawLabel);
 
 			return tile;
