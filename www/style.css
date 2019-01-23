@@ -80,7 +80,7 @@ button:hover {
 }
 
 .sidebar.hidden {
-	left: -556px;
+	left: -456px;
 }
 
 .sidebar.hidden .sidebarhandle {
@@ -89,7 +89,7 @@ button:hover {
 }
 
 .sidebarhandle {
-	left: 572px;
+	left: 472px;
 	position: fixed;
 	top: 16px;
 	transition: left .5s, color .5s, transform .5s;
@@ -101,7 +101,7 @@ button:hover {
 	left: 0;
 	position: absolute;
 	transition: left .5s;
-	width: 540px;
+	width: 440px;
 	z-index: 1005;
 }
 
