@@ -2,7 +2,7 @@
 function createMap(parent, selection, linkScale, sidebar, buttons) {
 	var self = this;
 	var savedView;
-	var nodesBounds;
+	var nodeBounds;
 
 	var map;
 	var layerControl;
@@ -180,7 +180,7 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 		return m;
 	}
 
-	function nodesBounds(nodes) {
+	function getNodeBounds(nodes) {
 		var min_x = Number.POSITIVE_INFINITY;
 		var max_x = Number.NEGATIVE_INFINITY;
 		var min_y = Number.POSITIVE_INFINITY;
@@ -227,12 +227,11 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 				goto(m);
 			} else if (savedView) {
 				map.setView(savedView.center, savedView.zoom);
+			} else if (nodeBounds) {
+				setView(nodeBounds);
 			} else {
-
-				setView(nodesBounds);
+				setView([[5.0, 5.0], [0.0, 0.0]]);
 			}
-		} else {
-			setView(nodesBounds);
 		}
 	}
 
@@ -263,7 +262,7 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 		nodeDict = {};
 		linkDict = {};
 
-		nodesBounds = nodesBounds(nodes);
+		nodeBounds = getNodeBounds(nodes);
 		clientLayer.setData(data);
 		labelLayer.setData(data, map, nodeDict, linkDict, linkScale);
 

@@ -7,9 +7,10 @@
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link rel="stylesheet" href="leaflet-1.3.4.css"/>
 
+	<!-- Source https://leafletjs.com/ -->
 	<script src="leaflet-1.3.4.js"></script>
 
-	<!-- Source: http://d3js.org -->
+	<!-- Source: https://d3js.org -->
 	<script src="d3.v5.min.js"></script>
 	<script src="rbush-2.0.2.min.js"></script>
 
@@ -40,12 +41,6 @@
 		clientZoom: 15,
 		nodeZoom: 18,
 		geo: null,
-		fixedCenter: [
-			// Northwest
-			[-5.0, 5.0],
-			// Southeast
-			[5.0, -5.0]
-		],
 		map_tqFrom: '#F02311',
 		map_tqTo: '#04C714',
 		fullscreen: true,
@@ -99,8 +94,8 @@
 		var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
 		var parent = $('#content');
 		my_map = createMap(parent, selection, linkScale, sidebar, buttons);
-		my_map.resetView();
 		my_map.setData(my_data);
+		my_map.resetView();
 	}
 
 	function showGraph() {
