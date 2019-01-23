@@ -23,7 +23,7 @@ function createClientLayer() {
 		setData: function (data) {
 			var rtreeOnlineAll = rbush(9);
 
-			this.data = rtreeOnlineAll.load(data.nodes.filter(/*helper.*/hasLocation).map(this.mapRTree));
+			this.data = rtreeOnlineAll.load(data.nodes.filter(hasLocation).map(this.mapRTree));
 
 			// pre-calculate start angles
 			//this.data.all().forEach(function (n) {
@@ -47,7 +47,7 @@ function createClientLayer() {
 			var map = this._map;
 
 			var margin = 50;
-			var bbox = /*helper.*/ getTileBBox(s, map, tileSize, margin);
+			var bbox = getTileBBox(s, map, tileSize, margin);
 
 			//TODO: let's try this to remove rbush.js dependency
 			//var nodes = this.data.nodes.filter(function(d) {

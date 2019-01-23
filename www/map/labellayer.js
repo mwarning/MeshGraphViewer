@@ -125,7 +125,7 @@ function createLabelLayer() {
 				selection.selectNode(d.o);
 			});
 
-			m.bindTooltip(/*helper.*/ escape(d.o.name));
+			m.bindTooltip(escape(d.o.name));
 
 			dict[d.o.id /*node_id*/] = m;
 
@@ -149,8 +149,9 @@ function createLabelLayer() {
 				line.setStyle(opts);
 			};
 
-			line.bindTooltip(/*helper.*/ escape(d.source.o.name + ' – ' + d.target.o.name) +
-				'<br><strong>' + /*helper.*/ showDistance(d) + ' / ' + /*helper.*/ showTq(d.o.source_tq) + ' - ' + /*helper.*/ showTq(d.o.target_tq) + /*'<br>' + d.type +*/ '</strong>');
+			line.bindTooltip(escape(d.source.o.name + ' – ' + d.target.o.name)
+				+ '<br><strong>' + showDistance(d) + ' / ' + showTq(d.o.source_tq)
+				+ ' - ' + showTq(d.o.target_tq) + '</strong>');
 
 			line.on('click', function () {
 				selection.selectLink(d.o);
