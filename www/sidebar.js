@@ -9,7 +9,6 @@ function createSidebar() {
 		};
 
 		self.onClick = function onClick() {
-			console.log("sidebar.onClick");
 			var visibility = new CustomEvent('visibility');
 			self.button.dispatchEvent(visibility);
 			self.container.classList.toggle('hidden');
