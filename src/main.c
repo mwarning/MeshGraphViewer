@@ -47,7 +47,7 @@ static const char *g_help_text =
 // Run state
 static int g_is_running;
 
-static const char *g_version = "1.0.2";
+static const char *g_version = "1.3.0";
 
 const char* g_graph = NULL;
 const char* g_call = NULL;
