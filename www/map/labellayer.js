@@ -122,7 +122,7 @@ function createLabelLayer() {
 			};
 
 			m.on('click', function () {
-				selection.selectNode(d.o.id);
+				selection.selectNode(d.o);
 			});
 
 			m.bindTooltip(/*helper.*/ escape(d.o.name));
@@ -153,7 +153,7 @@ function createLabelLayer() {
 				'<br><strong>' + /*helper.*/ showDistance(d) + ' / ' + /*helper.*/ showTq(d.o.source_tq) + ' - ' + /*helper.*/ showTq(d.o.target_tq) + /*'<br>' + d.type +*/ '</strong>');
 
 			line.on('click', function () {
-				selection.selectLink(d.o.source + "," + d.o.target);
+				selection.selectLink(d.o);
 			});
 
 			dict[d.id] = line;

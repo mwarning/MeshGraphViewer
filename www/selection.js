@@ -131,7 +131,9 @@ function createSelection() {
 		return (highlightedLinks.indexOf(id) !== -1);
 	}
 
-	self.selectNode = function (id) {
+	self.selectNode = function (node) {
+		var id = node.id;
+
 		if (d3.event && (d3.event.ctrlKey || d3.event.metaKey)) {
 			var i = selectedNodes.indexOf(id);
 			if (i < 0) {
@@ -145,9 +147,14 @@ function createSelection() {
 			selectedNodes = [id];
 			selectedLinks = [];
 		}
+
+		// fill info table
+		updateSidebarTable(node);
 	};
 
-	self.selectLink = function (id) {
+	self.selectLink = function (link) {
+		var id = link.source + ',' + link.target;
+
 		if (d3.event && (d3.event.ctrlKey || d3.event.metaKey)) {
 			var i = selectedLinks.indexOf(id);
 			if (i < 0) {
@@ -159,6 +166,9 @@ function createSelection() {
 			selectedNodes = [];
 			selectedLinks = [id];
 		}
+
+		// fill info table
+		updateSidebarTable(link);
 	};
 
 	return self;

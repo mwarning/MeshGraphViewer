@@ -27,6 +27,16 @@ function positionClients(ctx, p, startAngle, clients, startDistance) {
 	}
 }
 
+function append(parent, name, content) {
+  var e = document.createElement(name);
+  if ((typeof content === 'string') || (typeof content === 'number')) {
+    var text = document.createTextNode(content.toString());
+    e.appendChild(text);
+  }
+  parent.appendChild(e);
+  return e;
+}
+
 function limitFloat(value, min, max) {
 	if (value < min || isNaN(value)) {
 		return min;

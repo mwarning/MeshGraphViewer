@@ -341,7 +341,7 @@ function createGraph(parent, selection, sidebar) {
 
 	function selectNode (node) {
 		// Focus node if no ctrl key pressed
-		selection.selectNode(node.o.id);
+		selection.selectNode(node.o);
 
 		if (!(d3.event && (d3.event.ctrlKey || d3.event.metaKey))) {
 			moveTo([node.x, node.y, (ZOOM_MAX + 1) / 2]);
@@ -350,7 +350,7 @@ function createGraph(parent, selection, sidebar) {
 
 	function selectLink (link) {
 		// Focus link if no ctrl key pressed
-		selection.selectLink(link.o.source + "," + link.o.target);
+		selection.selectLink(link.o);
 
 		if (!(d3.event && (d3.event.ctrlKey || d3.event.metaKey))) {
 			moveTo([(link.source.x + link.target.x) / 2, (link.source.y + link.target.y) / 2, (ZOOM_MAX / 2) + ZOOM_MIN]);

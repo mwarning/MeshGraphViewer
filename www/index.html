@@ -54,6 +54,34 @@
 	var my_map;
 	var my_data = {nodes:[], links: []};
 
+	function updateSidebarTable(node) {
+		var tbody = $('#sidebar_table');
+
+		// clear table
+		while (tbody.firstChild) {
+			tbody.removeChild(tbody.firstChild);
+		}
+
+		// create table rows of properties
+		for (var key in node) {
+			var value = node[key];
+			var tr = append(tbody, 'tr');
+			var td = append(tr, 'td', key);
+
+			var type = (typeof value);
+			if (type === 'string' || type === 'boolean') {
+				append(tr, 'td', value.toString());
+			} else if (type === 'number') {
+				append(tr, 'td', value.toFixed(2));
+			} else if (value === null) {
+				append(tr, 'td', 'null');
+			} else if (type === 'object') {
+				append(tr, 'td', json.stringify(value));
+			} else {
+				append(tr, 'td', '???');
+			}
+		}
+	}
 
 	function removeGraph () {
 		send("/cmd/clear", {}, function() {
@@ -232,6 +260,18 @@
 					<input type="button" onclick="connectSelectedNodes();" value="connect" />
 					<input type="button" onclick="disconnectSelectedNodes();" value="disconnect" />
 					<input type="button" onclick="removeSelectedItems();" value="remove" />
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>Node</legend>
+				<div>
+					<table>
+						<thead>
+							<tr><th>Key</th><th>Value</th></tr>
+						</thead>
+						<tbody id="sidebar_table">
+						</tbody>
+					</table>
 				</div>
 			</fieldset>
 		</div>
