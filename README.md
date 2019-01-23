@@ -85,7 +85,7 @@ Note:
 * `label`: Display a label on top of a node or link.
 * `name`: Display a name under a node.
 * `x`/`y`: Geographical position, also used for initial position in topological view.
-* `client_count`: Display a number of small circles around each node.
+* `clients`: Display a number of small circles around each node.
 * `body_color`: Color of a node. CSS color format.
 * `ring_color`: Color of a ring around a node. CSS color format.
 
