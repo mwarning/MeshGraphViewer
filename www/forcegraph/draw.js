@@ -135,8 +135,8 @@ function createDraw(selection) {
 		to = drawHighlightedLink(d, to);
 
 		var grd = ctx.createLinearGradient(d.source.x, d.source.y, d.target.x, d.target.y);
-		grd.addColorStop(0.45, linkScale(d.o.source_tq));
-		grd.addColorStop(0.55, linkScale(d.o.target_tq));
+		grd.addColorStop(0.45, linkScale(try_get(d.o, 'source_tq', 1.0)));
+		grd.addColorStop(0.55, linkScale(try_get(d.o, 'target_tq', 1.0)));
 
 		ctx.lineTo(to[0], to[1]);
 		ctx.strokeStyle = grd;

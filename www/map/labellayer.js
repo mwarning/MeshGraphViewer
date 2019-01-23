@@ -135,8 +135,10 @@ function createLabelLayer() {
 
 	function addLinksToMap(dict, linkScale, graph) {
 		return graph.map(function (d) {
+			var source_tq = try_get(d.o, 'source_tq', 1.0);
+			var target_tq = try_get(d.o, 'target_tq', 1.0);
 			var opts = {
-				color: linkScale((d.o.source_tq + d.o.target_tq) / 2),
+				color: linkScale((source_tq + target_tq) / 2),
 				weight: 4,
 				opacity: 0.5,
 				dashArray: 'none'
@@ -150,8 +152,8 @@ function createLabelLayer() {
 			};
 
 			line.bindTooltip(escape(d.source.o.name + ' – ' + d.target.o.name)
-				+ '<br><strong>' + showDistance(d) + ' / ' + showTq(d.o.source_tq)
-				+ ' - ' + showTq(d.o.target_tq) + '</strong>');
+				+ '<br><strong>' + showDistance(d) + ' / ' + showTq(source_tq)
+				+ ' - ' + showTq(target_tq) + '</strong>');
 
 			line.on('click', function () {
 				selection.selectLink(d.o);

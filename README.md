@@ -44,7 +44,7 @@ Minimal graph data format example:
 ```
 {
   "nodes": [{"id": "a"}, {"id": "b"}],
-  "links": [{"source": "a", "target": "b", "target_tq": 1, "source_tq": 1}]
+  "links": [{"source": "a", "target": "b"}]
 }
 ```
 
@@ -80,8 +80,8 @@ More elaborate example:
 
 Note:
 
-* `id`/`source`/`target`: Node identifier. `source` and `target` are interchangeable.
-* `target_tq`/`source_tq`: link quality in the range of `[0..1]`. Madatory.
+* `id`/`source`/`target`: Node identifier. These are mandatory options.
+* `target_tq`/`source_tq`: link quality in the range of `[0..1]`.
 * `label`: Display a label on top of a node or link.
 * `name`: Display a name under a node.
 * `x`/`y`: Geographical position, also used for initial position in topological view.
