@@ -14,9 +14,9 @@ Usage: `graph-tool <graph-file> [<call-program>]`
 
 Arguments:
 
-* `--graph` *json-file*  
+* `--graph` *graph-file*  
   Graph topology and data in JSON format. File is reloaded when content changes.
-* `--call` *program*  
+* `--call` *call-program*  
   Call an external program when an action on the graph view is performed.  
     `<program> [connect|disconnect|remove] '<nodes>' '<links>'`  
   `<nodes>` is a comma separate string of node identifiers.  
