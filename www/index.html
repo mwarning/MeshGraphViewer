@@ -72,7 +72,7 @@
 			if (type === 'string' || type === 'boolean') {
 				append(tr, 'td', value.toString());
 			} else if (type === 'number') {
-				append(tr, 'td', value.toFixed(2));
+				append(tr, 'td', value.toString());
 			} else if (value === null) {
 				append(tr, 'td', 'null');
 			} else if (type === 'object') {
