@@ -27,12 +27,12 @@ function positionClients(ctx, p, startAngle, clients, startDistance) {
 	}
 }
 
-function try_get(obj, key, default) {
+function try_get(obj, key, def) {
 	var v = obj[key];
 	if (v !== undefined) {
 		return v;
 	} else {
-		return default;
+		return def;
 	}
 }
 
