@@ -154,15 +154,15 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 	function resetMarkerStyles() {
 		Object.keys(nodeDict).forEach(function (id) {
 			if (selection.isSelectedNode(id)) {
-				nodeDict[id].setStyle(config.map_selectedLink);
+				nodeDict[id].setStyle(config.map_selectedNode);
 			} else {
 				nodeDict[id].resetStyle();
 			}
 		});
 
 		Object.keys(linkDict).forEach(function (id) {
-			if (selection.isSelectedLink(id)) {
-				linkDict[id].setStyle(config.map_selectedNode);
+			if (selection.isSelectedLink(id.replace("-", ","))) {
+				linkDict[id].setStyle(config.map_selectedLink);
 			} else {
 				linkDict[id].resetStyle();
 			}
