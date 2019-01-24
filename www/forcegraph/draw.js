@@ -100,16 +100,9 @@ function createDraw(selection) {
 		drawSelectedNode(d);
 		drawHighlightedNode(d);
 
-		if ('ring_color' in d.o) {
-			ctx.arc(d.x, d.y, 8, 0, 2 * Math.PI);
-			ctx.fillStyle = d.o.ring_color;
-			ctx.fill();
-			ctx.beginPath();
-		}
-
-		if ('body_color' in d.o) {
+		if ('color' in d.o) {
 			ctx.arc(d.x, d.y, 7, 0, 2 * Math.PI);
-			ctx.fillStyle = d.o.body_color;
+			ctx.fillStyle = d.o.color;
 			ctx.fill();
 		} else {
 			ctx.arc(d.x, d.y, 7, 0, 2 * Math.PI);

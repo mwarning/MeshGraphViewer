@@ -62,8 +62,7 @@ More elaborate example:
       "label": "Node B",
       "name": "",
       "clients": 5,
-      "ring_color": "#fff",
-      "border_color": "#fff"
+      "color": "#fff"
     }
   ],
   "links": [
@@ -86,8 +85,7 @@ Note:
 * `name`: Display a name under a node.
 * `x`/`y`: Geographical position, also used for initial position in topological view.
 * `clients`: Display a number of small circles around each node.
-* `body_color`: Color of a node. CSS color format.
-* `ring_color`: Color of a ring around a node. CSS color format.
+* `color`: Color of a node. CSS color format.
 
 ## Build Dependencies
 
