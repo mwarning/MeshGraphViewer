@@ -61,8 +61,9 @@ More elaborate example:
       "y": 200,
       "label": "Node B",
       "name": "",
-      "clients": 5,
+      "radius": 12,
       "color": "#fff"
+      "clients": 5,
     }
   ],
   "links": [
@@ -86,6 +87,7 @@ Note:
 * `x`/`y`: Geographical position, also used for initial position in topological view.
 * `clients`: Display a number of small circles around each node.
 * `color`: Color of a node. CSS color format.
+* `radius`: Radius of the node circle.
 
 ## Build Dependencies
 

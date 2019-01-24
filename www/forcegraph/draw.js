@@ -100,15 +100,12 @@ function createDraw(selection) {
 		drawSelectedNode(d);
 		drawHighlightedNode(d);
 
-		if ('color' in d.o) {
-			ctx.arc(d.x, d.y, 7, 0, 2 * Math.PI);
-			ctx.fillStyle = d.o.color;
-			ctx.fill();
-		} else {
-			ctx.arc(d.x, d.y, 7, 0, 2 * Math.PI);
-			ctx.fillStyle = '#fff';
-			ctx.fill();
-		}
+		var color = try_get(d.o, 'color', '#fff');
+		var radius = try_get(d.o, 'radius', 7);
+
+		ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
+		ctx.fillStyle = color;
+		ctx.fill();
 
 		drawDetailNode(d);
 	};
