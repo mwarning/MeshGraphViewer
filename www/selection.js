@@ -4,6 +4,16 @@ function createSelection() {
 
 	var selectedNodes = [];
 	var selectedLinks = [];
+	var meta_pressed = false;
+
+	window.onmousemove = function (e) {
+		if (!e) e = window.event;
+		meta_pressed = e.ctrlKey || e.metaKey;
+	}
+
+	self.isMetaPressed = function () {
+		return meta_pressed;
+	}
 
 	self.clearSelection = function () {
 		selectedNodes = [];
@@ -89,7 +99,7 @@ function createSelection() {
 	self.selectNode = function (node) {
 		var id = node.id;
 
-		if (d3.event && (d3.event.ctrlKey || d3.event.metaKey)) {
+		if (self.isMetaPressed()) {
 			var i = selectedNodes.indexOf(id);
 			if (i < 0) {
 				// add to selection
@@ -110,7 +120,7 @@ function createSelection() {
 	self.selectLink = function (link) {
 		var id = link.source + ',' + link.target;
 
-		if (d3.event && (d3.event.ctrlKey || d3.event.metaKey)) {
+		if (self.isMetaPressed()) {
 			var i = selectedLinks.indexOf(id);
 			if (i < 0) {
 				selectedLinks.push(id);
