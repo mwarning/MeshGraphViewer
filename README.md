@@ -40,7 +40,7 @@ Arguments:
 
 ## Graph JSON format
 
-Minimal graph data format example:
+Minimal graph example:
 ```
 {
   "nodes": [{"id": "a"}, {"id": "b"}],
