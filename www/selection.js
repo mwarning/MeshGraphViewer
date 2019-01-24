@@ -5,17 +5,9 @@ function createSelection() {
 	var selectedNodes = [];
 	var selectedLinks = [];
 
-	var highlightedNodes = [];
-	var highlightedLinks = [];
-
 	self.clearSelection = function () {
 		selectedNodes = [];
 		selectedLinks = [];
-	};
-
-	self.clearHighlight = function () {
-		highlightedNodes = [];
-		highlightedLinks = [];
 	};
 
 	self.getSelectedNodes = function () {
@@ -74,29 +66,8 @@ function createSelection() {
 		selectedLinks = Object.keys(selectedLinksDict);
 	}
 
-	// Remove selected/highlighted nodes/links that were deleted
+	// Remove selected nodes/links that were deleted
 	self.filterSelections = function (nodes, links) {
-/*
-		var highlightedNodes_count = highlightedNodes.length;
-		var highlightedLinks_count = highlightedLinks.length;
-		var selectedNodes_count = selectedNodes.length;
-		var selectedLinks_count = selectedLinks.length;
-
-	 	//check if removing stuff really removed selected items
-		console.log("beg removed selected items: "
-			+ (highlightedNodes_count) + " "
-			+ (highlightedLinks_count) + " "
-			+ (selectedNodes_count) + " "
-			+ (selectedLinks_count)
-		);
-*/
-		highlightedNodes = highlightedNodes.filter(function(e) {
-			return (nodes.indexOf(e.id) !== -1);
-		});
-
-		highlightedLinks = highlightedLinks.filter(function(e) {
-			return (links.indexOf(e.source + "," + e.target) !== -1);
-		});
 
 		selectedNodes = selectedNodes.filter(function(e) {
 			return (nodes.indexOf(e.id) !== -1);
@@ -105,14 +76,6 @@ function createSelection() {
 		selectedLinks = selectedLinks.filter(function(e) {
 			return (links.indexOf(e.source + "," + e.target) !== -1);
 		});
-/*
-		console.log("end removed selected items: "
-			+ (highlightedNodes_count - highlightedNodes.length) + " "
-			+ (highlightedLinks_count - highlightedLinks.length) + " "
-			+ (selectedNodes_count - selectedNodes.length) + " "
-			+ (selectedLinks_count - selectedLinks.length)
-		);
-*/
 	}
 
 	self.isSelectedLink = function (id) {
@@ -121,14 +84,6 @@ function createSelection() {
 
 	self.isSelectedNode = function (id) {
 		return (selectedNodes.indexOf(id) !== -1);
-	}
-
-	self.isHighlightedLink = function (id) {
-		return (highlightedNodes.indexOf(id) !== -1);
-	}
-
-	self.isHighlightedNode = function (id) {
-		return (highlightedLinks.indexOf(id) !== -1);
 	}
 
 	self.selectNode = function (node) {

@@ -150,15 +150,22 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 
 	var nodeDict = {};
 	var linkDict = {};
-	var highlight;
 
-	function resetMarkerStyles(nodes, links) {
-		Object.keys(nodes).forEach(function (d) {
-			nodes[d].resetStyle();
+	function resetMarkerStyles() {
+		Object.keys(nodeDict).forEach(function (id) {
+			if (selection.isSelectedNode(id)) {
+				nodeDict[id].setStyle(config.map_selectedLink);
+			} else {
+				nodeDict[id].resetStyle();
+			}
 		});
 
-		Object.keys(links).forEach(function (d) {
-			links[d].resetStyle();
+		Object.keys(linkDict).forEach(function (id) {
+			if (selection.isSelectedLink(id)) {
+				linkDict[id].setStyle(config.map_selectedNode);
+			} else {
+				linkDict[id].resetStyle();
+			}
 		});
 	}
 
@@ -209,23 +216,10 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 	}
 
 	function updateView(nopanzoom) {
-		resetMarkerStyles(nodeDict, linkDict);
-		var m;
-
-		if (highlight !== undefined) {
-			if (highlight.type === 'node' && nodeDict[highlight.o.id /*node_id*/]) {
-				m = nodeDict[highlight.o.id /*node_id*/];
-				m.setStyle(config.map.highlightNode);
-			} else if (highlight.type === 'link' && linkDict[highlight.o.id]) {
-				m = linkDict[highlight.o.id];
-				m.setStyle(config.map.highlightLink);
-			}
-		}
+		resetMarkerStyles();
 
 		if (!nopanzoom) {
-			if (m) {
-				goto(m);
-			} else if (savedView) {
+			if (savedView) {
 				map.setView(savedView.center, savedView.zoom);
 			} else if (nodeBounds) {
 				setView(nodeBounds);
@@ -270,17 +264,6 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 	};
 
 	self.resetView = function resetView() {
-		highlight = undefined;
-		updateView();
-	};
-
-	self.gotoNode = function gotoNode(d) {
-		highlight = { type: 'node', o: d };
-		updateView();
-	};
-
-	self.gotoLink = function gotoLink(d) {
-		highlight = { type: 'link', o: d[0] };
 		updateView();
 	};
 

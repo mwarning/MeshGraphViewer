@@ -11,12 +11,8 @@ function createDraw(selection) {
 	var selectedNodes = [];
 	var selectedLinks = [];
 
-	var highlightedNodes = [];
-	var highlightedLinks = [];
-
 	var clientColor = '#e6324b';
 	var selectColor = 'rgba(255, 255, 255, 0.2)';
-	var highlightColor = 'rgba(0, 0, 255, 0.2)';
 	var linkScale = d3.interpolate('#F02311', '#04C714');
 	var bandwidthWidthScale = d3.interpolateNumber(1.0, 3.0);
 	var bandwidthAlphaScale = d3.interpolateNumber(0.1, 0.8);
@@ -49,15 +45,6 @@ function createDraw(selection) {
 		}
 	}
 
-	function drawHighlightedNode(d) {
-		if (selection.isHighlightedNode(d.o.id)) {
-			ctx.arc(d.x, d.y, NODE_RADIUS * 1.5, 0, 2 * Math.PI);
-			ctx.fillStyle = highlightColor;
-			ctx.fill();
-			ctx.beginPath();
-		}
-	}
-
 	function drawSelectedNode(d) {
 		if (selection.isSelectedNode(d.o.id)) {
 			ctx.arc(d.x, d.y, NODE_RADIUS * 1.5, 0, 2 * Math.PI);
@@ -65,18 +52,6 @@ function createDraw(selection) {
 			ctx.fill();
 			ctx.beginPath();
 		}
-	}
-
-	function drawHighlightedLink(d, to) {
-		if (selection.isHighlightedLink(d.source.o.id + "," + d.target.o.id)) {
-			ctx.lineTo(to[0], to[1]);
-			ctx.strokeStyle = highlightColor;
-			ctx.lineWidth = LINE_RADIUS * 2;
-			ctx.lineCap = 'round';
-			ctx.stroke();
-			to = [d.source.x, d.source.y];
-		}
-		return to;
 	}
 
 	function drawSelectedLink(d, to) {
@@ -98,7 +73,6 @@ function createDraw(selection) {
 		ctx.beginPath();
 
 		drawSelectedNode(d);
-		drawHighlightedNode(d);
 
 		var color = try_get(d.o, 'color', '#fff');
 		var radius = try_get(d.o, 'radius', 7);
@@ -122,7 +96,6 @@ function createDraw(selection) {
 		var to = [d.target.x, d.target.y];
 
 		to = drawSelectedLink(d, to);
-		to = drawHighlightedLink(d, to);
 
 		var grd = ctx.createLinearGradient(d.source.x, d.source.y, d.target.x, d.target.y);
 		grd.addColorStop(0.45, linkScale(try_get(d.o, 'source_tq', 1.0)));
