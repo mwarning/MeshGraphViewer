@@ -103,6 +103,7 @@ Note:
 * [MeshViewer](https://github.com/ffrgb/meshviewer)
 * [graph-tool](https://graph-tool.skewed.de/)
 * [NetworkX](https://networkx.github.io/)
+* [igraph](https://igraph.org/redirect.html)
 
 ## Authors
 
