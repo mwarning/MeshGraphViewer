@@ -103,6 +103,8 @@ Note:
 * [MeshViewer](https://github.com/ffrgb/meshviewer)
 * [graph-tool](https://graph-tool.skewed.de/)
 * [NetworkX](https://networkx.github.io/)
+* [Gephi](https://gephi.org/)
+* [vis.js](http://visjs.org/)
 * [igraph](https://igraph.org/redirect.html)
 
 ## Authors
