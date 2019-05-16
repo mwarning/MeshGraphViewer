@@ -11,8 +11,6 @@ function createDraw(selection) {
 	var selectedNodes = [];
 	var selectedLinks = [];
 
-	var clientColor = '#e6324b';
-	var selectColor = 'rgba(255, 255, 255, 0.2)';
 	var linkScale = d3.interpolate('#F02311', '#04C714');
 	var bandwidthWidthScale = d3.interpolateNumber(1.0, 3.0);
 	var bandwidthAlphaScale = d3.interpolateNumber(0.1, 0.8);
@@ -24,7 +22,7 @@ function createDraw(selection) {
 		if (transform.k > 1) {
 			if ('clients' in d.o) {
 				ctx.beginPath();
-				ctx.fillStyle = clientColor;
+				ctx.fillStyle = config.graph_clientColor;
 				positionClients(ctx, d, Math.PI, d.o.clients, 15);
 				ctx.fill();
 			}
@@ -48,7 +46,7 @@ function createDraw(selection) {
 	function drawSelectedNode(d) {
 		if (selection.isSelectedNode(d.o.id)) {
 			ctx.arc(d.x, d.y, NODE_RADIUS * 1.5, 0, 2 * Math.PI);
-			ctx.fillStyle = selectColor;
+			ctx.fillStyle = config.graph_selectColor;
 			ctx.fill();
 			ctx.beginPath();
 		}
@@ -57,7 +55,7 @@ function createDraw(selection) {
 	function drawSelectedLink(d, to) {
 		if (selection.isSelectedLink(d.source.o.id + "," + d.target.o.id)) {
 			ctx.lineTo(to[0], to[1]);
-			ctx.strokeStyle = selectColor;
+			ctx.strokeStyle = config.graph_selectColor;
 			ctx.lineWidth = LINE_RADIUS * 2;
 			ctx.lineCap = 'round';
 			ctx.stroke();

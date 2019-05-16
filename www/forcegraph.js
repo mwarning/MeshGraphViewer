@@ -255,12 +255,14 @@ function createGraph(parent, selection, sidebar) {
 
 		if (is_update) {
 			// Keep existing data
-			intNodes.forEach(function (e) {
-				nodeDict[nodeId(e)] = e;
+			var dnodes = {};
+			data.nodes.forEach(function (e) {
+				dnodes[e.id] = e;
 			});
-
-			intLinks.forEach(function (e) {
-				linkDict[linkId(e.source.o, e.target.o)] = e;
+			intNodes.forEach(function (e) {
+				if (nodeId(e) in dnodes) {
+					nodeDict[nodeId(e)] = e;
+				}
 			});
 		}
 
@@ -279,7 +281,7 @@ function createGraph(parent, selection, sidebar) {
 			var id = node.id;
 			if (id in nodeDict) {
 				var n = nodeDict[id];
-				// Update existing node
+				// Update existing node (keep position)
 				n.o = node;
 				intNodes.push(n);
 				return n;

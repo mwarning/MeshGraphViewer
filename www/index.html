@@ -41,19 +41,21 @@
 		clientZoom: 15,
 		nodeZoom: 18,
 		geo: null,
+		graph_clientColor: '#e6324b',
+		graph_selectColor: 'rgba(255, 255, 255, 0.2)',
 		map_tqFrom: '#F02311',
 		map_tqTo: '#04C714',
 		map_selectedNode: {
-			color: '#ad2358',
+			color: 'rgba(173, 35, 88, 1.0)',
 			weight: 8,
 			fillOpacity: 1,
 			opacity: 0.4,
 			className: 'stroke-first'
 		},
 		map_selectedLink: {
+			color: 'rgba(255, 255, 255, 0.2)',
 			weight: 4,
-			opacity: 1,
-			dashArray: '5, 10'
+			opacity: 1
 		},
 		fullscreen: true,
 		fullscreenFrame: true
@@ -165,11 +167,11 @@
 		buttonToggle.setAttribute('title', 'Switch View');
 		buttonToggle.appendChild(document.createTextNode("S"));
 		buttonToggle.onclick = function onclick() {
-		if (my_graph) {
-			showMap();
-		} else {
-			showGraph();
-		}
+			if (my_graph) {
+				showMap();
+			} else {
+				showGraph();
+			}
 		};
 
 		buttons.appendChild(buttonToggle);
@@ -202,7 +204,7 @@
 			selection.filterSelections(json.nodes, json.links);
 
 			if (my_graph) {
-				my_graph.setData(json);
+				my_graph.setData(json, true);
 				my_data = json;
 			}
 
