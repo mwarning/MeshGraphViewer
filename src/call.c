@@ -24,23 +24,24 @@ static int net_set_nonblocking(int fd)
   return fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 }
 
+static void append_message(const char *msg) {
+  // append error message to message buffer
+  int buflen = strlen(g_com_buf);
+  strncpy(g_com_buf + buflen, msg, sizeof(g_com_buf) - buflen);
+}
+
 void call_receive()
 {
+  int len;
+
   if (g_com_sock >= 0) {
-    int len = strlen(g_com_buf);
-    int n = 0;
-
-    if (is_prefix("udp://", g_call)) {
-      n = read(g_com_sock, g_com_buf + len, sizeof(g_com_buf) - len);
-    } else if (is_prefix("tcp://", g_call)) {
-      n = recv(g_com_sock, g_com_buf + len, sizeof(g_com_buf) - len, 0);
-    } else if (is_prefix("unix://", g_call)) {
-      n = recv(g_com_sock, g_com_buf + len, sizeof(g_com_buf) - len, 0);
-    }
-
-    if (n <= 0) {
-      close(g_com_sock);
-      g_com_sock = -1;
+    if (is_prefix("udp://", g_call) || is_prefix("tcp://", g_call) || is_prefix("unix://", g_call)) {
+      len = strlen(g_com_buf);
+      // read data from socket
+      if (read(g_com_sock, g_com_buf + len, sizeof(g_com_buf) - len) <= 0) {
+        close(g_com_sock);
+        g_com_sock = -1;
+      }
     }
   }
 }
@@ -65,7 +66,6 @@ static void tcp_send(const char* addr_str, const char *msg)
     }
 
     if (connect(g_com_sock, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
-      fprintf(stderr, "TCP connect error\n");
       goto error;
     }
 
@@ -83,6 +83,10 @@ error:
   g_com_sock = -1;
 
   fprintf(stderr, "%s\n", strerror(errno));
+
+  // append error message to message buffer
+  append_message(strerror(errno));
+  append_message("\n");
 
   return;
 }
@@ -111,7 +115,6 @@ static void udp_send(const char* addr_str, const char *msg)
 
   addrlen = sizeof(struct sockaddr_in);
   if (sendto(g_com_sock, msg, strlen(msg), 0, (struct sockaddr*) &addr, addrlen) < 0) {
-    fprintf(stderr, "UDP send error\n");
     goto error;
   }
 
@@ -122,6 +125,10 @@ error:
   g_com_sock = -1;
 
   fprintf(stderr, "%s\n", strerror(errno));
+
+  // append error message to message buffer
+  append_message(strerror(errno));
+  append_message("\n");
 
   return;
 }
@@ -157,6 +164,10 @@ error:
 
   fprintf(stderr, "%s\n", strerror(errno));
 
+  // append error message to message buffer
+  append_message(strerror(errno));
+  append_message("\n");
+
   return;
 }
 
@@ -170,6 +181,9 @@ void call_send(const char *addr_str, const char *msg)
     unix_send(g_call + 7, msg);
   } else {
     int len = strlen(g_com_buf);
-    execute_ret(g_com_buf + len, sizeof(g_com_buf) - len, "%s %s", g_call, msg);
+    int ret = execute_ret(g_com_buf + len, sizeof(g_com_buf) - len, "%s %s", g_call, msg);
+    if (ret < 0) {
+      append_message("cannot execute command\n");
+    }
   }
 }
