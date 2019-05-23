@@ -30,6 +30,11 @@
 
 	<script>
 		var config = {
+		buttons: [
+			{name: "Connect", command: "connect '%selected_nodes'"},
+			{name: "Disconnect", command: "disconnect '%selected_nodes'"},
+			{name: "Remove", command: "remove '%selected_nodes' '%selected_links'"}
+		],
 		mapLayers: [{
 			'name': 'OpenStreetMap.HOT',
 			'url': 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
@@ -96,37 +101,6 @@
 			}
 		}
 	}
-
-	function removeGraph () {
-		send("/cmd/clear", {}, function() {
-				request_graph();
-			}
-		);
-	}
-
-	function disconnectSelectedNodes () {
-		var node_ids = selection.getSelectedNodes();
-		send("/cmd/call", { cmd: "disconnect", nodes: node_ids }, function() {
-			request_graph();
-		});
-	}
-
-	function connectSelectedNodes () {
-		var node_ids = selection.getSelectedNodes();
-		send("/cmd/call", { cmd: "connect", nodes: node_ids }, function() {
-			request_graph();
-		});
-	}
-
-	// Remove selected items
-	function removeSelectedItems () {
-		var node_ids = selection.getSelectedNodes();
-		var link_ids = selection.getSelectedLinks();
-
-		send("/cmd/call", { cmd: "remove", links: link_ids, nodes: node_ids }, function() {
-			request_graph();
-		});
-	};
 
 	function showMap() {
 		if (my_graph) {
@@ -221,10 +195,12 @@
 		});
 	}
 
-	function run_update_loop() {
+	// fetch graph update
+	function run_graph_update_loop() {
 		var interval_ms = 250;
 
 		function looped_request_graph() {
+			// request graph
 			send("/cmd/graph", {}, function(data) {
 				handle_data(data);
 				setTimeout(looped_request_graph, interval_ms);
@@ -232,6 +208,53 @@
 		}
 
 		looped_request_graph();
+	}
+
+	// get command reply update
+	function run_command_update_loop() {
+		var interval_ms = 500;
+
+		function looped_request_command_reply() {
+			// request graph
+			send("/cmd/call_receive", {}, function(data) {
+				$("#command_reply").value += data;
+				setTimeout(looped_request_command_reply, interval_ms);
+			});
+		}
+
+		looped_request_command_reply();
+	}
+
+	function sendCommand(query) {
+		if (typeof query !== 'string') {
+			return;
+		}
+
+		if (query.indexOf("%selected_nodes") !== -1) {
+			var node_ids = selection.getSelectedNodes();
+			query = query.replace("%selected_nodes", node_ids.join(","));
+		}
+
+		if (query.indexOf("%selected_links") !== -1) {
+			var link_ids = selection.getSelectedLinks();
+			query = query.replace("%selected_links", link_ids.join(","));
+		}
+
+		send("/cmd/call_execute", { "query": query }, null);
+	}
+
+	// Preconfigured buttons
+	function addSidebarButtons() {
+		var div = $('#custom_buttons');
+		config.buttons.forEach(function(button) {
+			var input = document.createElement('input');
+			input.type = 'button';
+			input.value = button.name;
+			input.onclick = function () {
+				sendCommand(button.command);
+			};
+			div.appendChild(input);
+		});
 	}
 
 	function init() {
@@ -249,7 +272,11 @@
 
 			showGraph();
 
-			run_update_loop();
+			addSidebarButtons();
+
+			// polling - TODO: Use websockets
+			run_graph_update_loop();
+			run_command_update_loop();
 		});
 	}
 </script>
@@ -269,11 +296,9 @@
 				</div>
 			</fieldset>
 			<fieldset>
-				<legend>Modify Graph</legend>
-				<div>
-					<input type="button" onclick="connectSelectedNodes();" value="connect" />
-					<input type="button" onclick="disconnectSelectedNodes();" value="disconnect" />
-					<input type="button" onclick="removeSelectedItems();" value="remove" />
+				<legend>Custom Buttons</legend>
+				<div id="custom_buttons">
+					<!-- added via config -->
 				</div>
 			</fieldset>
 			<fieldset>
@@ -286,6 +311,17 @@
 						<tbody id="sidebar_table">
 						</tbody>
 					</table>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>Send Command</legend>
+				<div>
+					<input type="text" value="" autocomplete=off style="width: 50%" id="command_request" />
+					<input type="button" value="send" onclick="sendCommand($('#command_request').value)" />
+					<input type="button" value="clear" onclick="$('#command_request').value = ''," />
+				</div>
+				<div>
+					<textarea id="command_reply" rows="30" style="width: 100%; resize: none; white-space: pre-wrap;"></textarea>
 				</div>
 			</fieldset>
 		</div>

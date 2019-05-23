@@ -19,6 +19,7 @@
 #include "webserver.h"
 #include "files.h" // will be created by Makefile
 #include "utils.h"
+#include "call.h"
 #include "main.h"
 
 
@@ -28,13 +29,9 @@ static const char *g_help_text =
   "  Usage: graph-tool <graph-file> [<call-program>]\n"
   "\n"
   " --graph <json-file>      Graph topology in JSON format. May be first unnamed argument.\n"
-  " --call <program>         Call an external program when an action on the graph\n"
-  "                          view is performed. May be second unnamed argument\n"
-  "                            <program> [<command>] [..]\n"
-  "                          Command list:\n"
-  "                            get-link-prop|set-link-prop\n"
-  "                            get-node-prop|set-node-prop\n"
-  "                            add-link|del-link\n"
+  " --call <path|address>    Commands triggered via the web interface are send to an external program,\n"
+  "                          unix socket file or given IP address via TCP/UDP.\n"
+  "                          E.g. '/usr/bin/send_program', 'unix:///var/com.sock', 'tcp://localhost:3000'.\n"
   " --config <path>          Use a JavaScript file with configuration settings.\n"
   " --webserver-address <address> Address for the build-in webserver. Default: 127.0.0.1\n"
   " --webserver-port <port>  Port for the build-in webserver. Set to 0 to disable webserver. Default: 8000\n"
@@ -220,11 +217,6 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (g_call && !is_program(g_call)) {
-    fprintf(stderr, "Program is not executable: %s\n", g_call);
-    return EXIT_FAILURE;
-  }
-
   if (g_graph && !is_file(g_graph)) {
     fprintf(stderr, "Graph file does not exist: %s\n", g_graph);
     return EXIT_FAILURE;
@@ -275,13 +267,26 @@ int main(int argc, char **argv) {
 
     webserver_before_select(&rset, &wset, &xset, &maxfd);
 
+    if (g_com_sock >= 0) {
+      FD_SET(g_com_sock, &rset);
+      if (g_com_sock > maxfd) {
+        maxfd = g_com_sock;
+      }
+    }
+
     if (select(maxfd + 1, &rset, &wset, &xset, &tv) < 0) {
       if (errno == EINTR) {
         continue;
       }
 
-      //fprintf(stderr, "select() %s\n", strerror(errno));
+      fprintf(stderr, "select() %s\n", strerror(errno));
       return EXIT_FAILURE;
+    }
+
+    if (g_com_sock > 0) {
+      if (FD_ISSET(g_com_sock, &rset)) {
+        call_receive();
+      }
     }
 
     webserver_after_select();

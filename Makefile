@@ -2,7 +2,7 @@ CC ?= gcc
 CFLAGS ?= -O2
 CFLAGS += -std=gnu99 -Wall -pedantic -Werror -fno-strict-aliasing -Wwrite-strings
 LFLAGS += -lmicrohttpd
-SRC = src/main.c src/webserver.c src/utils.c src/files.c
+SRC = src/main.c src/webserver.c src/utils.c src/files.c src/call.c
 
 .PHONY: all clean debug src/files.c
 

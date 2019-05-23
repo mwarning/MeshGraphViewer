@@ -4,15 +4,13 @@
 #include <errno.h>
 #include <stdint.h>
 #include <ctype.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 #include <microhttpd.h>
 
 #include "utils.h"
+#include "call.h"
 #include "main.h"
 #include "files.h" // will be created by Makefile
 #include "webserver.h"
@@ -76,6 +74,7 @@ struct mimetype g_mimetypes[] = {
   {".png", "image/png"},
   {".jpg", "image/jpeg"},
   {".jpeg", "image/jpeg"},
+  {".txt", "text/plain"},
   {NULL, NULL}
 };
 
@@ -93,152 +92,77 @@ const char *get_mimetype(const char str[]) {
   return "application/octet-stream";
 }
 
-static int send_json(struct MHD_Connection *connection, const char* data, unsigned len) {
+static int send_reply(struct MHD_Connection *connection, int status_code, const char* content_type,
+                      enum MHD_ResponseMemoryMode mode, const char* data, unsigned len) {
   struct MHD_Response *response;
   int ret;
 
-  response = MHD_create_response_from_buffer(len, (char*) data, MHD_RESPMEM_PERSISTENT);
-  MHD_add_response_header(response, "Content-Type", "application/json");
-  ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
-  MHD_destroy_response(response);
-
-  return ret;
-}
-
-static int send_empty_json(struct MHD_Connection *connection) {
-  return send_json(connection, "{}", 2);
-}
-
-static int send_generic(struct MHD_Connection *connection, unsigned int status_code) {
-  struct MHD_Response *response;
-  int ret;
-
-  response = MHD_create_response_from_buffer(0, NULL, MHD_RESPMEM_PERSISTENT);
-  //MHD_add_response_header(response, "Content-Type", "text/html; charset=utf-8");
+  response = MHD_create_response_from_buffer(len, (char*) data, mode);
+  if (content_type) {
+    MHD_add_response_header(response, "Content-Type", content_type);
+  }
   ret = MHD_queue_response(connection, status_code, response);
   MHD_destroy_response(response);
 
   return ret;
 }
 
+static int send_empty_text(struct MHD_Connection *connection) {
+  return send_reply(connection, MHD_HTTP_OK, "text/plain", MHD_RESPMEM_PERSISTENT, NULL, 0);
+}
+
+static int send_empty_json(struct MHD_Connection *connection) {
+  return send_reply(connection, MHD_HTTP_OK, "application/json", MHD_RESPMEM_PERSISTENT, "{}", 2);
+}
+
 static int send_error(struct MHD_Connection *connection) {
-  return send_generic(connection, MHD_HTTP_INTERNAL_SERVER_ERROR);
+  return send_reply(connection, MHD_HTTP_INTERNAL_SERVER_ERROR, NULL, MHD_RESPMEM_PERSISTENT, NULL, 0);
 }
 
 static int send_not_found(struct MHD_Connection *connection) {
-  return send_generic(connection, MHD_HTTP_NOT_FOUND);
+  return send_reply(connection, MHD_HTTP_NOT_FOUND, NULL, MHD_RESPMEM_PERSISTENT, NULL, 0);
 }
 
-/*
-static int send_not_modified(struct MHD_Connection *connection) {
-  return send_generic(connection, MHD_HTTP_NOT_MODIFIED);
-}
-*/
+static int get_query(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
+  char **args = (char**)cls;
 
-static char *validate_cmd(const char *data) {
-  int i = 0;
-  while (data[i]) {
-    if ((data[i] < 'a' || data[i] > 'z') && data[i] != '_') {
-      return NULL;
-    }
-    i += 1;
-  }
-
-  return strdup(data);
-}
-
-static char *validate_list(const char *data) {
-  int i = 0;
-
-  while (data[i]) {
-    if (data[i] != ',' && (data[i] < '0' || data[i] > '9')) {
-      return NULL;
-    }
-    i += 1;
-  }
-
-  return strdup(data);
-}
-
-struct arguments {
-  char *cmd;
-  char *nodes;
-  char *links;
-};
-
-static int get_values(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
-  struct arguments *args = (struct arguments *)cls;
-
-  debug("key: %s, value: %s\n", key, value);
-
-  if (!args->cmd && strcmp(key, "cmd") == 0) {
-    args->cmd = validate_cmd(value);
-  }
-
-  if (!args->nodes && strcmp(key, "nodes") == 0) {
-    args->nodes = validate_list(value);
-  }
-
-  if (!args->links && strcmp(key, "links") == 0) {
-    args->links = validate_list(value);
+  if (*args == NULL && strcmp(key, "query") == 0) {
+    *args = strdup(value);
   }
 
   return MHD_YES;
 }
 
-static const char *empty_str(const char* s) {
-  return s ? s : "";
+static int handle_call_receive(struct MHD_Connection *connection) {
+  int ret;
+
+  ret = send_reply(connection, MHD_HTTP_OK, "text/plain", MHD_RESPMEM_MUST_COPY, g_com_buf, strlen(g_com_buf));
+  memset(g_com_buf, 0, sizeof(g_com_buf));
+
+  return ret;
 }
 
-static int handle_call(struct MHD_Connection *connection) {
-  int ret;
+static int handle_call_execute(struct MHD_Connection *connection) {
+  char *query = NULL;
 
   if (!g_call) {
     fprintf(stderr, "No command handler set\n");
-    return send_empty_json(connection);
+    return send_empty_text(connection);
   }
 
-  struct arguments args = {0};
-  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, get_values, &args);
-  if (!args.cmd) {
-    fprintf(stderr, "No command send\n");
-    return send_empty_json(connection);
+  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, get_query, &query);
+  if (query == NULL) {
+    fprintf(stderr, "No query argument set\n");
+    return send_empty_text(connection);
   }
 
-  char buf[512] = {0};
-  ret = execute_ret(buf, sizeof(buf), "%s '%s' '%s' '%s'",
-    g_call, args.cmd, empty_str(args.nodes), empty_str(args.links));
-
-  free(args.cmd);
-  free(args.nodes);
-  free(args.links);
-
-  if (ret == 0) {
-    return send_empty_json(connection);
-  } else {
-    fprintf(stderr, "Error from: %s\n", g_call);
-    return send_empty_json(connection);
-  }
-}
-
-static int send_graph(struct MHD_Connection *connection) {
-  struct MHD_Response *response;
-  uint8_t *data;
-  size_t size;
-  int ret;
-
-  // Fetch JSON data
-  if (g_graph == NULL) {
-    return send_not_found(connection);
+  if (query != NULL) {
+    call_send(g_call, query, strlen(query));
   }
 
-  data = read_file(&size, g_graph);
-  response = MHD_create_response_from_buffer(size, data, MHD_RESPMEM_MUST_FREE);
-  MHD_add_response_header(response, "Content-Type", "application/json");
-  ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
-  MHD_destroy_response(response);
+  free(query);
 
-  return ret;
+  return send_empty_text(connection);
 }
 
 static int handle_graph(struct MHD_Connection *connection) {
@@ -257,7 +181,23 @@ static int handle_graph(struct MHD_Connection *connection) {
   // update global timestamp
   g_graph_mtime = attr.st_mtime;
 
-  return send_graph(connection);
+  struct MHD_Response *response;
+  uint8_t *data;
+  size_t size;
+  int ret;
+
+  // Fetch JSON data
+  if (g_graph == NULL) {
+    return send_not_found(connection);
+  }
+
+  data = read_file(&size, g_graph);
+  response = MHD_create_response_from_buffer(size, data, MHD_RESPMEM_MUST_FREE);
+  MHD_add_response_header(response, "Content-Type", "application/json");
+  ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+  MHD_destroy_response(response);
+
+  return ret;
 }
 
 static int handle_content(struct MHD_Connection *connection, const char *url) {
@@ -318,8 +258,10 @@ static int handle_content(struct MHD_Connection *connection, const char *url) {
 static int send_response(void *cls, struct MHD_Connection *connection,
       const char *url, const char *method, const char *version,
       const char *upload_data, size_t *upload_data_size, void **con_cls) {
-  if (0 == strcmp(url, "/cmd/call")) {
-    return handle_call(connection);
+  if (0 == strcmp(url, "/cmd/call_execute")) {
+    return handle_call_execute(connection);
+  } else if (0 == strcmp(url, "/cmd/call_receive")) {
+    return handle_call_receive(connection);
   } else if (0 == strcmp(url, "/cmd/graph")) {
     return handle_graph(connection);
   } else {

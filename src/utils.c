@@ -36,15 +36,179 @@ uint8_t *read_file(size_t *size, const char path[]) {
   return fdata;
 }
 
-int is_suffix(const char path[], const char prefix[]) {
-  int pathlen = strlen(path);
-  int prefixlen = strlen(prefix);
+int is_suffix(const char s[], const char suffix[]) {
+  int slen = strlen(s);
+  int suffixlen = strlen(suffix);
 
-  if (prefixlen >= pathlen) {
+  if (suffixlen >= slen) {
     return 0;
   }
 
-  return (0 == memcmp(path + (pathlen - prefixlen), prefix, prefixlen));
+  return (0 == memcmp(s + (slen - suffixlen), suffix, suffixlen));
+}
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
+
+const char *str_addr(const struct sockaddr_storage *addr)
+{
+  static char addrbuf[200];
+  char buf[INET6_ADDRSTRLEN];
+  const char *fmt;
+  int port;
+
+  switch (addr->ss_family) {
+  case AF_INET6:
+    port = ((struct sockaddr_in6 *)addr)->sin6_port;
+    inet_ntop(AF_INET6, &((struct sockaddr_in6 *)addr)->sin6_addr, buf, sizeof(buf));
+    fmt = "[%s]:%d";
+    break;
+  case AF_INET:
+    port = ((struct sockaddr_in *)addr)->sin_port;
+    inet_ntop(AF_INET, &((struct sockaddr_in *)addr)->sin_addr, buf, sizeof(buf));
+    fmt = "%s:%d";
+    break;
+  default:
+    return "<invalid address>";
+  }
+
+  sprintf(addrbuf, fmt, buf, ntohs(port));
+
+  return addrbuf;
+}
+
+int port_set(struct sockaddr_storage *addr, uint16_t port) {
+  switch (addr->ss_family) {
+  case AF_INET:
+    ((struct sockaddr_in *)addr)->sin_port = htons(port);
+    return EXIT_SUCCESS;
+  case AF_INET6:
+    ((struct sockaddr_in6 *)addr)->sin6_port = htons(port);
+    return EXIT_SUCCESS;
+  default:
+    return EXIT_FAILURE;
+  }
+}
+
+int is_prefix(const char prefix[], const char s[]) {
+    size_t prefixlen = strlen(prefix),
+           slen = strlen(s);
+    return slen < prefixlen ? 0 : (strncmp(prefix, s, prefixlen) == 0);
+}
+
+int addr_parse(struct sockaddr_storage *addr, const char addr_str[], const char port_str[], int af) {
+  struct addrinfo hints;
+  struct addrinfo *info = NULL;
+  struct addrinfo *p = NULL;
+
+  memset(&hints, '\0', sizeof(struct addrinfo));
+  hints.ai_socktype = SOCK_STREAM;
+  //hints.ai_flags = AI_NUMERICHOST;
+  hints.ai_family = af;
+
+  if (getaddrinfo(addr_str, port_str, &hints, &info) != 0) {
+    return -2;
+  }
+
+  p = info;
+  while (p != NULL) {
+    if (p->ai_family == AF_INET) {
+      memcpy(addr, p->ai_addr, sizeof(struct sockaddr_in));
+      freeaddrinfo(info);
+      return 0;
+    }
+    p = p->ai_next;
+  }
+
+  p = info;
+  while (p != NULL) {
+    if (p->ai_family == AF_INET6) {
+      memcpy(addr, p->ai_addr, sizeof(struct sockaddr_in6));
+      freeaddrinfo(info);
+      return 0;
+    }
+    p = p->ai_next;
+  }
+
+  freeaddrinfo(info);
+
+  return -3;
+}
+
+/*
+* Parse/Resolve various string representations of
+* IPv4/IPv6 addresses and optional port.
+* An address can also be a domain name.
+* A port can also be a service  (e.g. 'www').
+*
+* "<address>"
+* "<ipv4_address>:<port>"
+* "[<address>]"
+* "[<address>]:<port>"
+*/
+int addr_parse_full(struct sockaddr_storage *addr, const char full_addr_str[], const char default_port[], int af)
+{
+  char addr_buf[256];
+  char *addr_beg;
+  char *addr_tmp;
+  char *last_colon;
+  const char *addr_str = NULL;
+  const char *port_str = NULL;
+  size_t len;
+
+  len = strlen(full_addr_str);
+  if (len >= (sizeof(addr_buf) - 1)) {
+    // address too long
+    return -1;
+  } else {
+    addr_beg = addr_buf;
+  }
+
+  memset(addr_buf, '\0', sizeof(addr_buf));
+  memcpy(addr_buf, full_addr_str, len);
+
+  last_colon = strrchr(addr_buf, ':');
+
+  if (addr_beg[0] == '[') {
+    // [<addr>] or [<addr>]:<port>
+    addr_tmp = strrchr(addr_beg, ']');
+
+    if (addr_tmp == NULL) {
+      // broken format
+      return -1;
+    }
+
+    *addr_tmp = '\0';
+    addr_str = addr_beg + 1;
+
+    if (*(addr_tmp+1) == '\0') {
+      port_str = default_port;
+    } else if (*(addr_tmp+1) == ':') {
+      port_str = addr_tmp + 2;
+    } else {
+      // port expected
+      return -1;
+    }
+  } else if (last_colon && last_colon == strchr(addr_buf, ':')) {
+    // <non-ipv6-addr>:<port>
+    addr_tmp = last_colon;
+    if (addr_tmp) {
+      *addr_tmp = '\0';
+      addr_str = addr_buf;
+      port_str = addr_tmp+1;
+    } else {
+      addr_str = addr_buf;
+      port_str = default_port;
+    }
+  } else {
+    // <addr>
+    addr_str = addr_buf;
+    port_str = default_port;
+  }
+
+  return addr_parse(addr, addr_str, port_str, af);
 }
 
 int is_program(const char path[]) {

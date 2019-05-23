@@ -15,10 +15,12 @@ Usage: `graph-tool <graph-file> [<call-program>]`
 Arguments:
 
 * `--graph` *graph-file*  
-  Graph topology and data in JSON format. File is reloaded when content changes.
-* `--call` *call-program*  
-  Call an external program when an action on the graph view is performed.  
-    `<program> [connect|disconnect|remove] '<nodes>' '<links>'`  
+  Graph topology and data in JSON format. May be first unnamed argument.  
+  The graph file is reloaded when its timestamp changes.
+* `--call` *path|address*  
+  Commands triggered via the web interface are send to an external program,  
+  unix socket file or given IP address via TCP/UDP.
+  E.g. `/usr/bin/send_program`, `unix:///var/com.sock`, `tcp://localhost:3000`.
   `<nodes>` is a comma separate string of node identifiers.  
   `<links>` is a comma separate string of node identifiers pairs.
 * `--config` *json-file*  
@@ -97,6 +99,10 @@ Note:
 ## Run Dependencies
 
 - libmicrohttpd library
+
+## Custom Buttons
+
+Add new buttons with commands to the `config => buttons` object in `index.html`. The program need to be rebuild, because the file is inside the program.
 
 ## Related Software
 
