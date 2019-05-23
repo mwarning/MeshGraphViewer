@@ -19,10 +19,8 @@ Arguments:
   The graph file is reloaded when its timestamp changes.
 * `--call` *path|address*  
   Commands triggered via the web interface are send to an external program,  
-  unix socket file or given IP address via TCP/UDP.
+  unix socket file or given IP address via TCP/UDP.  
   E.g. `/usr/bin/send_program`, `unix:///var/com.sock`, `tcp://localhost:3000`.
-  `<nodes>` is a comma separate string of node identifiers.  
-  `<links>` is a comma separate string of node identifiers pairs.
 * `--config` *json-file*  
   Configuration file for map tile source and colors etc.
 * `--open`  
