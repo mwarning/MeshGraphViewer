@@ -100,7 +100,7 @@ Note:
 
 ## Custom Buttons
 
-Add new buttons with commands to the `config => buttons` object in `index.html`. The program need to be rebuild, because the file is inside the program.
+Add new buttons using the configuration file [config.json](config.json) and pass it to grap-viewer via the `--config` argument. Other options like colors etc. can be gathered from the internal index.html config object.
 
 ## Related Software
 
