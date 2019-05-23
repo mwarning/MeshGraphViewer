@@ -10,7 +10,7 @@ Topological and geographical view of the same graph. Switch between views with t
 
 ## Usage
 
-Usage: `graph-tool <graph-file> [<call-program>]`
+Usage: `graph-tool [<arguments>] <graph-file>`
 
 Arguments:
 
