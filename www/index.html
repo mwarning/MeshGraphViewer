@@ -120,6 +120,13 @@
 		my_graph.setData(my_data);
 	}
 
+	// Send command when enter key is pressed
+	function onCommandChar(event) {
+		if (event.which == 13 || event.keyCode == 13) {
+			sendCommand($('#command_request').value);
+		}
+	}
+
 	//from js/gui.js
 	//TODO: use static html
 	function attachButtonsDiv() {
@@ -312,7 +319,7 @@
 			<fieldset>
 				<legend>Send Command</legend>
 				<div>
-					<input type="text" value="" autocomplete=off style="width: 50%" id="command_request" />
+					<input type="text" value="" onkeypress="onCommandChar(event)" style="width: 50%" id="command_request" />
 					<input type="button" value="send" onclick="sendCommand($('#command_request').value)" />
 					<input type="button" value="clear" onclick="$('#command_reply').value = '';" />
 				</div>
