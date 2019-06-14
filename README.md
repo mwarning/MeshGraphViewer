@@ -59,8 +59,8 @@ More elaborate example:
       "id": "b",
       "x": 100,
       "y": 200,
-      "label": "Node B",
-      "name": "",
+      "label": "Label",
+      "name": "Name",
       "radius": 12,
       "color": "#DAA520",
       "clients": 5
