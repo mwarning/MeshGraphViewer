@@ -27,11 +27,11 @@ function createLabelLayer() {
 		var ids = {};
 
 		b.forEach(function (d) {
-			ids[d.o.id /*node_id*/] = true;
+			ids[d.o.id] = true;
 		});
 
 		return a.filter(function (d) {
-			return !ids[d.o.id /*node_id*/];
+			return !ids[d.o.id];
 		});
 	}
 
@@ -113,7 +113,7 @@ function createLabelLayer() {
 		return { minX: x, minY: y, maxX: x + width, maxY: y + height };
 	}
 
-	function mkMarker(dict, iconFunc) {
+	function mkMarker(iconFunc) {
 		return function (d) {
 			var m = L.circleMarker([d.x, d.y], iconFunc(d));
 
@@ -125,24 +125,30 @@ function createLabelLayer() {
 				selection.selectNode(d.o);
 			});
 
-			m.bindTooltip(escape(d.o.name));
-
-			dict[d.o.id /*node_id*/] = m;
+			if ('name' in d.o) {
+				m.bindTooltip(escape(d.o.name));
+			}
 
 			return m;
 		};
 	}
 
-	function addLinksToMap(dict, linkScale, graph) {
+	function addLinksToMap(linkScale, graph) {
 		return graph.map(function (d) {
-			var source_tq = try_get(d.o, 'source_tq', 1.0);
-			var target_tq = try_get(d.o, 'target_tq', 1.0);
 			var opts = {
-				color: linkScale((source_tq + target_tq) / 2),
 				weight: 4,
 				opacity: 0.5,
 				dashArray: 'none'
 			};
+
+			if ('color' in d.o) {
+				opts.color = d.o.color;
+			} else {
+				// TODO: use gradient
+				var source_tq = try_get(d.o, 'source_tq', 1.0);
+				var target_tq = try_get(d.o, 'target_tq', 1.0);
+				opts.color = linkScale((source_tq + target_tq) / 2);
+			}
 
 			var latlngs = [L.latLng(d.source.x, d.source.y), L.latLng(d.target.x, d.target.y)];
 			var line = L.polyline(latlngs, opts);
@@ -151,15 +157,13 @@ function createLabelLayer() {
 				line.setStyle(opts);
 			};
 
-			line.bindTooltip(escape(d.source.o.name + ' – ' + d.target.o.name)
+			line.bindTooltip(escape(d.source.o.name + " – " + d.target.o.name)
 				+ '<br><strong>' + showDistance(d) + ' / ' + showTq(source_tq)
 				+ ' - ' + showTq(target_tq) + '</strong>');
 
 			line.on('click', function () {
 				selection.selectLink(d.o);
 			});
-
-			dict[d.id] = line;
 
 			return line;
 		});
@@ -172,7 +176,7 @@ function createLabelLayer() {
 				this.prepareLabels();
 			}
 		},
-		setData: function (data, map, nodeDict, linkDict, linkScale) {
+		setData: function (data, map, linkScale) {
 			var iconOnline = {
 				'fillOpacity': 0.6,
 				'opacity': 0.6,
@@ -189,10 +193,10 @@ function createLabelLayer() {
 				groupLines.clearLayers();
 			}
 
-			var lines = addLinksToMap(linkDict, linkScale, data.links);
+			var lines = addLinksToMap(linkScale, data.links);
 			groupLines = L.featureGroup(lines).addTo(map);
 
-			var markersOnline = data.nodes.map(mkMarker(nodeDict, function () {
+			var markersOnline = data.nodes.map(mkMarker(function () {
 				return iconOnline;
 			}));
 

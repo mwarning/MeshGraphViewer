@@ -1,10 +1,5 @@
 
 function createClientLayer() {
-	function hasLocation(d) {
-		return Math.abs(d.x) < 90 &&
-			Math.abs(d.y) < 180;
-	}
-
 	function getTileBBox(s, map, tileSize, margin) {
 		var tl = map.unproject([s.x - margin, s.y - margin]);
 		var br = map.unproject([s.x + margin + tileSize, s.y + margin + tileSize]);
@@ -23,7 +18,7 @@ function createClientLayer() {
 		setData: function (data) {
 			var rtreeOnlineAll = rbush(9);
 
-			this.data = rtreeOnlineAll.load(data.nodes.filter(hasLocation).map(this.mapRTree));
+			this.data = rtreeOnlineAll.load(data.nodes.map(this.mapRTree));
 
 			// pre-calculate start angles
 			//this.data.all().forEach(function (n) {

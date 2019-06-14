@@ -237,19 +237,23 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 			nodeDict = {};
 
 			data.nodes.forEach(function (d) {
-				var node = {o: d, x: d.x, y: d.y};
-				nodeDict[d.id /*node_id*/] = node;
-				nodes.push(node);
+				if (Math.abs(d.x) < 90 && Math.abs(d.y) < 180) {
+					var node = {o: d, x: d.x, y: d.y};
+					nodeDict[d.id] = node;
+					nodes.push(node);
+				}
 			});
 
 			data.links.forEach(function (d) {
-				var link = {o: d};
-				link.source = nodeDict[d.source];
-				link.target = nodeDict[d.target];
-
-				link.id = [link.source.o.id /*node_id*/, link.target.o.id /*node_id*/].join('-');
-				links.push(link);
+				var source = nodeDict[d.source];
+				var target = nodeDict[d.target];
+				if (source && target) {
+					var link = {o: d, source: source, target: target};
+					link.id = [link.source.o.id, link.target.o.id].join('-');
+					links.push(link);
+				}
 			});
+
 			data = {nodes: nodes, links: links};
 		}
 
@@ -258,7 +262,7 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 
 		nodeBounds = getNodeBounds(nodes);
 		clientLayer.setData(data);
-		labelLayer.setData(data, map, nodeDict, linkDict, linkScale);
+		labelLayer.setData(data, map, linkScale);
 
 		updateView(true);
 	};

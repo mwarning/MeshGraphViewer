@@ -95,13 +95,17 @@ function createDraw(selection) {
 
 		to = drawSelectedLink(d, to);
 
-		var grd = ctx.createLinearGradient(d.source.x, d.source.y, d.target.x, d.target.y);
-		grd.addColorStop(0.45, linkScale(try_get(d.o, 'source_tq', 1.0)));
-		grd.addColorStop(0.55, linkScale(try_get(d.o, 'target_tq', 1.0)));
+		if ('color' in d.o) {
+			ctx.strokeStyle = d.o.color;
+		} else {
+			// show link quality color gradient
+			var grd = ctx.createLinearGradient(d.source.x, d.source.y, d.target.x, d.target.y);
+			grd.addColorStop(0.45, linkScale(try_get(d.o, 'source_tq', 1.0)));
+			grd.addColorStop(0.55, linkScale(try_get(d.o, 'target_tq', 1.0)));
+			ctx.strokeStyle = grd;
+		}
 
 		ctx.lineTo(to[0], to[1]);
-		ctx.strokeStyle = grd;
-		//ctx.strokeStyle = linkScale(d.o.quality / 100);
 		ctx.lineWidth = bandwidthWidthScale(1.0);
 		ctx.globalAlpha = bandwidthAlphaScale(1.0);
 

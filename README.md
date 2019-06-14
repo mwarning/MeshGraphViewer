@@ -62,7 +62,7 @@ More elaborate example:
       "label": "Node B",
       "name": "",
       "radius": 12,
-      "color": "#fff",
+      "color": "#DAA520",
       "clients": 5
     }
   ],
@@ -72,6 +72,7 @@ More elaborate example:
       "target": "b",
       "target_tq": 1,
       "source_tq": 1,
+      "color": "#7CFC00",
       "label": "Link A/B"
     }
   ]
@@ -86,7 +87,7 @@ Note:
 * `name`: Display a name under a node.
 * `x`/`y`: Geographical position, also used for initial position in topological view.
 * `clients`: Display a number of small circles around each node.
-* `color`: Color of a node. CSS color format.
+* `color`: Color of a node or link. CSS color format. By default the link color is based on `target_tq` and `source_tq`.
 * `radius`: Radius of the node circle.
 
 ## Build Dependencies
