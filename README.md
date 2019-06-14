@@ -62,8 +62,8 @@ More elaborate example:
       "label": "Node B",
       "name": "",
       "radius": 12,
-      "color": "#fff"
-      "clients": 5,
+      "color": "#fff",
+      "clients": 5
     }
   ],
   "links": [
