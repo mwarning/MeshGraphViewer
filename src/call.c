@@ -15,7 +15,7 @@
 
 
 int g_com_sock = -1;
-char g_com_buf[512] = { 0 };
+char g_com_buf[2048] = { 0 };
 
 
 // Set a socket non-blocking
