@@ -26,9 +26,7 @@ Arguments:
 * `--open`  
   Open browser and show graph.
 * `--webserver-address` *address*  
-  Address for the build-in webserver. Default: 127.0.0.1
-* `--webserver-port` *port*  
-  Port for the build-in webserver. Default: 8000
+  Address for the build-in webserver. Default: 127.0.0.1:8000
 * `--webserver-path` *path*  
   Root folder for the build-in webserver. For development. Default: internal
 * `--write-out-files` *path*  

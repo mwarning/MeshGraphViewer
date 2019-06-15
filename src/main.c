@@ -33,8 +33,7 @@ static const char *g_help_text =
   "                          unix socket file or given IP address via TCP/UDP.\n"
   "                          E.g. '/usr/bin/send_program', 'unix:///var/com.sock', 'tcp://localhost:3000'.\n"
   " --config <path>          Use a JavaScript file with configuration settings.\n"
-  " --webserver-address <address> Address for the build-in webserver. Default: 127.0.0.1\n"
-  " --webserver-port <port>  Port for the build-in webserver. Set to 0 to disable webserver. Default: 8000\n"
+  " --webserver-address <address> Address for the build-in webserver. Default: 127.0.0.1:8000\n"
   " --webserver-path <path>  Root folder for the build-in webserver. Default: internal\n"
   " --write-out-files <path> Write included html/js/css files to disk.\n"
   " --open                   Show graph in browser.\n"
@@ -101,7 +100,6 @@ static struct option options[] = {
   {"config", required_argument, 0, oConfig},
   {"write-out-files", required_argument, 0, oWriteOutFiles},
   {"webserver-address", required_argument, 0, oWebserverAddress},
-  {"webserver-port", required_argument, 0, oWebserverPort},
   {"webserver-path", required_argument, 0, oWebserverPath},
   {"open", no_argument, 0, oOpen},
   {"version", no_argument, 0, oVersion},
@@ -222,8 +220,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (parse_addr(&addr, webserver_address, webserver_port) == EXIT_FAILURE) {
-    fprintf(stderr, "Invalid webserver address or port\n");
+  if (addr_parse_full(&addr, webserver_address, "8000", AF_UNSPEC) != 0) {
+    fprintf(stderr, "Invalid webserver address.\n");
     return EXIT_FAILURE;
   }
 
@@ -239,12 +237,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (addr.ss_family == AF_INET6) {
-    printf("Listen on http://[%s]:%d\n", webserver_address, webserver_port);
-  } else {
-    printf("Listen on http://%s:%d\n", webserver_address, webserver_port);
-  }
-  
+  printf("Listen on http://%s\n", str_addr(&addr));
+
   if (open_browser) {
     if (addr.ss_family == AF_INET6) {
       execute("xdg-open http://[%s]:%d", webserver_address, webserver_port);
