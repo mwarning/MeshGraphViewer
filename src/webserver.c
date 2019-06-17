@@ -169,7 +169,8 @@ static int handle_graph(struct MHD_Connection *connection) {
   struct stat attr;
 
   // get timestamp
-  if (stat(g_graph, &attr) != 0) {
+  if (stat(g_graph, &attr) == -1) {
+     fprintf(stderr, "stat(): %s\n", strerror(errno));
      return send_empty_json(connection);
   }
 
