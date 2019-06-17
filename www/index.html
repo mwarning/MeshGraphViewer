@@ -123,8 +123,10 @@
 	// Send command when enter key is pressed
 	function onCommandChar(event) {
 		if (event.which == 13 || event.keyCode == 13) {
-			sendCommand($('#command_request').value);
+			var command = $('#command_request').value;
 			$('#command_request').value = '';
+			$('#command_reply').value = '';
+			sendCommand(command);
 		}
 	}
 
