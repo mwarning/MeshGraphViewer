@@ -277,7 +277,7 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (g_com_sock > 0) {
+    if (g_com_sock >= 0) {
       if (FD_ISSET(g_com_sock, &rset)) {
         call_receive();
       }

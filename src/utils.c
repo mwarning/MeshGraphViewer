@@ -337,7 +337,7 @@ static int create_path_element(const char *path, int len) {
 
   int rc = mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   if (rc != 0 && errno != EEXIST) {
-    fprintf( stderr, "Error creating directory '%s': %s\n", buf, strerror(errno));
+    fprintf(stderr, "Error creating directory '%s': %s\n", buf, strerror(errno));
     return EXIT_FAILURE;
   }
 
