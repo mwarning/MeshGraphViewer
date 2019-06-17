@@ -101,6 +101,10 @@ Note:
 
 Add new buttons using the configuration file [config.json](config.json) and pass it to grap-viewer via the `--config` argument. Other available options like colors etc. can be gathered from the internal index.html default config object.
 
+## Command line variables
+
+In the command line, the variables `%selected_nodes` and `%selected_links` will be expanded to a comma separated list.
+
 ## Related Software
 
 * [MeshViewer](https://github.com/ffrgb/meshviewer)
