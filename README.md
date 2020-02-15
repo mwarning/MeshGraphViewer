@@ -41,7 +41,6 @@ Arguments:
 Minimal graph example:
 ```
 {
-  "nodes": [{"id": "a"}, {"id": "b"}],
   "links": [{"source": "a", "target": "b"}]
 }
 ```

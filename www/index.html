@@ -164,6 +164,19 @@
 		return buttons;
 	}
 
+	// create nodes array if missing
+	function add_missing_nodes(json) {
+		if (!json.nodes) {
+			var nodes = {};
+			for (var i = 0; i < json.links.length; i += 1) {
+				var link = json.links[i];
+				nodes[link.source] = {'id': link.source};
+				nodes[link.target] = {'id': link.target};
+			}
+			json.nodes = Object.values(nodes);
+		}
+	}
+
 	function handle_data(data) {
 		var json = {};
 		try {
@@ -171,6 +184,9 @@
 		} catch (e) {
 			console.log(e);
 		}
+
+		// add dummy nodes that referenced in links, but not declared
+		add_missing_nodes(json);
 
 		if (json.nodes && json.links) {
 			// remove selected items that do not exist anymore
