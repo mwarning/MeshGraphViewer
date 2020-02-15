@@ -87,14 +87,21 @@ Note:
 * `color`: Color of a node or link. CSS color format. By default the link color is based on `target_tq` and `source_tq`.
 * `radius`: Radius of the node circle.
 
-## Build Dependencies
+## Build
 
+Install:
+
+- C compiler (e.g. clang or gcc)
 - xxd tool to include html/js/css data into binary (often in package `vim-common`)
-- libmicrohttpd development headers
+- libmicrohttpd and the development headers
 
-## Run Dependencies
+Build:
 
-- libmicrohttpd library
+```
+make
+```
+
+This should create a single standalone program called `graph-viewer`.
 
 ## Custom Buttons
 
