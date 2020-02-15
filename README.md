@@ -114,6 +114,7 @@ In the command line, the variables `%selected_nodes` and `%selected_links` will 
 ## Related Software
 
 * [MeshViewer](https://github.com/ffrgb/meshviewer)
+* [NetJSON NetworkGraph](https://github.com/openwisp/netjsongraph.js)
 * [graph-tool](https://graph-tool.skewed.de/)
 * [NetworkX](https://networkx.github.io/)
 * [Gephi](https://gephi.org/)
