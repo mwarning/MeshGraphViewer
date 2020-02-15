@@ -184,6 +184,7 @@
 			json = JSON.parse(data);
 		} catch (e) {
 			console.log(e);
+			return;
 		}
 
 		// add dummy nodes that referenced in links, but not declared
