@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
   i = 1;
   while (i) {
     index = 0;
-    int c = getopt_long(argc, argv, "", options, &index);
+    int c = getopt_long(argc, argv, "h", options, &index);
 
     switch (c) {
     case oGraph:
@@ -188,6 +188,7 @@ int main(int argc, char **argv) {
       printf("%s\n", g_version);
       return EXIT_SUCCESS;
     case oHelp:
+    case 'h':
       printf("%s\n", g_help_text);
       return EXIT_SUCCESS;
     case -1:
