@@ -250,6 +250,9 @@ class Map {
 
 			data.nodes.forEach(function (d) {
 				if (Math.abs(d.x) < 90 && Math.abs(d.y) < 180) {
+					if (config.useIdsAsName && !('name' in d)) {
+						d.name = id;
+					}
 					var node = {o: d, x: d.x, y: d.y};
 					self.nodeDict['' + d.id] = node;
 					nodes.push(node);

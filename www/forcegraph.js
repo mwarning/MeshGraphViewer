@@ -279,6 +279,11 @@ function createGraph(parent, selection, sidebar) {
 
 		function addNode(node) {
 			var id = '' + node.id;
+
+			if (config.useIdsAsName && !('name' in node)) {
+				node.name = id;
+			}
+
 			if (id in nodeDict) {
 				var n = nodeDict[id];
 				// Update existing node (keep position)
