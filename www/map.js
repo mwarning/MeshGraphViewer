@@ -239,14 +239,14 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 			data.nodes.forEach(function (d) {
 				if (Math.abs(d.x) < 90 && Math.abs(d.y) < 180) {
 					var node = {o: d, x: d.x, y: d.y};
-					nodeDict[d.id] = node;
+					self.nodeDict['' + d.id] = node;
 					nodes.push(node);
 				}
 			});
 
 			data.links.forEach(function (d) {
-				var source = nodeDict[d.source];
-				var target = nodeDict[d.target];
+				var source = self.nodeDict['' + d.source];
+				var target = self.nodeDict['' + d.target];
 				if (source && target) {
 					var link = {o: d, source: source, target: target};
 					link.id = [link.source.o.id, link.target.o.id].join('-');

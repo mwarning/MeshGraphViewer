@@ -235,13 +235,13 @@ function createGraph(parent, selection, sidebar) {
 
 	// Create a bidirectional link identifier
 	function linkId(source, target) {
-		var sid = source.id;
-		var tid = target.id;
+		var sid = '' + source.id;
+		var tid = '' + target.id;
 		return (sid > tid) ? (tid + '=>' + sid) : (sid + '=>' + tid);
 	}
 
 	function nodeId(n) {
-		return n.o.id;
+		return '' + n.o.id;
 	}
 
 	/* Update graph
@@ -257,7 +257,7 @@ function createGraph(parent, selection, sidebar) {
 			// Keep existing data
 			var dnodes = {};
 			data.nodes.forEach(function (e) {
-				dnodes[e.id] = e;
+				dnodes['' + e.id] = e;
 			});
 			intNodes.forEach(function (e) {
 				if (nodeId(e) in dnodes) {
@@ -278,7 +278,7 @@ function createGraph(parent, selection, sidebar) {
 		var py = lastClick[1] - my;
 
 		function addNode(node) {
-			var id = node.id;
+			var id = '' + node.id;
 			if (id in nodeDict) {
 				var n = nodeDict[id];
 				// Update existing node (keep position)
@@ -298,8 +298,19 @@ function createGraph(parent, selection, sidebar) {
 		}
 
 		function addLink(link) {
-			var source = nodeDict[link.source];
-			var target = nodeDict[link.target];
+			var sid = '' + link.source;
+			var tid = '' + link.target;
+
+			if (!(sid in nodeDict)) {
+				addNode({'id': sid});
+			}
+
+			if (!(tid in nodeDict)) {
+				addNode({'id': tid});
+			}
+
+			var source = nodeDict[sid];
+			var target = nodeDict[tid];
 			var id = linkId(source.o, target.o);
 
 			if (id in linkDict) {
