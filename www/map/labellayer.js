@@ -141,12 +141,13 @@ function createLabelLayer() {
 				dashArray: 'none'
 			};
 
+			var source_tq = try_get(d.o, 'source_tq', 1.0);
+			var target_tq = try_get(d.o, 'target_tq', 1.0);
+
 			if ('color' in d.o) {
 				opts.color = d.o.color;
 			} else {
 				// TODO: use gradient
-				var source_tq = try_get(d.o, 'source_tq', 1.0);
-				var target_tq = try_get(d.o, 'target_tq', 1.0);
 				opts.color = linkScale((source_tq + target_tq) / 2);
 			}
 
