@@ -157,8 +157,8 @@ function createLabelLayer() {
 				line.setStyle(opts);
 			};
 
-			line.bindTooltip(escape(d.source.o.name + " – " + d.target.o.name)
-				+ '<br><strong>' + showDistance(d) + ' / ' + showTq(source_tq)
+			line.bindTooltip('<center>' + escape(d.source.o.name + " – " + d.target.o.name) + '</center>'
+				+ '<strong>' + showDistance(d) + ' / ' + showTq(source_tq)
 				+ ' - ' + showTq(target_tq) + '</strong>');
 
 			line.on('click', function () {
