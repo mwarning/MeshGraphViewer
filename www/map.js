@@ -1,166 +1,165 @@
+"use strict"
 
-function createMap(parent, selection, linkScale, sidebar, buttons) {
-	var self = this;
-	var savedView;
-	var nodeBounds;
+class Map {
+	savedView
+	nodeBounds
+	map
+	sidebar
+	options
+	nodeDict
+	linkDict
+	clientLayer
+	labelLayer
+	button
+	linkScale
+	el
 
-	var map;
-	var layerControl;
-	var baseLayers = {};
+	constructor(parent, selection, linkScale, sidebar, buttons) {
+		var baseLayers = {};
+		this.sidebar = sidebar;
+		this.linkScale = linkScale;
 
-	// add html
-	var el = document.createElement('div');
-	el.classList.add('map');
-	el.setAttribute('id', 'map');
-	parent.appendChild(el);
+		// add html
+		this.el = document.createElement('div');
+		this.el.classList.add('map');
+		this.el.setAttribute('id', 'map');
+		parent.appendChild(this.el);
 
-	var options = {
-		worldCopyJump: true,
-		zoomControl: true,
-		minZoom: 0
-	};
+		this.options = {
+			worldCopyJump: true,
+			zoomControl: true,
+			minZoom: 0
+		};
 
-	function saveView() {
+		this.map = L.map(this.el, this.options);
+		this.mapActiveArea();
+
+		var now = new Date();
+		config.mapLayers.forEach(function (item, i) {
+			if ((typeof item.config.start === 'number' && item.config.start <= now.getHours()) || (typeof item.config.end === 'number' && item.config.end > now.getHours())) {
+				item.config.order = item.config.start * -1;
+			} else {
+				item.config.order = i;
+			}
+		});
+
+		config.mapLayers = config.mapLayers.sort(function (a, b) {
+			return a.config.order - b.config.order;
+		});
+
+		var layers = config.mapLayers.map(function (d) {
+			return {
+				'name': d.name,
+				'layer': L.tileLayer(d.url.replace('{retina}', L.Browser.retina ? '@2x' : ''), d.config)
+			};
+		});
+
+		this.map.addLayer(layers[0].layer);
+
+		layers.forEach(function (d) {
+			baseLayers[d.name] = d.layer;
+		});
+
+		this.button = new Button()(this.map, buttons);
+
+		this.map.on('locationfound', this.button.locationFound);
+		this.map.on('locationerror', this.button.locationError);
+		this.map.on('dragend', this.saveView);
+		this.map.on('contextmenu', Map.contextMenuOpenLayerMenu);
+
+		if (config.geo) {
+			[].forEach.call(config.geo, function (geo) {
+				geo.json().then(function (result) {
+					if (result) {
+						L.geoJSON(result, geo.option).addTo(map);
+					}
+				});
+			});
+		}
+
+		this.button.init();
+
+		var layerControl = L.control.layers(baseLayers, [], { position: 'bottomright' });
+		layerControl.addTo(this.map);
+
+		this.map.zoomControl.setPosition('topright');
+
+		var tmp1 = createClientLayer();
+		this.clientLayer = new tmp1({ minZoom: config.clientZoom });
+		this.clientLayer.addTo(this.map);
+		this.clientLayer.setZIndex(5);
+
+		var tmp2 = createLabelLayer();
+		this.labelLayer = new tmp2({ minZoom: config.clientZoom });
+		this.labelLayer.addTo(this.map);
+		this.labelLayer.setZIndex(6);
+
+		var sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
+		/*sidebar.button*/ sidebar_button.addEventListener('visibility', this.setActiveArea);
+
+		var self = this;
+		this.map.on('zoom', function () {
+			self.clientLayer.redraw();
+			self.labelLayer.redraw();
+		});
+
+		this.map.on('baselayerchange', function (e) {
+			self.map.options.maxZoom = e.layer.options.maxZoom;
+			self.clientLayer.options.maxZoom = self.map.options.maxZoom;
+			self.labelLayer.options.maxZoom = self.map.options.maxZoom;
+			if (self.map.getZoom() > self.map.options.maxZoom) {
+				self.map.setZoom(self.map.options.maxZoom);
+			}
+		});
+
+		this.map.on('load', function () {
+			var inputs = document.querySelectorAll('.leaflet-control-layers-selector');
+			[].forEach.call(inputs, function (input) {
+				input.setAttribute('role', 'radiogroup');
+				input.setAttribute('title', input.nextSibling.innerHTML.trim());
+			});
+		});
+
+		this.nodeDict = {};
+		this.linkDict = {};
+	}
+
+	saveView() {
+		var self = this;
 		savedView = {
-			center: map.getCenter(),
-			zoom: map.getZoom()
+			center: self.map.getCenter(),
+			zoom: self.map.getZoom()
 		};
 	}
 
-	function contextMenuOpenLayerMenu() {
+	static contextMenuOpenLayerMenu() {
 		document.querySelector('.leaflet-control-layers').classList.add('leaflet-control-layers-expanded');
 	}
 
-	function mapActiveArea() {
-		map.setActiveArea({
+	mapActiveArea() {
+		this.map.setActiveArea({
 			position: 'absolute',
-			left: sidebar.getWidth() + 'px',
+			left: this.sidebar.getWidth() + 'px',
 			right: 0,
 			top: 0,
 			bottom: 0
 		});
 	}
 
-	function setActiveArea() {
-		setTimeout(mapActiveArea, 300);
+	setActiveArea() {
+		setTimeout(this.mapActiveArea, 300);
 	}
 
-	map = L.map(el, options);
-	mapActiveArea();
-
-	var now = new Date();
-	config.mapLayers.forEach(function (item, i) {
-		if ((typeof item.config.start === 'number' && item.config.start <= now.getHours()) || (typeof item.config.end === 'number' && item.config.end > now.getHours())) {
-			item.config.order = item.config.start * -1;
-		} else {
-			item.config.order = i;
-		}
-	});
-
-	config.mapLayers = config.mapLayers.sort(function (a, b) {
-		return a.config.order - b.config.order;
-	});
-
-	var layers = config.mapLayers.map(function (d) {
-		return {
-			'name': d.name,
-			'layer': L.tileLayer(d.url.replace('{retina}', L.Browser.retina ? '@2x' : ''), d.config)
-		};
-	});
-
-	map.addLayer(layers[0].layer);
-
-	layers.forEach(function (d) {
-		baseLayers[d.name] = d.layer;
-	});
-
-	var button = new Button()(map, buttons);
-
-	map.on('locationfound', button.locationFound);
-	map.on('locationerror', button.locationError);
-	map.on('dragend', saveView);
-	map.on('contextmenu', contextMenuOpenLayerMenu);
-
-	if (config.geo) {
-		[].forEach.call(config.geo, function (geo) {
-			geo.json().then(function (result) {
-				if (result) {
-					L.geoJSON(result, geo.option).addTo(map);
-				}
-			});
-		});
-	}
-
-	button.init();
-
-	layerControl = L.control.layers(baseLayers, [], { position: 'bottomright' });
-	layerControl.addTo(map);
-
-	map.zoomControl.setPosition('topright');
-
-	L.TileLayer.ClientLayer = createClientLayer();
-	var clientLayer = new L.TileLayer.ClientLayer({ minZoom: config.clientZoom });
-	clientLayer.addTo(map);
-	clientLayer.setZIndex(5);
-
-	L.TileLayer.LabelLayer = createLabelLayer();
-	var labelLayer = new L.TileLayer.LabelLayer({ minZoom: config.clientZoom });
-	labelLayer.addTo(map);
-	labelLayer.setZIndex(6);
-
-	var sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
-	/*sidebar.button*/ sidebar_button.addEventListener('visibility', setActiveArea);
-
-	map.on('zoom', function () {
-		clientLayer.redraw();
-		labelLayer.redraw();
-	});
-
-	map.on('baselayerchange', function (e) {
-		map.options.maxZoom = e.layer.options.maxZoom;
-		clientLayer.options.maxZoom = map.options.maxZoom;
-		labelLayer.options.maxZoom = map.options.maxZoom;
-		if (map.getZoom() > map.options.maxZoom) {
-			map.setZoom(map.options.maxZoom);
-		}
-
-		/*
-		//disable night/day mode
-		var style = document.querySelector('.css-mode:not([media="not"])');
-		if (style && e.layer.options.mode !== '' && !style.classList.contains(e.layer.options.mode)) {
-			style.media = 'not';
-			labelLayer.updateLayer();
-		}
-		if (e.layer.options.mode) {
-			var newStyle = document.querySelector('.css-mode.' + e.layer.options.mode);
-			newStyle.media = '';
-			newStyle.appendChild(document.createTextNode(''));
-			labelLayer.updateLayer();
-		}
-		*/
-	});
-
-	map.on('load', function () {
-		var inputs = document.querySelectorAll('.leaflet-control-layers-selector');
-		[].forEach.call(inputs, function (input) {
-			input.setAttribute('role', 'radiogroup');
-			input.setAttribute('title', input.nextSibling.innerHTML.trim());
-		});
-	});
-
-	var nodeDict = {};
-	var linkDict = {};
-
-	function resetMarkerStyles() {
-		Object.keys(nodeDict).forEach(function (id) {
+	resetMarkerStyles() {
+		Object.keys(this.nodeDict).forEach(function (id) {
 			if (selection.isSelectedNode(id)) {
-				nodeDict[id].setStyle(config.map_selectedNode);
+				this.nodeDict[id].setStyle(config.map_selectedNode);
 			} else {
-				nodeDict[id].resetStyle();
+				this.nodeDict[id].resetStyle();
 			}
 		});
 
-		Object.keys(linkDict).forEach(function (id) {
+		Object.keys(this.linkDict).forEach(function (id) {
 			if (selection.isSelectedLink(id.replace("-", ","))) {
 				linkDict[id].setStyle(config.map_selectedLink);
 			} else {
@@ -169,11 +168,11 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 		});
 	}
 
-	function setView(bounds, zoom) {
-		map.fitBounds(bounds, { maxZoom: (zoom ? zoom : config.nodeZoom) });
+	setView(bounds, zoom) {
+		this.map.fitBounds(bounds, { maxZoom: (zoom ? zoom : config.nodeZoom) });
 	}
 
-	function goto(m) {
+	goto(m) {
 		var bounds;
 
 		if ('getBounds' in m) {
@@ -187,7 +186,7 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 		return m;
 	}
 
-	function getNodeBounds(nodes) {
+	static getNodeBounds(nodes) {
 		var min_x = Number.POSITIVE_INFINITY;
 		var max_x = Number.NEGATIVE_INFINITY;
 		var min_y = Number.POSITIVE_INFINITY;
@@ -215,26 +214,39 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 		}
 	}
 
-	function updateView(nopanzoom) {
-		resetMarkerStyles();
+	updateView(nopanzoom) {
+		this.resetMarkerStyles();
+
+		/*
+		if (highlight !== undefined) {
+			if (highlight.type === 'node' && nodeDict[highlight.o.node_id]) {
+				m = nodeDict[highlight.o.node_id];
+				m.setStyle(config.map.highlightNode);
+			} else if (highlight.type === 'link' && linkDict[highlight.o.id]) {
+				m = linkDict[highlight.o.id];
+				m.setStyle(config.map.highlightLink);
+			}
+		}
+		*/
 
 		if (!nopanzoom) {
-			if (savedView) {
-				map.setView(savedView.center, savedView.zoom);
-			} else if (nodeBounds) {
-				setView(nodeBounds);
+			if (this.savedView) {
+				this.map.setView(this.savedView.center, this.savedView.zoom);
+			} else if (this.nodeBounds) {
+				this.setView(this.nodeBounds);
 			} else {
-				setView([[5.0, 5.0], [0.0, 0.0]]);
+				this.setView([[5.0, 5.0], [0.0, 0.0]]);
 			}
 		}
 	}
 
-	self.setData = function (data) {
+	setData(data) {
 		{
 			// some preprocessing
 			var nodes = [];
 			var links = [];
-			nodeDict = {};
+			this.nodeDict = {};
+			var self = this;
 
 			data.nodes.forEach(function (d) {
 				if (Math.abs(d.x) < 90 && Math.abs(d.y) < 180) {
@@ -257,39 +269,37 @@ function createMap(parent, selection, linkScale, sidebar, buttons) {
 			data = {nodes: nodes, links: links};
 		}
 
-		nodeDict = {};
-		linkDict = {};
+		this.nodeDict = {};
+		this.linkDict = {};
 
-		nodeBounds = getNodeBounds(nodes);
-		clientLayer.setData(data);
-		labelLayer.setData(data, map, linkScale);
+		this.nodeBounds = Map.getNodeBounds(nodes);
+		this.clientLayer.setData(data);
+		this.labelLayer.setData(data, this.map, this.linkScale);
 
-		updateView(true);
-	};
+		this.updateView(true);
+	}
 
-	self.resetView = function resetView() {
-		updateView();
-	};
+	resetView() {
+		this.updateView();
+	}
 
-	self.gotoLocation = function gotoLocation(d) {
-		map.setView([d.lat, d.lng], d.zoom);
-	};
+	gotoLocation(d) {
+		this.map.setView([d.lat, d.lng], d.zoom);
+	}
 
-	self.destroy = function destroy() {
-		button.clearButtons();
+	destroy() {
+		this.button.clearButtons();
 		var sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
-		/*sidebar.button*/sidebar_button.removeEventListener('visibility', setActiveArea);
-		map.remove();
+		/*sidebar.button*/sidebar_button.removeEventListener('visibility', this.setActiveArea);
+		this.map.remove();
 
-		if (el.parentNode) {
-			el.parentNode.removeChild(el);
+		if (this.el.parentNode) {
+			this.el.parentNode.removeChild(this.el);
 		}
-	};
+	}
 
-	self.render = function render(d) {
-		d.appendChild(el);
-		map.invalidateSize();
-	};
-
-	return self;
+	render(d) {
+		d.appendChild(this.el);
+		this.map.invalidateSize();
+	}
 }

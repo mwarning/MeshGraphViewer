@@ -105,7 +105,7 @@
 		}
 		var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
 		var parent = $('#content');
-		my_map = createMap(parent, selection, linkScale, sidebar, buttons);
+		my_map = new Map(parent, selection, linkScale, sidebar, buttons);
 		my_map.setData(my_data);
 		my_map.resetView();
 	}
