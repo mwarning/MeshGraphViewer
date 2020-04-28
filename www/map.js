@@ -260,11 +260,13 @@ class Map {
 			});
 
 			data.links.forEach(function (d) {
-				var source = self.nodeDict['' + d.source];
-				var target = self.nodeDict['' + d.target];
+				var sid = '' + d.source;
+				var tid = '' + d.target;
+				var source = self.nodeDict[sid];
+				var target = self.nodeDict[tid];
 				if (source && target) {
-					var link = {o: d, source: source, target: target};
-					link.id = [link.source.o.id, link.target.o.id].join('-');
+					var lid = [sid, tid].join('-');
+					var link = {o: d, id: lid, source: source, target: target};
 					links.push(link);
 				}
 			});
