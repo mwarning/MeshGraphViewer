@@ -62,9 +62,15 @@ class Map {
 
 		this.button = new Button()(this.map, buttons);
 
+		var self = this;
 		this.map.on('locationfound', this.button.locationFound);
 		this.map.on('locationerror', this.button.locationError);
-		this.map.on('dragend', this.saveView);
+		this.map.on('dragend', function() {
+			self.savedView = {
+				center: self.map.getCenter(),
+				zoom: self.map.getZoom()
+			}
+		});
 		this.map.on('contextmenu', Map.contextMenuOpenLayerMenu);
 
 		if (config.geo) {
@@ -122,14 +128,6 @@ class Map {
 
 		this.nodeDict = {};
 		this.linkDict = {};
-	}
-
-	saveView() {
-		var self = this;
-		savedView = {
-			center: self.map.getCenter(),
-			zoom: self.map.getZoom()
-		};
 	}
 
 	static contextMenuOpenLayerMenu() {
