@@ -174,7 +174,15 @@
 			return;
 		}
 
-		if (json.nodes && json.links) {
+		if (json.nodes || json.links) {
+			if (!('nodes' in json)) {
+				json['nodes'] = []
+			}
+
+			if (!('links' in json)) {
+				json['links'] = []
+			}
+
 			// remove selected items that do not exist anymore
 			selection.filterSelections(json.nodes, json.links);
 
