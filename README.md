@@ -18,8 +18,8 @@ Arguments:
   Graph topology and data in JSON format. May be first unnamed argument.  
   The graph file is reloaded when its timestamp changes.
 * `--call` *path|address*  
-  Commands triggered via the web interface are send to an external program,  
-  unix socket file or given IP address via TCP/UDP.  
+  Commands triggered via the web interface are used as programm arguments,  
+  or send to a unix socket file or given IP address via TCP/UDP.  
   E.g. `/usr/bin/send_program`, `unix:///var/com.sock`, `tcp://localhost:3000`.
 * `--config` *json-file*  
   Configuration file for custom command buttons, colors and map tile sources.
