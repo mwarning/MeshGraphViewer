@@ -22,8 +22,8 @@ static time_t g_graph_mtime = 0;
 
 
 // Lookup files content included by files.h
-static uint8_t *get_included_file(size_t *content_size, const char url[]) {
-  struct content *e = g_content;
+static const uint8_t *get_included_file(size_t *content_size, const char url[]) {
+  const struct content *e = g_content;
   while (e->path) {
     if (0 == strcmp(e->path, url)) {
       *content_size = e->size;
@@ -150,14 +150,14 @@ static int handle_call_execute(struct MHD_Connection *connection) {
     return send_empty_text(connection);
   }
 
-  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, get_query, &query);
+  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, (MHD_KeyValueIterator)get_query, &query);
   if (query == NULL) {
     fprintf(stderr, "No query argument set\n");
     return send_empty_text(connection);
   }
 
   if (query != NULL) {
-    call_send(g_call, query, strlen(query));
+    call_send(g_call, query);
   }
 
   free(query);
@@ -205,7 +205,7 @@ static int handle_content(struct MHD_Connection *connection, const char *url) {
   enum MHD_ResponseMemoryMode mode;
   struct MHD_Response *response;
   char content_path[256];
-  uint8_t *content_data = NULL;
+  const uint8_t *content_data = NULL;
   size_t content_size;
   int ret;
 
@@ -248,7 +248,7 @@ static int handle_content(struct MHD_Connection *connection, const char *url) {
     return send_not_found(connection);
   }
 
-  response = MHD_create_response_from_buffer(content_size, content_data, mode);
+  response = MHD_create_response_from_buffer(content_size, (void*)content_data, mode);
   MHD_add_response_header(response, "Content-Type", get_mimetype(url));
   ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
   MHD_destroy_response(response);
@@ -286,7 +286,7 @@ int webserver_start(const char path[], const struct sockaddr *addr) {
   }
 
   int flags = (addr->sa_family == AF_INET6) ? MHD_USE_IPv6 : 0;
-  g_webserver = MHD_start_daemon(flags, 0, NULL, NULL, &send_response, NULL,
+  g_webserver = MHD_start_daemon(flags, 0, NULL, NULL, (MHD_AccessHandlerCallback)&send_response, NULL,
     MHD_OPTION_SOCK_ADDR, addr,
     MHD_OPTION_END
   );

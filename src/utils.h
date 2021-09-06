@@ -33,6 +33,6 @@ int execute(const char fmt[], ...);
 int execute_ret(char* msg, int msg_len, const char fmt[], ...);
 
 int create_path(const char* path);
-int create_file(const char* path, uint8_t *data, size_t len);
+int create_file(const char* path, const uint8_t *data, const size_t len);
 
 #endif // _UTILS_H_

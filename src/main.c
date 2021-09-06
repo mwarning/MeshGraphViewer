@@ -116,7 +116,7 @@ int write_out_files(const char *target) {
     return EXIT_FAILURE;
   }
 
-  c = g_content;
+  c = (struct content *)g_content;
   while (c->path) {
     printf("create %s\n", c->path + 1);
 
