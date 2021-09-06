@@ -28,7 +28,9 @@ uint8_t *read_file(size_t *size, const char path[]) {
   fseek(fp, 0, SEEK_SET);
 
   fdata = malloc(fsize);
-  fread(fdata, fsize, 1, fp);
+  if (!fread(fdata, fsize, 1, fp)) {
+    perror("fread");
+  }
   fclose(fp);
 
   *size = fsize;
@@ -251,7 +253,9 @@ static int _execute_ret(char* msg, int msg_len, const char *cmd) {
   }
 
   if (msg && msg_len > 0) {
-    fread(msg, msg_len - 1, 1, fp);
+    if (!fread(msg, msg_len - 1, 1, fp)) {
+      perror("fread");
+    }
   }
 
   rc = pclose(fp);
@@ -370,7 +374,7 @@ int create_path(const char* path) {
   return EXIT_SUCCESS;
 }
 
-int create_file(const char* path, uint8_t *data, size_t len) {
+int create_file(const char* path, const uint8_t *data, const size_t len) {
   size_t written;
   FILE *file;
 

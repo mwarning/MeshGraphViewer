@@ -2,9 +2,9 @@
 #define _PARSE_CALL_H_
 
 extern int g_com_sock;
-extern char g_com_buf[512];
+extern char g_com_buf[2048];
 
 void call_receive();
-int call_send(const char *addr_str, const char *buf, size_t buflen);
+void call_send(const char *addr_str, const char *buf);
 
 #endif // _PARSE_CALL_H_
