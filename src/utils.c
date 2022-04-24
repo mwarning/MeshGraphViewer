@@ -38,9 +38,9 @@ uint8_t *read_file(size_t *size, const char path[]) {
   return fdata;
 }
 
-int is_suffix(const char s[], const char suffix[]) {
-  int slen = strlen(s);
-  int suffixlen = strlen(suffix);
+bool is_suffix(const char s[], const char suffix[]) {
+  size_t slen = strlen(s);
+  size_t suffixlen = strlen(suffix);
 
   if (suffixlen >= slen) {
     return 0;
@@ -94,7 +94,7 @@ int port_set(struct sockaddr_storage *addr, uint16_t port) {
   }
 }
 
-int is_prefix(const char prefix[], const char s[]) {
+bool is_prefix(const char prefix[], const char s[]) {
     size_t prefixlen = strlen(prefix),
            slen = strlen(s);
     return slen < prefixlen ? 0 : (strncmp(prefix, s, prefixlen) == 0);
@@ -213,17 +213,17 @@ int addr_parse_full(struct sockaddr_storage *addr, const char full_addr_str[], c
   return addr_parse(addr, addr_str, port_str, af);
 }
 
-int is_program(const char path[]) {
+bool is_program(const char path[]) {
   struct stat sb;
   return (stat(path, &sb) == 0) && (sb.st_mode & S_IXUSR) && S_ISREG(sb.st_mode);
 }
 
-int is_directory(const char path[]) {
+bool is_directory(const char path[]) {
   struct stat sb;
   return (stat(path, &sb) == 0) && S_ISDIR(sb.st_mode);
 }
 
-int is_file(const char path[]) {
+bool is_file(const char path[]) {
   struct stat sb;
   return (stat(path, &sb) == 0) && S_ISREG(sb.st_mode);
 }
@@ -349,7 +349,7 @@ static int create_path_element(const char *path, int len) {
 }
 
 int create_path(const char* path) {
-  int len;
+  size_t len;
   char *e;
 
   if (path[0] == '/') {

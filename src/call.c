@@ -26,13 +26,13 @@ static int net_set_nonblocking(int fd)
 
 static void append_message(const char *msg) {
   // append error message to message buffer
-  int buflen = strlen(g_com_buf);
+  size_t buflen = strlen(g_com_buf);
   strncpy(g_com_buf + buflen, msg, sizeof(g_com_buf) - buflen);
 }
 
 void call_receive()
 {
-  int len;
+  size_t len;
 
   if (g_com_sock >= 0) {
     if (is_prefix("udp://", g_call) || is_prefix("tcp://", g_call) || is_prefix("unix://", g_call)) {
@@ -180,7 +180,7 @@ void call_send(const char *addr_str, const char *msg)
   } else if (is_prefix("unix://", g_call)) {
     unix_send(g_call + 7, msg);
   } else {
-    int len = strlen(g_com_buf);
+    size_t len = strlen(g_com_buf);
     int ret = execute_ret(g_com_buf + len, sizeof(g_com_buf) - len, "%s %s", g_call, msg);
     if (ret < 0) {
       append_message("cannot execute command\n");

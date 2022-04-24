@@ -2,6 +2,7 @@
 #define _UTILS_H_
 
 #include <netinet/in.h>
+#include <stdbool.h>
 
 #ifdef DEBUG
 #define debug(...) printf(__VA_ARGS__)
@@ -22,12 +23,12 @@ int parse_addr(struct sockaddr_storage *addr, const char* src, int port);
 int addr_parse(struct sockaddr_storage *addr, const char addr_str[], const char port_str[], int af);
 
 uint8_t *read_file(size_t *size, const char path[]);
-int is_suffix(const char str[], const char suffix[]);
-int is_prefix(const char prefix[], const char str[]);
+bool is_suffix(const char str[], const char suffix[]);
+bool is_prefix(const char prefix[], const char str[]);
 
-int is_program(const char path[]);
-int is_file(const char path[]);
-int is_directory(const char path[]);
+bool is_program(const char path[]);
+bool is_file(const char path[]);
+bool is_directory(const char path[]);
 
 int execute(const char fmt[], ...);
 int execute_ret(char* msg, int msg_len, const char fmt[], ...);
