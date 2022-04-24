@@ -124,10 +124,7 @@
 	// Send command when enter key is pressed
 	function onCommandChar(event) {
 		if (event.which == 13 || event.keyCode == 13) {
-			var command = $('#command_request').value;
-			$('#command_request').value = '';
-			$('#command_reply').value = '';
-			sendCommand(command);
+			sendCommand($('#command_request').value);
 		}
 	}
 
@@ -239,6 +236,10 @@
 			return;
 		}
 
+		if ($('#clear_on_send').checked) {
+			$('#command_reply').value = '';
+		}
+
 		if (query.indexOf("%selected_nodes") !== -1) {
 			var node_ids = selection.getSelectedNodes();
 			query = query.replace("%selected_nodes", node_ids.join(","));
@@ -328,6 +329,7 @@
 					<input type="text" value="" onkeypress="onCommandChar(event)" style="width: 50%" id="command_request" />
 					<input type="button" value="send" onclick="sendCommand($('#command_request').value)" />
 					<input type="button" value="clear" onclick="$('#command_reply').value = '';" />
+					<input type="checkbox" id="clear_on_send" />
 				</div>
 				<div>
 					<textarea id="command_reply" rows="30" style="width: 100%; resize: none; white-space: pre-wrap;"></textarea>
