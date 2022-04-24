@@ -233,10 +233,9 @@ static int _execute_ret(char* msg, int msg_len, const char *cmd) {
   FILE *fp;
   int rc;
 
-  debug("Executing command: %s", cmd);
+  //debug("Executing command: %s\n", cmd);
 
   /* Temporarily get rid of SIGCHLD handler (see main.c), until child exits. */
-  debug("Setting default SIGCHLD handler SIG_DFL");
   sa.sa_handler = SIG_DFL;
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = SA_NOCLDSTOP | SA_RESTART;
