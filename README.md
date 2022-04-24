@@ -109,7 +109,7 @@ Add new buttons using the configuration file [config.json](config.json) and pass
 
 ## Command line variables
 
-In the command line, the variables `%selected_nodes` and `%selected_links` will be expanded to a comma separated list.
+In the command line, the variables `%selected_nodes%` and `%selected_links%` will be expanded to a comma separated list.
 
 ## Related Software
 

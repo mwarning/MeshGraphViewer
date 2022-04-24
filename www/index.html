@@ -240,14 +240,14 @@
 			$('#command_reply').value = '';
 		}
 
-		if (query.indexOf("%selected_nodes") !== -1) {
+		if (query.indexOf("%selected_nodes%") !== -1) {
 			var node_ids = selection.getSelectedNodes();
-			query = query.replace("%selected_nodes", node_ids.join(","));
+			query = query.replace("%selected_nodes%", node_ids.join(","));
 		}
 
-		if (query.indexOf("%selected_links") !== -1) {
+		if (query.indexOf("%selected_links%") !== -1) {
 			var link_ids = selection.getSelectedLinks();
-			query = query.replace("%selected_links", link_ids.join(","));
+			query = query.replace("%selected_links%", link_ids.join(","));
 		}
 
 		send("/cmd/call_execute", { "query": query }, null);
