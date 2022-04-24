@@ -252,9 +252,7 @@ static int _execute_ret(char* msg, int msg_len, const char *cmd) {
   }
 
   if (msg && msg_len > 0) {
-    if (!fread(msg, msg_len - 1, 1, fp)) {
-      perror("fread");
-    }
+    fread(msg, msg_len - 1, 1, fp);
   }
 
   rc = pclose(fp);
