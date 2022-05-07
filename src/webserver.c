@@ -168,10 +168,14 @@ static int handle_call_execute(struct MHD_Connection *connection) {
 static int handle_graph(struct MHD_Connection *connection) {
   struct stat attr;
 
+  if (g_graph == NULL) {
+    return send_empty_json(connection);
+  }
+
   // get timestamp
   if (stat(g_graph, &attr) == -1) {
-     fprintf(stderr, "stat(): %s\n", strerror(errno));
-     return send_empty_json(connection);
+    fprintf(stderr, "stat(): %s %s\n", strerror(errno), g_graph);
+    return send_empty_json(connection);
   }
 
   if (attr.st_mtime == g_graph_mtime) {
