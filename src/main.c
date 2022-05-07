@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
   }
 
   if (g_graph && !is_file(g_graph)) {
-    fprintf(stderr, "Graph file does not exist: %s\n", g_graph);
+    fprintf(stderr, "File does not exist: %s\n", g_graph);
     return EXIT_FAILURE;
   }
 
