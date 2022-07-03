@@ -1,346 +1,112 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
-	<title>Graph Viewer</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
-	<link rel="stylesheet" href="leaflet-1.3.4.css"/>
+    <title>Mesh Graph Viewer</title>
+    <meta charset="utf-8">
+    <!-- theme can be easily customized via css -->
+    <link href="netjsongraph-theme.css" rel="stylesheet">
+    <link href="netjsongraph.css" rel="stylesheet">
+    <script type="text/javascript" src="netjsongraph.min.js"></script>
+    <script type="text/javascript">
 
-	<!-- Source https://leafletjs.com/ -->
-	<script src="leaflet-1.3.4.js"></script>
+function $(selector) {
+  return document.querySelector(selector);
+}
 
-	<!-- Source: https://d3js.org -->
-	<script src="d3.v5.min.js"></script>
-	<script src="rbush-2.0.2.min.js"></script>
 
-	<script src="utils.js"></script>
-	<script src="sidebar.js"></script>
-	<script src="selection.js"></script>
+//from jx_compressed.js
+let jx={getHTTPObject:function(){var A=false;if (typeof ActiveXObject!='undefined'){try{A=new ActiveXObject('Msxml2.XMLHTTP')}catch(C){try{A=new ActiveXObject('Microsoft.XMLHTTP')}catch(B){A=false}}}else{if (window.XMLHttpRequest){try{A=new XMLHttpRequest()}catch(C){A=false}}}return A},load:function(url,callback,format){var http=this.init();if (!http||!url){return }if (!format){var format='text'}format=format.toLowerCase();var now='uid='+new Date().getTime();url+=(url.indexOf('?')+1)?'&':'?';url+=now;http.open('GET',url,true);http.onreadystatechange=function(){if (http.readyState==4){if (http.status==200){var result='';if (http.responseText){result=http.responseText}if (format.charAt(0)=='j'){result=result.replace(/[\n\r]/g,'');result=eval('('+result+')')}if (callback){callback(result)}}else{alert("Connection Lost")}}};http.send(null)},init:function(){return this.getHTTPObject()}}
 
-	<script src="forcegraph.js"></script>
-	<script src="forcegraph/draw.js"></script>
 
-	<script src="map.js"></script>
-	<script src="map/button.js"></script>
-	<script src="map/activearea.js"></script>
-	<script src="map/clientlayer.js"></script>
-	<script src="map/labellayer.js"></script>
-	<script src="map/locationmarker.js"></script>
+function params(obj) {
+  var str = '';
+  for (var key in obj) {
+    if (str.length) str += '&';
+    else str += '?';
+    str += encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
+  }
+  return str.replace(/%20/g, '+');
+}
 
-	<script>
-		var config = {
-		buttons: [],
-		useIdsAsName: true,
-		mapLayers: [{
-			'name': 'OpenStreetMap.HOT',
-			'url': 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-			'config': {
-				'maxZoom': 19,
-				'attribution': '&copy; Openstreetmap France | &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-			}
-		}],
-		clientZoom: 15,
-		nodeZoom: 18,
-		geo: null,
-		graph_clientColor: '#e6324b',
-		graph_selectColor: 'rgba(255, 255, 255, 0.2)',
-		map_tqFrom: '#F02311',
-		map_tqTo: '#04C714',
-		map_selectedNode: {
-			color: 'rgba(173, 35, 88, 1.0)',
-			weight: 8,
-			fillOpacity: 1,
-			opacity: 0.4,
-			className: 'stroke-first'
-		},
-		map_selectedLink: {
-			color: 'rgba(255, 255, 255, 0.2)',
-			weight: 4,
-			opacity: 1
-		},
-		fullscreen: true,
-		fullscreenFrame: true
-	};
+function send(url, obj, func) {
+  url += params(obj);
+  jx.load(url, func, 'text');
+}
 
-	var sidebar;
-	var buttons;
-	var selection;
-	var my_graph;
-	var my_map;
-	var my_data = {nodes:[], links: []};
+// `graph` render defaultly.
+function init() {
+    const graph = new NetJSONGraph("netjsonmap.json");
+    graph.render();
 
-	function updateSidebarTable(node) {
-		var tbody = $('#sidebar_table');
+    function handle_data(data) {
+      try {
+        let jd = JSON.parse(data);
+        if (!jd.nodes && !jd.links) {
+          return
+        }
+        console.log("handle_data: " + data);
 
-		// clear table
-		while (tbody.firstChild) {
-			tbody.removeChild(tbody.firstChild);
-		}
+        // make sure input is valid
+        if (!('nodes' in jd)) {
+          jd['nodes'] = []
+        }
 
-		// create table rows of properties
-		for (var key in node) {
-			var value = node[key];
-			var tr = append(tbody, 'tr');
-			var td = append(tr, 'td', key);
+        if (!('links' in jd)) {
+          jd['links'] = []
+        }
 
-			var type = (typeof value);
-			if (type === 'string' || type === 'boolean') {
-				append(tr, 'td', value.toString());
-			} else if (type === 'number') {
-				append(tr, 'td', value.toString());
-			} else if (value === null) {
-				append(tr, 'td', 'null');
-			} else if (type === 'object') {
-				append(tr, 'td', json.stringify(value));
-			} else {
-				append(tr, 'td', '???');
-			}
-		}
-	}
+        graph.utils.JSONDataUpdate.call(graph, jd)
+      } catch (e) {
+        alert(e);
+        console.log(e);
+        return;
+      }
+  }
 
-	function showMap() {
-		if (my_graph) {
-			my_graph.destroy();
-			my_graph = null;
-		}
-		var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
-		var parent = $('#content');
-		my_map = new Map(parent, selection, linkScale, sidebar, buttons);
-		my_map.setData(my_data);
-		my_map.resetView();
-	}
+  // fetch graph update
+  function run_graph_update_loop() {
+    var interval_ms = 250;
 
-	function showGraph() {
-		if (my_map) {
-			my_map.destroy();
-			my_map = null;
-		}
-		var parent = $('#content');
-		my_graph = createGraph(parent, selection, sidebar);
-		my_graph.setData(my_data);
-	}
+    function looped_request_graph() {
+      // request graph
+      send("/cmd/graph", {}, function(data) {
+        handle_data(data);
+        setTimeout(looped_request_graph, interval_ms);
+      });
+    }
 
-	// Send command when enter key is pressed
-	function onCommandChar(event) {
-		if (event.which == 13 || event.keyCode == 13) {
-			sendCommand($('#command_request').value);
-		}
-	}
+    looped_request_graph();
+  }
 
-	//TODO: use static html
-	function attachButtonsDiv() {
-		var buttons = document.createElement('div');
-		buttons.classList.add('buttons');
+  run_graph_update_loop();
+}
 
-		var buttonToggle = document.createElement('button');
-		buttonToggle.classList.add('ion-eye');
-		buttonToggle.setAttribute('title', 'Switch View');
-		buttonToggle.appendChild(document.createTextNode("S"));
-		buttonToggle.onclick = function onclick() {
-			if (my_graph) {
-				showMap();
-			} else {
-				showGraph();
-			}
-		};
+/*
+JSONData = {
+    type: "NetworkGraph",
+    label: "Ninux Roma",
+    protocol: "OLSR",
+    version: "0.6.6.2",
+    metric: "ETX",
+    date: "2019-04-03T05:06:54.000Z",
+  };
+  */
+  /*
+        const socket = io("http://localhost:8000")
+          .set('transports', ['jsonp-polling']);
 
-		buttons.appendChild(buttonToggle);
-
-		if (config.fullscreen || config.fullscreenFrame && window.frameElement) {
-			var buttonFullscreen = document.createElement('button');
-			buttonFullscreen.classList.add('ion-full-enter');
-			buttonFullscreen.setAttribute('title', 'Toggle Fullscreen');
-			buttonFullscreen.appendChild(document.createTextNode("F"));
-			buttonFullscreen.onclick = function onclick() {
-				toggleFullscreen(buttonFullscreen);
-			};
-
-			buttons.appendChild(buttonFullscreen);
-		}
-
-		return buttons;
-	}
-
-	function handle_data(data) {
-		var json = {};
-		try {
-			json = JSON.parse(data);
-		} catch (e) {
-			alert(e);
-			console.log(e);
-			return;
-		}
-
-		if (json.nodes || json.links) {
-			if (!('nodes' in json)) {
-				json['nodes'] = []
-			}
-
-			if (!('links' in json)) {
-				json['links'] = []
-			}
-
-			// remove selected items that do not exist anymore
-			selection.filterSelections(json.nodes, json.links);
-
-			if (my_graph) {
-				my_graph.setData(json, true);
-				my_data = json;
-			}
-
-			if (my_map) {
-				my_map.setData(json);
-				my_data = json;
-			}
-		}
-	}
-
-	function request_graph() {
-		send("/cmd/graph", {}, function(data) {
-			handle_data(data);
-		});
-	}
-
-	// fetch graph update
-	function run_graph_update_loop() {
-		var interval_ms = 250;
-
-		function looped_request_graph() {
-			// request graph
-			send("/cmd/graph", {}, function(data) {
-				handle_data(data);
-				setTimeout(looped_request_graph, interval_ms);
-			});
-		}
-
-		looped_request_graph();
-	}
-
-	// get command reply update
-	function run_command_update_loop() {
-		var interval_ms = 500;
-
-		function looped_request_command_reply() {
-			// request graph
-			send("/cmd/call_receive", {}, function(data) {
-				$("#command_reply").value += data;
-				setTimeout(looped_request_command_reply, interval_ms);
-			});
-		}
-
-		looped_request_command_reply();
-	}
-
-	function sendCommand(query) {
-		if (typeof query !== 'string') {
-			return;
-		}
-
-		if ($('#clear_on_send').checked) {
-			$('#command_reply').value = '';
-		}
-
-		if (query.indexOf("%selected_nodes%") !== -1) {
-			var node_ids = selection.getSelectedNodes();
-			query = query.replace("%selected_nodes%", node_ids.join(","));
-		}
-
-		if (query.indexOf("%selected_links%") !== -1) {
-			var link_ids = selection.getSelectedLinks();
-			query = query.replace("%selected_links%", link_ids.join(","));
-		}
-
-		send("/cmd/call_execute", { "query": query }, null);
-	}
-
-	// Preconfigured buttons
-	function addSidebarButtons() {
-		var div = $('#custom_buttons');
-		config.buttons.forEach(function(button) {
-			var input = document.createElement('input');
-			input.type = 'button';
-			input.value = button.name;
-			input.onclick = function () {
-				sendCommand(button.command);
-			};
-			div.appendChild(input);
-		});
-	}
-
-	function init() {
-		send("/config.json", {}, function(data) {
-			config = Object.assign(config, JSON.parse(data));
-			sidebar = createSidebar()();
-			selection = createSelection();
-
-			// extends leaflet with activearea
-			createActiveArea();
-			createClientLayer();
-
-			buttons = attachButtonsDiv();
-			document.getElementById('content').appendChild(buttons);
-
-			showGraph();
-
-			addSidebarButtons();
-
-			// polling - TODO: Use websockets
-			run_graph_update_loop();
-			run_command_update_loop();
-		});
-	}
-</script>
+        socket.on("connect", function() {
+          console.log("client connect");
+        });
+        socket.on("disconnect", function() {
+          console.log("client disconnected.");
+        });
+        // Please open the local server first at `/examples/data/netjsonnode` folder
+        // Update view when the data changes. override old data defaultly.
+        socket.on("netjsonChange", graph.utils.JSONDataUpdate.bind(graph));
+*/
+    </script>
 </head>
-<body onload="init()">
-	<div id="content" class="content">
-	</div>
-
-	<div class="sidebar hidden">
-		<button class="sidebarhandle" title="Toggle Sidebar" onclick="sidebar.onClick();">&lt;</button>
-		<div class="container">
-			<fieldset>
-				<legend>Change Selection</legend>
-				<div>
-					<input type="button" onclick="selection.extendSelection(my_data); if (my_graph) { my_graph.redraw(); }" value="extend" />
-					<input type="button" onclick="selection.clearSelection(); if (my_graph) { my_graph.redraw(); }" value="unselect" />
-				</div>
-			</fieldset>
-			<fieldset>
-				<legend>Custom Buttons</legend>
-				<div id="custom_buttons">
-					<!-- added via config -->
-				</div>
-			</fieldset>
-			<fieldset>
-				<legend>Node/Link</legend>
-				<div>
-					<table>
-						<thead>
-							<tr><th>Key</th><th>Value</th></tr>
-						</thead>
-						<tbody id="sidebar_table">
-						</tbody>
-					</table>
-				</div>
-			</fieldset>
-			<fieldset>
-				<legend>Send Command</legend>
-				<div>
-					<input type="text" value="" onkeypress="onCommandChar(event)" style="width: 50%" id="command_request" />
-					<input type="button" value="send" onclick="sendCommand($('#command_request').value)" />
-					<input type="button" value="clear" onclick="$('#command_reply').value = '';" />
-					<input type="checkbox" id="clear_on_send" />
-				</div>
-				<div>
-					<textarea id="command_reply" rows="30" style="width: 100%; resize: none; white-space: pre-wrap;"></textarea>
-				</div>
-			</fieldset>
-		</div>
-	</div>
-
-	<noscript>
-		<strong>JavaScript required</strong>
-	</noscript>
+<body onload="init();">
 </body>
 </html>
