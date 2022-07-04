@@ -67,6 +67,18 @@
     }
   };
 
+  function getLinkSyle(link) {
+    if ('properties' in link) {
+      if ('type' in link.properties) {
+        if (link.properties.type in LinkStyle) {
+          return LinkStyle[link.properties.type];
+        }
+      }
+    }
+    console.log("Missing type for " + link.source + " => " + link.target)
+    return { color: "purple" }
+  }
+
   let netjson_options = {
     el: "NetJSONContainer",
     edgeLength: 300,
@@ -82,7 +94,7 @@
         return Object.assign({
             width: 10,
             opacity: 0.5,
-        }, LinkStyle[link.properties.type] || { color: "purple" })
+        }, getLinkSyle(link)) // LinkStyle.get(link.properties.type) || { color: "purple" })
     },
     nodeStyleProperty: e => {
       let customStyle = {};
