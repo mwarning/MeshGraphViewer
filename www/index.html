@@ -8,18 +8,15 @@
   <link href="netjsongraph.css" rel="stylesheet">
   <link href="leaflet-draw.css" rel="stylesheet">
   <link href="leaflet.css" rel="stylesheet">
-    <style type="text/css">
-    .njg-metadata {
-      left: 50px;
-    }
-    /*
-    .leaflet-control {
-      margin: buttom-
-    }*/
-    .njg-selectIcon {
-      top: 100px;
-    }
-  </style>
+     <style type="text/css">
+      .njg-metadata {
+        left: 50px;
+      }
+      .leaflet-control-zoom {
+        top: 55px;
+        right: 1px;
+      }
+    </style>
   <script type="text/javascript" src="netjsongraph.min.js"></script>
   <script type="text/javascript">
 
@@ -48,6 +45,7 @@
     jx.load(url, func, 'text');
   }
 
+/*
   const LinkStyle = {
     wireless: {
       color: "#669999",
@@ -77,149 +75,31 @@
     }
     console.log("Missing type for " + link.source + " => " + link.target)
     return { color: "purple" }
-  }
+  }*/
 
-  let netjson_options = {
-    echartsOption: {
-      legend: {
-        show: false,
-      },
-      title:{
-        text:'',
-      }
-    },
-    //el: "NetJSONContainer",
-    edgeLength: 300,
-    nodeSize: 30,
-    graphConfig: {
-        force: {
-            gravity: 0.1,
-            edgeLength: [80, 100],
-            repulsion: 2000
-        },
-    },
-    linkStyleProperty: link => {
-        return Object.assign({
-            width: 10,
-            opacity: 0.5,
-        }, getLinkSyle(link)) // LinkStyle.get(link.properties.type) || { color: "purple" })
-    },
-    nodeStyleProperty: e => {
-      let customStyle = {};
-      
-      // Define gradient color of nodes.
-      if(e.properties.gateway){
-        customStyle = {
-          color: {
-              type: 'radial',
-              x: 0.5,
-              y: 0.5,
-              r: 0.5,
-              colorStops: [{
-                  offset: 0, color: '#f18d3a'
-              }, {
-                  offset: 0.7, color: '#f18d3a'
-              }, {
-                  offset: 0.71, color: '#f8c69d'
-              }, {
-                  offset: 1, color: '#f8c69d',
-              }],
-              global: false
-          }
-        }
-      }
-      return Object.assign({
-        color: {
-            type: 'radial',
-            x: 0.5,
-            y: 0.5,
-            r: 0.5,
-            colorStops: [{
-                offset: 0, color: '#3d83b5'
-            }, {
-                offset: 0.7, color: '#3d83b5'
-            }, {
-                offset: 0.71, color: '#9ec1da'
-            }, {
-                offset: 1, color: '#9ec1da',
-            }],
-            global: false
-        }
-      }, customStyle);
-    },
-
-
-   // render: "map",
-      mapNodeConfig: {
-          label: {
-              color: "white",
-              offset: [0, -10],
-          }
-      },
-      // set multiple tiles config, can change them dynamically.
-      mapTileConfig: [{
-          label: "Open Street Map",
-          urlTemplate: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
-          options: {}
-      }],
-      // set map initial state.
-      mapOptions: {
+  	let netjson_options = {
+        render: "map",
+        switchMode: true,
+        // set map initial state.
+        mapOptions: {
           center: [46.86764405052012, 19.675998687744144],
-          zoom: 6,
-      },
-      // Convert to internal json format
-      prepareData: data => {
-          data.nodes.map(node => {
-              node.label = node.name;
-              node.properties = Object.assign(node.properties || {}, {
-                  location: node.location,
-              })
-          })
-      },
-
-      onLoad: function(){
-          switchGraphMode(this);
-          this.utils.hideLoading();
-      }
-  };
-
-    /**
-     * @function
-     * @name switchGraphMode
-     * Add viewEye icon to change graph or map mode.
-     * 
-     * @param {object} _this  NetJSONGraph object
-     *
-     * @return {object} selectIconContainer DOM
-     */
-    function switchGraphMode(_this){
-            let selectIconContainer = document.createElement("div"),
-                iconEye = document.createElement("span");
-            iconEye.setAttribute("class", "iconfont icon-eye");
-            selectIconContainer.setAttribute("class", "njg-selectIcon");
-            selectIconContainer.appendChild(iconEye);
-            _this.el.appendChild(selectIconContainer);
-
-            iconEye.onclick = () => {
-                if(_this.config.render === _this.utils.mapRender){
-                    _this.config.render = _this.utils.graphRender;
-                    // Poor performance, not recommended.
-                    // reDraw
-                    _this.echarts.dispose();
-                    const graph = new NetJSONGraph(_this.data, {
-                        ..._this.config,
-                        el: _this.el,
-                    });
-                    graph.render();
-                }
-                else{
-                    _this.config.render = _this.utils.mapRender;
-                    _this.config.render(_this.data, _this);
-                }
-            }
-
-            return selectIconContainer;
-        }
+          zoom: 5,
+          nodeConfig: {
+            label: {
+              offset: [0, -10],
+            },
+          },
+        },
+        // Convert to internal json format
+        prepareData: (data) => {
+          data.nodes.map((node) => {
+            node.label = node.name;
+            node.properties = Object.assign(node.properties || {}, {
+              location: node.location,
+            });
+          });
+        },
+      };
 
   function init() {
       const graph = new NetJSONGraph("dummy.json", netjson_options);
@@ -252,15 +132,17 @@
 
     // fetch graph update
     function run_graph_update_loop() {
-      var interval_ms = 250;
+    console.log("run_graph_update_loop");
+      var interval_ms = 500;
 
       function looped_request_graph() {
+      	console.log("looped_request_graph");
         // request graph
         send("/cmd/graph", {}, function(data) {
           handle_data(data);
           setTimeout(looped_request_graph, interval_ms);
         });
-      }
+      };
 
       looped_request_graph();
     }
@@ -279,6 +161,6 @@
       <p><span class="link fiber">&nbsp;</span> fiber link</p>
       <p><span class="link vpn">&nbsp;</span> vpn link</p>
   </div>
-  <!--<div id="NetJSONContainer"></div>-->
+  <div id="NetJSONContainer"></div>
 </body>
 </html>
