@@ -102,7 +102,7 @@
       };
 
   function init() {
-      const graph = new NetJSONGraph("dummy.json", netjson_options);
+      const graph = new NetJSONGraph({nodes: [], links: []}, netjson_options);
       graph.render();
 
       function handle_data(data) {
