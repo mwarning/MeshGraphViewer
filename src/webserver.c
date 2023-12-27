@@ -186,20 +186,23 @@ static int handle_graph(struct MHD_Connection *connection) {
   // update global timestamp
   g_graph_mtime = attr.st_mtime;
 
-  struct MHD_Response *response;
-  uint8_t *data;
-  size_t size;
-  int ret;
 
   // Fetch JSON data
   if (g_graph == NULL) {
     return send_not_found(connection);
   }
 
-  data = read_file(&size, g_graph);
-  response = MHD_create_response_from_buffer(size, data, MHD_RESPMEM_MUST_FREE);
+  size_t size = 0;
+  uint8_t *data = read_file(&size, g_graph);
+
+  if (data == NULL || size == 0) {
+    // no change
+    return send_empty_json(connection);
+  }
+
+  struct MHD_Response *response = MHD_create_response_from_buffer(size, data, MHD_RESPMEM_MUST_FREE);
   MHD_add_response_header(response, "Content-Type", "application/json");
-  ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+  int ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
   MHD_destroy_response(response);
 
   return ret;
