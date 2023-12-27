@@ -13,21 +13,18 @@
 #include "utils.h"
 
 
-uint8_t *read_file(size_t *size, const char path[]) {
-  uint8_t *fdata;
-  long fsize;
-  FILE *fp;
-
-  fp = fopen(path, "r");
+uint8_t *read_file(size_t *size, const char path[])
+{
+  FILE *fp = fopen(path, "r");
   if (NULL == fp) {
     return NULL;
   }
 
   fseek(fp, 0, SEEK_END);
-  fsize = ftell(fp);
+  long fsize = ftell(fp);
   fseek(fp, 0, SEEK_SET);
 
-  fdata = malloc(fsize);
+  uint8_t *fdata = malloc(fsize);
   if (!fread(fdata, fsize, 1, fp)) {
     perror("fread");
   }
@@ -38,7 +35,8 @@ uint8_t *read_file(size_t *size, const char path[]) {
   return fdata;
 }
 
-bool is_suffix(const char s[], const char suffix[]) {
+bool is_suffix(const char s[], const char suffix[])
+{
   size_t slen = strlen(s);
   size_t suffixlen = strlen(suffix);
 
@@ -81,7 +79,8 @@ const char *str_addr(const struct sockaddr_storage *addr)
   return addrbuf;
 }
 
-int port_set(struct sockaddr_storage *addr, uint16_t port) {
+int port_set(struct sockaddr_storage *addr, uint16_t port)
+{
   switch (addr->ss_family) {
   case AF_INET:
     ((struct sockaddr_in *)addr)->sin_port = htons(port);
@@ -94,13 +93,15 @@ int port_set(struct sockaddr_storage *addr, uint16_t port) {
   }
 }
 
-bool is_prefix(const char prefix[], const char s[]) {
+bool is_prefix(const char prefix[], const char s[])
+{
     size_t prefixlen = strlen(prefix),
            slen = strlen(s);
     return slen < prefixlen ? 0 : (strncmp(prefix, s, prefixlen) == 0);
 }
 
-int addr_parse(struct sockaddr_storage *addr, const char addr_str[], const char port_str[], int af) {
+int addr_parse(struct sockaddr_storage *addr, const char addr_str[], const char port_str[], int af)
+{
   struct addrinfo hints;
   struct addrinfo *info = NULL;
   struct addrinfo *p = NULL;
@@ -213,29 +214,31 @@ int addr_parse_full(struct sockaddr_storage *addr, const char full_addr_str[], c
   return addr_parse(addr, addr_str, port_str, af);
 }
 
-bool is_program(const char path[]) {
+bool is_program(const char path[])
+{
   struct stat sb;
   return (stat(path, &sb) == 0) && (sb.st_mode & S_IXUSR) && S_ISREG(sb.st_mode);
 }
 
-bool is_directory(const char path[]) {
+bool is_directory(const char path[])
+{
   struct stat sb;
   return (stat(path, &sb) == 0) && S_ISDIR(sb.st_mode);
 }
 
-bool is_file(const char path[]) {
+bool is_file(const char path[])
+{
   struct stat sb;
   return (stat(path, &sb) == 0) && S_ISREG(sb.st_mode);
 }
 
-static int _execute_ret(char* msg, int msg_len, const char *cmd) {
-  struct sigaction sa, oldsa;
-  FILE *fp;
-  int rc;
-
+static int _execute_ret(char* msg, int msg_len, const char *cmd)
+{
   //debug("Executing command: %s\n", cmd);
+  int rc = 0;
 
   /* Temporarily get rid of SIGCHLD handler (see main.c), until child exits. */
+  struct sigaction sa, oldsa;
   sa.sa_handler = SIG_DFL;
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = SA_NOCLDSTOP | SA_RESTART;
@@ -244,7 +247,7 @@ static int _execute_ret(char* msg, int msg_len, const char *cmd) {
     return EXIT_FAILURE;
   }
 
-  fp = popen(cmd, "r");
+  FILE *fp = popen(cmd, "r");
   if (fp == NULL) {
     fprintf(stderr, "popen(): %s", strerror(errno));
     rc = -1;
@@ -273,13 +276,13 @@ abort:
   return rc;
 }
 
-int execute(const char fmt[], ...) {
+int execute(const char fmt[], ...)
+{
   char cmd[1024];
   va_list vlist;
-  int rc;
 
   va_start(vlist, fmt);
-  rc = vsnprintf(cmd, sizeof(cmd), fmt, vlist);
+  int rc = vsnprintf(cmd, sizeof(cmd), fmt, vlist);
   va_end(vlist);
 
   if (rc < 0 || rc >= sizeof(cmd)) {
@@ -290,13 +293,13 @@ int execute(const char fmt[], ...) {
   return _execute_ret(NULL, 0, cmd);
 }
 
-int execute_ret(char* msg, int msg_len, const char fmt[], ...) {
+int execute_ret(char* msg, int msg_len, const char fmt[], ...)
+{
   char cmd[1024];
   va_list vlist;
-  int rc;
 
   va_start(vlist, fmt);
-  rc = vsnprintf(cmd, sizeof(cmd), fmt, vlist);
+  int rc = vsnprintf(cmd, sizeof(cmd), fmt, vlist);
   va_end(vlist);
 
   if (rc < 0 || rc >= sizeof(cmd)) {
@@ -307,31 +310,12 @@ int execute_ret(char* msg, int msg_len, const char fmt[], ...) {
   return _execute_ret(msg, msg_len, cmd);
 }
 
-int parse_addr(struct sockaddr_storage *addr, const char* src, int port) {
-  if (port < 1 || port > 65535) {
-    return EXIT_FAILURE;
-  }
-
-  memset(addr, 0, sizeof(struct sockaddr_storage));
-
-  if (inet_pton(AF_INET, src, &((struct sockaddr_in*) addr)->sin_addr) == 1) {
-    ((struct sockaddr_in *)addr)->sin_family = AF_INET;
-    ((struct sockaddr_in *)addr)->sin_port = htons(port);
-    return EXIT_SUCCESS;
-  } else if (inet_pton(AF_INET6, src, &((struct sockaddr_in6*) addr)->sin6_addr) == 1) {
-    ((struct sockaddr_in6 *)addr)->sin6_family = AF_INET6;
-    ((struct sockaddr_in6 *)addr)->sin6_port = htons(port);
-    return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
-  }
-}
-
-static int create_path_element(const char *path, int len) {
+static bool create_path_element(const char *path, int len)
+{
   char buf[64] = {0};
 
-  if (len+1 >= sizeof(buf)) {
-    return EXIT_FAILURE;
+  if ((len+1) >= sizeof(buf)) {
+    return false;
   }
 
   strncpy(buf, path, len);
@@ -339,27 +323,25 @@ static int create_path_element(const char *path, int len) {
   int rc = mkdir(buf, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   if (rc != 0 && errno != EEXIST) {
     fprintf(stderr, "Error creating directory '%s': %s\n", buf, strerror(errno));
-    return EXIT_FAILURE;
+    return false;
   }
 
-  return EXIT_SUCCESS;
+  return true;
 }
 
-int create_path(const char* path) {
-  size_t len;
-  char *e;
-
+bool create_path(const char* path)
+{
   if (path[0] == '/') {
     path += 1;
   }
 
-  len = 0;
-  while (1) {
-    e = strchr(path + len, '/');
+  size_t len = 0;
+  while (true) {
+    char *e = strchr(path + len, '/');
     if (e) {
       len = (int) (e - path);
-      if (len && create_path_element(path, len) == EXIT_FAILURE) {
-        return EXIT_FAILURE;
+      if (len && !create_path_element(path, len)) {
+        return false;
       }
       len += 1;
     } else {
@@ -368,26 +350,24 @@ int create_path(const char* path) {
     }
   }
 
-  return EXIT_SUCCESS;
+  return true;
 }
 
-int create_file(const char* path, const uint8_t *data, const size_t len) {
-  size_t written;
-  FILE *file;
-
-  file = fopen(path, "wb");
+bool create_file(const char* path, const uint8_t *data, const size_t len)
+{
+  FILE *file = fopen(path, "wb");
   if (file == NULL) {
     fprintf(stderr, "Error creating file '%s': %s\n", path, strerror(errno));
-    return EXIT_FAILURE;
+    return false;
   }
 
-  written = fwrite(data, sizeof(uint8_t), len, file);
+  size_t written = fwrite(data, sizeof(uint8_t), len, file);
   fclose(file);
 
   if (written != len) {
     fprintf(stderr, "Error creating file '%s': %s\n", path, strerror(errno));
-    return EXIT_FAILURE;
+    return false;
   }
 
-  return EXIT_SUCCESS;
+  return true;
 }

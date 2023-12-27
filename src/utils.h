@@ -19,7 +19,6 @@
 
 int addr_parse_full(struct sockaddr_storage *addr, const char full_addr_str[], const char default_port[], int af);
 const char *str_addr(const struct sockaddr_storage *addr);
-int parse_addr(struct sockaddr_storage *addr, const char* src, int port);
 int addr_parse(struct sockaddr_storage *addr, const char addr_str[], const char port_str[], int af);
 
 uint8_t *read_file(size_t *size, const char path[]);
@@ -33,7 +32,7 @@ bool is_directory(const char path[]);
 int execute(const char fmt[], ...);
 int execute_ret(char* msg, int msg_len, const char fmt[], ...);
 
-int create_path(const char* path);
-int create_file(const char* path, const uint8_t *data, const size_t len);
+bool create_path(const char* path);
+bool create_file(const char* path, const uint8_t *data, const size_t len);
 
 #endif // _UTILS_H_

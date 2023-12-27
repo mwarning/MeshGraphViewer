@@ -41,7 +41,7 @@ static const char *g_help_text =
   " --help                   Display this help.\n";
 
 // Run state
-static int g_is_running;
+static bool g_is_running = true;
 
 static const char *g_version = "1.4.3";
 
@@ -49,18 +49,20 @@ const char* g_graph = NULL;
 const char* g_call = NULL;
 const char* g_config = NULL;
 
-static void unix_signal_handler(int signo) {
+static void unix_signal_handler(int signo)
+{
   // exit on second stop request
-  if (g_is_running == 0) {
+  if (!g_is_running) {
     exit(1);
   }
 
-  g_is_running = 0;
+  g_is_running = false;
 
   printf("Shutting down...\n");
 }
 
-static void setup_signal_handlers() {
+static void setup_signal_handlers()
+{
   struct sigaction sig_stop;
   struct sigaction sig_term;
 
@@ -107,29 +109,25 @@ static struct option options[] = {
   {0, 0, 0, 0}
 };
 
-int write_out_files(const char *target) {
-  struct content *c;
-  int rc;
-
+bool write_out_files(const char *target)
+{
   if (target && chdir(target) == -1) {
     printf("Failed to change directory to %s: %s\n", target, strerror(errno));
-    return EXIT_FAILURE;
+    return false;
   }
 
-  c = (struct content *)g_content;
+  struct content *c = (struct content *)g_content;
   while (c->path) {
     printf("create %s\n", c->path + 1);
 
     // create dirname part
-    rc = create_path(c->path + 1);
-    if (rc == EXIT_FAILURE) {
-      return EXIT_FAILURE;
+    if (!create_path(c->path + 1)) {
+      return false;
     }
 
     // create basename file
-    rc = create_file(c->path + 1, c->data, c->size);
-    if (rc == EXIT_FAILURE) {
-      return EXIT_FAILURE;
+    if (!create_file(c->path + 1, c->data, c->size)) {
+      return false;
     }
 
     c += 1;
@@ -137,27 +135,24 @@ int write_out_files(const char *target) {
 
   printf("done\n");
 
-  return EXIT_SUCCESS;
+  return true;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   const char *webserver_address = "127.0.0.1";
   int webserver_port = 8000;
   const char *webserver_path = NULL;
   struct sockaddr_storage addr;
   struct timeval tv;
-  int open_browser = 0;
+  bool open_browser = false;
   fd_set rset;
   fd_set wset;
   fd_set xset;
-  int maxfd;
-  int index;
-  int rc;
-  int i;
 
-  i = 1;
-  while (i) {
-    index = 0;
+  bool iter = true;
+  while (iter) {
+    int index = 0;
     int c = getopt_long(argc, argv, "h", options, &index);
 
     switch (c) {
@@ -171,7 +166,7 @@ int main(int argc, char **argv) {
       g_config = strdup(optarg);
       break;
     case oWriteOutFiles:
-      return write_out_files(optarg);
+      return write_out_files(optarg) ? EXIT_SUCCESS : EXIT_FAILURE;
     case oWebserverAddress:
       webserver_address = strdup(optarg);
       break;
@@ -182,7 +177,7 @@ int main(int argc, char **argv) {
       webserver_path = strdup(optarg);
       break;
     case oOpen:
-      open_browser = 1;
+      open_browser = true;
       break;
     case oVersion:
       printf("%s\n", g_version);
@@ -192,7 +187,7 @@ int main(int argc, char **argv) {
       printf("%s\n", g_help_text);
       return EXIT_SUCCESS;
     case -1:
-      i = 0;
+      iter = false;
       break;
     default:
       return EXIT_FAILURE;
@@ -200,7 +195,7 @@ int main(int argc, char **argv) {
   }
 
   // handle remaining arguments
-  for (i = optind; i < argc; i++) {
+  for (size_t i = optind; i < argc; ++i) {
     if (!g_graph) {
       g_graph = strdup(argv[i]);
     } else if (!g_call) {
@@ -233,7 +228,7 @@ int main(int argc, char **argv) {
 
   setup_signal_handlers();
 
-  rc = webserver_start(webserver_path, (const struct sockaddr *) &addr);
+  int rc = webserver_start(webserver_path, (const struct sockaddr *) &addr);
   if (rc == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }
@@ -248,7 +243,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  g_is_running = 1;
   while (g_is_running) {
     // Make select block for at most 1 second
     tv.tv_sec = 1;
@@ -258,7 +252,7 @@ int main(int argc, char **argv) {
     FD_ZERO(&wset);
     FD_ZERO(&xset);
 
-    maxfd = 0;
+    int maxfd = 0;
 
     webserver_before_select(&rset, &wset, &xset, &maxfd);
 
