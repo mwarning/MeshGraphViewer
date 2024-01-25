@@ -26,7 +26,7 @@ uint8_t *read_file(size_t *size, const char path[])
 
   uint8_t *fdata = malloc(fsize);
   if (!fread(fdata, fsize, 1, fp)) {
-    perror("fread");
+    fprintf(stderr, "fread() %s / %s\n", strerror(errno), path);
   }
   fclose(fp);
 
