@@ -357,17 +357,18 @@ bool create_file(const char* path, const uint8_t *data, const size_t len)
 {
   FILE *file = fopen(path, "wb");
   if (file == NULL) {
-    fprintf(stderr, "Error creating file '%s': %s\n", path, strerror(errno));
+    fprintf(stderr, "fopen() %s %s\n", strerror(errno), path);
     return false;
   }
 
   size_t written = fwrite(data, sizeof(uint8_t), len, file);
-  fclose(file);
 
   if (written != len) {
-    fprintf(stderr, "Error creating file '%s': %s\n", path, strerror(errno));
+    fprintf(stderr, "fwrite() %s %s\n", strerror(errno), path);
+    fclose(file);
     return false;
   }
 
+  fclose(file);
   return true;
 }
