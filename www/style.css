@@ -288,3 +288,14 @@ body {
 #sidebar_table td {
 	text-align: left;
 }
+
+#alert_bar {
+	visibility: hidden;
+	background: #fff;
+	width: 100%;
+	height: 40px;
+	position: absolute;
+	z-index: 1;
+	text-align: center;
+	font-size: xx-large;
+}

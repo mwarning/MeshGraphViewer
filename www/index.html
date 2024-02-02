@@ -173,12 +173,20 @@
 	}
 
 	function handle_data(data) {
+		if (data.length == 2) {
+			// empty data '{}'
+			return;
+		}
+
+		let bar = $('#alert_bar')
+		bar.style.visibility = 'hidden';
+
 		var json = {};
 		try {
 			json = JSON.parse(data);
 		} catch (e) {
-			alert(e);
-			console.log(e);
+			bar.innerText = e
+			bar.style.visibility = 'visible';
 			return;
 		}
 
@@ -303,6 +311,7 @@
 </script>
 </head>
 <body onload="init()">
+	<div id="alert_bar">Some error occured</div>
 	<div id="content" class="content">
 	</div>
 
