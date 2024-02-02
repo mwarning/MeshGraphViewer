@@ -71,32 +71,42 @@
 	var my_data = {nodes:[], links: []};
 
 	function updateSidebarTable(node) {
-		var tbody = $('#sidebar_table');
+		var div = $('#sidebar_table');
 
-		// clear table
-		while (tbody.firstChild) {
-			tbody.removeChild(tbody.firstChild);
+		// remove all children
+		while (div.firstChild) {
+			div.removeChild(div.firstChild);
 		}
 
-		// create table rows of properties
-		for (var key in node) {
-			var value = node[key];
-			var tr = append(tbody, 'tr');
-			var td = append(tr, 'td', key);
-
-			var type = (typeof value);
+		function toTable(parent, element) {
+			var type = (typeof element);
 			if (type === 'string' || type === 'boolean') {
-				append(tr, 'td', value.toString());
+				append(parent, 'td', element.toString());
 			} else if (type === 'number') {
-				append(tr, 'td', value.toString());
-			} else if (value === null) {
-				append(tr, 'td', 'null');
+				append(parent, 'td', element.toString());
+			} else if (element === null) {
+				append(parent, 'td', 'null');
+			} else if (Array.isArray(element)) {
+				var table = append(parent, 'table');
+				for (let [key, value] of Object.entries(element)) {
+					// <tr><td>value</td></tr>
+					var tr = append(table, 'tr');
+					toTable(tr, value);
+				}
 			} else if (type === 'object') {
-				append(tr, 'td', json.stringify(value));
+				var table = append(parent, 'table');
+				for (let [key, value] of Object.entries(element)) {
+					// <tr><td>key</td><td>value</td></tr>
+					var tr = append(table, 'tr');
+					append(tr, 'td', key);
+					toTable(tr, value);
+				}
 			} else {
 				append(tr, 'td', '???');
 			}
 		}
+
+		toTable(div, node)
 	}
 
 	function showMap() {
@@ -314,15 +324,7 @@
 			</fieldset>
 			<fieldset>
 				<legend>Node/Link</legend>
-				<div>
-					<table>
-						<thead>
-							<tr><th>Key</th><th>Value</th></tr>
-						</thead>
-						<tbody id="sidebar_table">
-						</tbody>
-					</table>
-				</div>
+				<div id="sidebar_table"></div>
 			</fieldset>
 			<fieldset>
 				<legend>Send Command</legend>

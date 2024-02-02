@@ -280,3 +280,11 @@ body {
 	background: #fff;
 	color: #000;
 }
+
+#sidebar_table table {
+	border-spacing: 0px;
+}
+
+#sidebar_table td {
+	text-align: left;
+}
