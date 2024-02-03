@@ -186,9 +186,9 @@ int addr_parse_full(struct sockaddr_storage *addr, const char full_addr_str[], c
     *addr_tmp = '\0';
     addr_str = addr_beg + 1;
 
-    if (*(addr_tmp+1) == '\0') {
+    if (*(addr_tmp + 1) == '\0') {
       port_str = default_port;
-    } else if (*(addr_tmp+1) == ':') {
+    } else if (*(addr_tmp + 1) == ':') {
       port_str = addr_tmp + 2;
     } else {
       // port expected
@@ -200,7 +200,7 @@ int addr_parse_full(struct sockaddr_storage *addr, const char full_addr_str[], c
     if (addr_tmp) {
       *addr_tmp = '\0';
       addr_str = addr_buf;
-      port_str = addr_tmp+1;
+      port_str = addr_tmp + 1;
     } else {
       addr_str = addr_buf;
       port_str = default_port;
@@ -314,7 +314,7 @@ static bool create_path_element(const char *path, int len)
 {
   char buf[64] = {0};
 
-  if ((len+1) >= sizeof(buf)) {
+  if ((len + 1) >= sizeof(buf)) {
     return false;
   }
 
