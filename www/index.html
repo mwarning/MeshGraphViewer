@@ -80,33 +80,26 @@
 
 		function toTable(parent, element) {
 			var type = (typeof element);
-			if (type === 'string' || type === 'boolean') {
-				append(parent, 'td', element.toString());
-			} else if (type === 'number') {
-				append(parent, 'td', element.toString());
+			if (type === 'string' || type === 'boolean' || type === 'number') {
+				append(parent, 'span', element.toString());
 			} else if (element === null) {
-				append(parent, 'td', 'null');
-			} else if (Array.isArray(element)) {
-				var table = append(parent, 'table');
-				for (let [key, value] of Object.entries(element)) {
-					// <tr><td>value</td></tr>
-					var tr = append(table, 'tr');
-					toTable(tr, value);
-				}
+				append(parent, 'span', 'null');
 			} else if (type === 'object') {
 				var table = append(parent, 'table');
 				for (let [key, value] of Object.entries(element)) {
-					// <tr><td>key</td><td>value</td></tr>
-					var tr = append(table, 'tr');
-					append(tr, 'td', key);
-					toTable(tr, value);
+					// <tr><td><span>key</span></td><td><span>value</span></td></tr>
+					let tr = append(table, 'tr');
+					let td1 = append(tr, 'td');
+					append(td1, 'span', key.toString());
+					let td2 = append(tr, 'td');
+					toTable(td2, value);
 				}
 			} else {
-				append(tr, 'td', '???');
+				append(parent, 'span', '???');
 			}
 		}
 
-		toTable(div, node)
+		toTable(div, node);
 	}
 
 	function showMap() {

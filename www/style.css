@@ -282,11 +282,20 @@ body {
 }
 
 #sidebar_table table {
-	border-spacing: 0px;
+	margin: 0;
+	padding: 0;
+	text-align: left;
+	border-collapse: collapse;
 }
 
-#sidebar_table td {
+#sidebar_table tr, #sidebar_table td {
 	text-align: left;
+	border: 1px solid black;
+}
+
+#sidebar_table span {
+	padding-left: 1px;
+	padding-right: px;
 }
 
 #alert_bar {
