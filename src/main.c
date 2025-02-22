@@ -7,7 +7,6 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <errno.h>
-#include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <linux/if.h>
 #include <inttypes.h>
@@ -26,9 +25,9 @@
 static const char *g_help_text =
   "Display a graph via a web server. Pass back events to interact with the graph.\n"
   "\n"
-  "  Usage: graph-tool <graph-file> [<call-program>]\n"
+  "  Usage: graph-viewer [<arguments>] <graph-file> [<call-path>]\n"
   "\n"
-  " --graph <json-file>      Graph topology in JSON format. May be first unnamed argument.\n"
+  " --graph <file>           Graph topology in JSON format. May be first unnamed argument.\n"
   " --call <path|address>    Commands triggered via the web interface are send to an external program,\n"
   "                          unix socket file or given IP address via TCP/UDP.\n"
   "                          E.g. '/usr/bin/send_program', 'unix:///var/com.sock', 'tcp://localhost:3000'.\n"
