@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <linux/limits.h>
 
 #include <microhttpd.h>
 
@@ -278,7 +279,7 @@ static int send_response(void *cls, struct MHD_Connection *connection,
 int webserver_start(const char path[], const struct sockaddr *addr)
 {
   if (path) {
-    char pathbuf[256];
+    char pathbuf[PATH_MAX];
     char *p = realpath(path, pathbuf);
     if (NULL == p) {
       return EXIT_FAILURE;
