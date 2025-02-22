@@ -54,8 +54,8 @@ More elaborate example:
     },
     {
       "id": "b",
-      "x": 100,
-      "y": 200,
+      "x": 52.5162,
+      "y": 13.3777,
       "label": "Label",
       "name": "Name",
       "radius": 12,
