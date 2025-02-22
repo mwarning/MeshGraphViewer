@@ -92,7 +92,7 @@ Note:
 Install:
 
 - C compiler (e.g. clang or gcc)
-- xxd tool to include html/js/css data into binary (often in package `vim-common`)
+- xxd tool to include html/js/css data into binary (package `xxd` or as part of `vim-common`)
 - libmicrohttpd and the development headers
 
 Build:
