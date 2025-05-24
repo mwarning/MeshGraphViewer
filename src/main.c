@@ -27,22 +27,25 @@ static const char *g_help_text =
   "\n"
   "  Usage: graph-viewer [<arguments>] <graph-file> [<call-path>]\n"
   "\n"
-  " --graph <file>           Graph topology in JSON format. May be first unnamed argument.\n"
-  " --call <path|address>    Commands triggered via the web interface are send to an external program,\n"
-  "                          unix socket file or given IP address via TCP/UDP.\n"
-  "                          E.g. '/usr/bin/send_program', 'unix:///var/com.sock', 'tcp://localhost:3000'.\n"
-  " --config <path>          Use a JavaScript file with configuration settings.\n"
-  " --webserver-address <address> Address for the build-in webserver. Default: 127.0.0.1:8000\n"
-  " --webserver-path <path>  Root folder for the build-in webserver. Default: internal\n"
-  " --write-out-files <path> Write included html/js/css files to disk.\n"
-  " --open                   Show graph in browser.\n"
-  " --version                Print version.\n"
-  " --help                   Display this help.\n";
+  " --graph <file>                Graph topology in JSON format. May be first unnamed argument.\n"
+  " --call <path|address>         Commands triggered via the web interface are send to an external program,\n"
+  "                               unix socket file or given IP address via TCP/UDP.\n"
+  "                               E.g. '/usr/bin/send_program', 'unix:///var/com.sock', 'tcp://localhost:3000'.\n"
+  " --config <path>               Use a JavaScript file with configuration settings.\n"
+  " --webserver-address <address> Address for the build-in webserver.\n"
+  "                               Default: 127.0.0.1\n"
+  " --webserver-port <port>       Port for build-in webserver.\n"
+  "                               Default: 8000\n"
+  " --webserver-path <path>       Root folder for the build-in webserver. Default: internal\n"
+  " --write-out-files <path>      Write included html/js/css files to disk.\n"
+  " --open                        Show graph in browser.\n"
+  " --version                     Print version.\n"
+  " --help                        Display this help.\n";
 
 // Run state
 static bool g_is_running = true;
 
-static const char *g_version = "1.4.3";
+static const char *g_version = "1.4.5";
 
 const char* g_graph = NULL;
 const char* g_call = NULL;
@@ -102,6 +105,7 @@ static struct option options[] = {
   {"write-out-files", required_argument, 0, oWriteOutFiles},
   {"webserver-address", required_argument, 0, oWebserverAddress},
   {"webserver-path", required_argument, 0, oWebserverPath},
+  {"webserver-port", required_argument, 0, oWebserverPort},
   {"open", no_argument, 0, oOpen},
   {"version", no_argument, 0, oVersion},
   {"help", no_argument, 0, oHelp},
@@ -140,7 +144,7 @@ bool write_out_files(const char *target)
 int main(int argc, char **argv)
 {
   const char *webserver_address = "127.0.0.1";
-  int webserver_port = 8000;
+  const char *webserver_port = "8000";
   const char *webserver_path = NULL;
   struct sockaddr_storage addr;
   struct timeval tv;
@@ -170,7 +174,7 @@ int main(int argc, char **argv)
       webserver_address = strdup(optarg);
       break;
     case oWebserverPort:
-      webserver_port = atoi(optarg);
+      webserver_port = strdup(optarg);
       break;
     case oWebserverPath:
       webserver_path = strdup(optarg);
@@ -215,7 +219,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  if (addr_parse_full(&addr, webserver_address, "8000", AF_UNSPEC) != 0) {
+  if (addr_parse_full(&addr, webserver_address, webserver_port, AF_UNSPEC) != 0) {
     fprintf(stderr, "Invalid webserver address.\n");
     return EXIT_FAILURE;
   }
@@ -235,11 +239,7 @@ int main(int argc, char **argv)
   printf("Listen on http://%s\n", str_addr(&addr));
 
   if (open_browser) {
-    if (addr.ss_family == AF_INET6) {
-      execute("xdg-open http://[%s]:%d", webserver_address, webserver_port);
-    } else {
-      execute("xdg-open http://%s:%d", webserver_address, webserver_port);
-    }
+    execute("xdg-open http://%s", str_addr(&addr));
   }
 
   while (g_is_running) {
