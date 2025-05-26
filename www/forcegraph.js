@@ -16,6 +16,8 @@ function createGraph(parent, selection, sidebar) {
 	el.setAttribute('id', 'graph');
 	parent.appendChild(el);
 
+	document.getElementsByClassName("ion-camera")[0].classList.remove("hidden");
+
 	var self = this;
 	var lastClick = [0, 0];
 	var canvas;
@@ -376,6 +378,8 @@ function createGraph(parent, selection, sidebar) {
 	};
 
 	self.destroy = function destroy() {
+		document.getElementsByClassName("ion-camera")[0].classList.add("hidden");
+
 		force.stop();
 		canvas.parentNode.removeChild(canvas);
 		force = null;

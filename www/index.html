@@ -64,7 +64,6 @@
 	};
 
 	var sidebar;
-	var buttons;
 	var selection;
 	var my_graph;
 	var my_map;
@@ -109,7 +108,7 @@
 		}
 		var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
 		var parent = $('#content');
-		my_map = new Map(parent, selection, linkScale, sidebar, buttons);
+		my_map = new Map(parent, selection, linkScale, sidebar);
 		my_map.setData(my_data);
 		my_map.resetView();
 	}
@@ -131,38 +130,23 @@
 		}
 	}
 
-	//TODO: use static html
-	function attachButtonsDiv() {
-		var buttons = document.createElement('div');
-		buttons.classList.add('buttons');
-
-		var buttonToggle = document.createElement('button');
-		buttonToggle.classList.add('ion-eye');
-		buttonToggle.setAttribute('title', 'Switch View');
-		buttonToggle.appendChild(document.createTextNode("S"));
-		buttonToggle.onclick = function onclick() {
-			if (my_graph) {
-				showMap();
-			} else {
-				showGraph();
-			}
-		};
-
-		buttons.appendChild(buttonToggle);
-
-		if (config.fullscreen || config.fullscreenFrame && window.frameElement) {
-			var buttonFullscreen = document.createElement('button');
-			buttonFullscreen.classList.add('ion-full-enter');
-			buttonFullscreen.setAttribute('title', 'Toggle Fullscreen');
-			buttonFullscreen.appendChild(document.createTextNode("F"));
-			buttonFullscreen.onclick = function onclick() {
-				toggleFullscreen(buttonFullscreen);
-			};
-
-			buttons.appendChild(buttonFullscreen);
+	function toggleView() {
+		if (my_graph) {
+			showMap();
+		} else {
+			showGraph();
 		}
+	}
 
-		return buttons;
+	function saveScreenshot() {
+		if (my_graph) {
+			const canvas = document.getElementById("graph").firstChild;
+			const fileName = (new Date).toISOString().slice(0,-5) + ".png";
+			const link = document.createElement('a');
+			link.setAttribute('download', fileName);
+			link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+			link.click();
+		}
 	}
 
 	function handle_data(data) {
@@ -214,18 +198,18 @@
 	}
 
 	// fetch graph update
-	function run_graph_update_loop() {
+	function run_fetch_data_loop() {
 		var interval_ms = 250;
 
-		function looped_request_graph() {
+		function request_data() {
 			// request graph
 			send("/cmd/graph", {}, function(data) {
 				handle_data(data);
-				setTimeout(looped_request_graph, interval_ms);
+				setTimeout(request_data, interval_ms);
 			});
 		}
 
-		looped_request_graph();
+		request_data();
 	}
 
 	// get command reply update
@@ -289,15 +273,12 @@
 			createActiveArea();
 			createClientLayer();
 
-			buttons = attachButtonsDiv();
-			document.getElementById('content').appendChild(buttons);
-
 			showGraph();
 
 			addSidebarButtons();
 
 			// polling - TODO: Use websockets
-			run_graph_update_loop();
+			run_fetch_data_loop();
 			run_command_update_loop();
 		});
 	}
@@ -306,11 +287,17 @@
 <body onload="init()">
 	<div id="alert_bar">Some error occured</div>
 	<div id="content" class="content">
+		<div id="buttons">
+			<button class="button ion-eye" title="Toggle View" onclick="toggleView(this)"></button>
+			<button class="button ion-outline" title="Toggle Fullscreen" onclick="toggleFullscreen(this)"></button>
+			<button class="button ion-camera hidden" title="Save Screeshot" onclick="saveScreenshot(this)"></button>
+			<button class="button ion-locate hidden" title="Location Picker"></button>
+		</div>
 	</div>
 
-	<div class="sidebar hidden">
+	<div class="sidebar">
 		<button class="sidebarhandle" title="Toggle Sidebar" onclick="sidebar.onClick();">&lt;</button>
-		<div class="container">
+		<div class="container hidden">
 			<fieldset>
 				<legend>Change Selection</legend>
 				<div>

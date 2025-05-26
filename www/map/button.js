@@ -16,7 +16,7 @@ function Button() {
       },
 
       update: function () {
-        this.button.classList.toggle('active', this.active);
+        this.button.classList.toggle('ion-locate-active', this.active);
       },
 
       set: function (v) {
@@ -24,37 +24,16 @@ function Button() {
         this.update();
       }
     });
-/*
-    var LocateButton = ButtonBase.extend({
-      onAdd: function () {
-        var button = L.DomUtil.create('button', 'ion-locate');
-        button.setAttribute('title', 'Tracking');
-        L.DomEvent.disableClickPropagation(button);
-        L.DomEvent.addListener(button, 'click', this.onClick, this);
 
-        this.button = button;
-
-        return button;
-      },
-
-      onClick: function () {
-        this.f(!this.active);
-      }
-    });
-*/
     var CoordsPickerButton = ButtonBase.extend({
-      onAdd: function () {
-        var button = L.DomUtil.create('button', 'ion-pin');
-        button.setAttribute('title', 'Location Picker');
-        button.appendChild(document.createTextNode("P"));
+      doInit: function () {
+        this.button = document.getElementsByClassName("ion-locate")[0];
 
         // Click propagation isn't disabled as this causes problems with the
         // location picking mode; instead propagation is stopped in onClick().
-        L.DomEvent.addListener(button, 'click', this.onClick, this);
+        L.DomEvent.disableClickPropagation(this.button);
+        L.DomEvent.addListener(this.button, 'click', this.onClick, this);
 
-        this.button = button;
-
-        return button;
       },
 
       onClick: function (e) {
@@ -63,38 +42,26 @@ function Button() {
       }
     });
 
-    return function (map, buttons) {
+    return function (map) {
       var userLocation;
-/*
-      var locateUserButton = new LocateButton(function (d) {
-        if (d) {
-          enableTracking();
-        } else {
-          self.disableTracking();
-        }
-      });
-*/
-      var mybuttons = [];
-
-      function addButton(button) {
-        var el = button.onAdd();
-        mybuttons.push(el);
-        buttons.appendChild(el);
-      }
-
-      self.clearButtons = function clearButtons() {
-        mybuttons.forEach(function (d) {
-          buttons.removeChild(d);
-        });
-      };
 
       var showCoordsPickerButton = new CoordsPickerButton(function (d) {
+        console.log("CoordsPickerButton " + d);
         if (d) {
           enableCoords();
         } else {
           disableCoords();
         }
       });
+
+      function addButton() {
+        showCoordsPickerButton.doInit();
+        //showCoordsPickerButton.button.classList.remove("hidden");
+      }
+
+      self.clearButtons = function clearButtons() {
+        //showCoordsPickerButton.button.classList.add("hidden");
+      };
 
       function enableCoords() {
         map.getContainer().classList.add('pick-coordinates');
@@ -130,7 +97,7 @@ function Button() {
       };
 
       self.init = function init() {
-        addButton(showCoordsPickerButton);
+        addButton();
       };
 
       return self;
