@@ -24,11 +24,7 @@
 	cursor: crosshair;
 }
 
-#graph.hidden {
-	display: none;
-}
-
-#map.hidden {
+.hidden {
 	display: none;
 }
 
@@ -42,54 +38,75 @@
 	width: 100%;
 }
 
-#content .buttons {
+#buttons {
 	direction: rtl;
 	position: absolute;
 	right: 16px;
 	top: 16px;
-	unicode-bidi: bidi-override;
 	z-index: 1001;
 }
 
-button {
-	background: #fff;
+.button {
+	height: 1.8em;
+	width: 1.8em;
 	border: 0;
 	border-radius: .9em;
-	color: #000;
 	cursor: pointer;
 	font-size: 1.6rem;
-	height: 1.8em;
-	line-height: 1.95;
-	opacity: .7;
+	opacity: .9;
 	outline: none;
 	padding: 0;
-	transition: box-shadow .5s, background-color .5s, color .5s;
-	width: 1.8em;
+	margin-right: 15px;
 }
 
-#content .buttons button {
-	margin-left: 16px;
+.button:hover {
+	background-color: rgba(4,159,242,0.6);
+	transition: box-shadow 0.2s, background-color 0.2s, color 0.2s;
 }
 
-#content .buttons {
-	direction: rtl;
+.ion-eye {
+	background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3C!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3E%3Csvg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' width='512px' height='512px' viewBox='0 0 512 512' style='enable-background:new 0 0 512 512;' xml:space='preserve'%3E%3Cg%3E%3Cpath d='M256,128c-81.9,0-145.7,48.8-224,128c67.4,67.7,124,128,224,128c99.9,0,173.4-76.4,224-126.6 C428.2,198.6,354.8,128,256,128z M256,347.3c-49.4,0-89.6-41-89.6-91.3c0-50.4,40.2-91.3,89.6-91.3s89.6,41,89.6,91.3 C345.6,306.4,305.4,347.3,256,347.3z'/%3E%3Cg%3E%3Cpath d='M256,224c0-7.9,2.9-15.1,7.6-20.7c-2.5-0.4-5-0.6-7.6-0.6c-28.8,0-52.3,23.9-52.3,53.3c0,29.4,23.5,53.3,52.3,53.3 s52.3-23.9,52.3-53.3c0-2.3-0.2-4.6-0.4-6.9c-5.5,4.3-12.3,6.9-19.8,6.9C270.3,256,256,241.7,256,224z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E%0A");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 1.5em;
 }
 
-button:hover {
-	color: #dc0067;
+.ion-outline {
+	background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3C!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3E%3Csvg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' width='512px' height='512px' viewBox='0 0 512 512' enable-background='new 0 0 512 512' xml:space='preserve'%3E%3Cg%3E%3Cpath d='M96,124.171c0-6.938,5.232-12.171,12.171-12.171H176V64h-66.829C75.717,64,48,90.717,48,124.171V192h48V124.171z'/%3E%3Cpath d='M403.579,64H336v48h67.219c6.938,0,12.781,5.232,12.781,12.171V192h48v-67.829C464,90.717,437.033,64,403.579,64z'/%3E%3Cpath d='M416,386.829c0,6.938-5.232,12.171-12.171,12.171H336v49h67.829C437.283,448,464,420.283,464,386.829V320h-48V386.829z'/%3E%3Cpath d='M108.171,399C101.232,399,96,393.768,96,386.829V320H48v66.829C48,420.283,75.717,448,109.171,448H176v-49H108.171z'/%3E%3C/g%3E%3C/svg%3E%0A");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 1.3em;
 }
 
-.sidebar.hidden {
-	left: -456px;
+.ion-locate {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='48' d='M256 96V56M256 456v-40'/%3E%3Cpath d='M256 112a144 144 0 10144 144 144 144 0 00-144-144z' fill='none' stroke='currentColor' stroke-miterlimit='10' stroke-width='32'/%3E%3Cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='48' d='M416 256h40M56 256h40'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 1.3em;
 }
 
-.sidebar.hidden .sidebarhandle {
+.ion-camera {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath d='M350.54 148.68l-26.62-42.06C318.31 100.08 310.62 96 302 96h-92c-8.62 0-16.31 4.08-21.92 10.62l-26.62 42.06C155.85 155.23 148.62 160 140 160H80a32 32 0 00-32 32v192a32 32 0 0032 32h352a32 32 0 0032-32V192a32 32 0 00-32-32h-59c-8.65 0-16.85-4.77-22.46-11.32z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'/%3E%3Ccircle cx='256' cy='272' r='80' fill='none' stroke='currentColor' stroke-miterlimit='10' stroke-width='32'/%3E%3Cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' d='M124 158v-22h-24v22'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 1.3em;
+}
+
+.ion-locate-active {
+	background-color: rgba(26,224,15,0.6);
+}
+
+.sidebar_hidden {
+	left: -556px;
+}
+
+.sidebar_hidden .sidebarhandle {
 	left: 16px;
 	transform: scale(-1, 1);
 }
 
 .sidebarhandle {
-	left: 472px;
+	left: 572px;
 	position: fixed;
 	top: 16px;
 	transition: left .5s, color .5s, transform .5s;
@@ -101,15 +118,12 @@ button:hover {
 	left: 0;
 	position: absolute;
 	transition: left .5s;
-	width: 440px;
+	width: 540px;
 	z-index: 1005;
 }
 
 .sidebar .container {
 	background: rgba(255,255,255,0.97);
-	border-right: 1px solid #e6e6e6;
-	min-height: 100vh;
-	overflow-y: visible;
 }
 
 .graph {
@@ -117,21 +131,6 @@ button:hover {
 	font: 11px Assistant,sans-serif;
 }
 
-.leaflet-control-zoom a:hover {
-	color: #dc0067;
-}
-
-.leaflet-control-zoom a {
-	background: #fff;
-	border-radius: 5px 5px 0 0;
-	color: #000;
-	display: block;
-	font-size: 40px;
-	height: 46px;
-	text-align: center;
-	transition: background-color .5s, color .5s;
-	width: 46px;
-}
 a {
 	color: #1566a9;
 	text-decoration: none;
@@ -148,7 +147,7 @@ a {
 }
 
 #container {
-	height: auto;
+	height: 100%;
 	overflow: hidden;
 	margin: 0;
 	padding: 0;
@@ -162,6 +161,19 @@ a {
 #graph {
 	float: left;
 	overflow: hidden;
+}
+
+#command_request {
+	width: 50%;
+	background-color: #F0F8FF;
+}
+
+#command_reply {
+	width: 98%;
+	height: 25em;
+	resize: none
+	white-space: pre-wrap;
+	background-color: #F0F8FF;
 }
 
 /* Style the tab */
@@ -240,7 +252,6 @@ fieldset {
 	margin: 0.1em;
 	padding: 0.2em;
 	width: auto;
-	border: 0.1em solid #000;
 }
 
 fieldset * {

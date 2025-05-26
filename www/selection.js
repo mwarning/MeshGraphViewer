@@ -96,6 +96,10 @@ function createSelection() {
 		return (selectedNodes.indexOf(id) !== -1);
 	}
 
+	self.isAnythingSelected = function () {
+		return (selectedNodes === 0) && (selectedLinks.length === 0);
+	}
+
 	self.selectNode = function (node) {
 		var id = node.id;
 

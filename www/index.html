@@ -64,14 +64,13 @@
 	};
 
 	var sidebar;
-	var buttons;
 	var selection;
 	var my_graph;
 	var my_map;
 	var my_data = {nodes:[], links: []};
 
 	function updateSidebarTable(node) {
-		var div = $('#sidebar_table');
+		var div = $('#sidebar_table div');
 
 		// remove all children
 		while (div.firstChild) {
@@ -109,7 +108,7 @@
 		}
 		var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
 		var parent = $('#content');
-		my_map = new Map(parent, selection, linkScale, sidebar, buttons);
+		my_map = new Map(parent, selection, linkScale, sidebar);
 		my_map.setData(my_data);
 		my_map.resetView();
 	}
@@ -131,38 +130,23 @@
 		}
 	}
 
-	//TODO: use static html
-	function attachButtonsDiv() {
-		var buttons = document.createElement('div');
-		buttons.classList.add('buttons');
-
-		var buttonToggle = document.createElement('button');
-		buttonToggle.classList.add('ion-eye');
-		buttonToggle.setAttribute('title', 'Switch View');
-		buttonToggle.appendChild(document.createTextNode("S"));
-		buttonToggle.onclick = function onclick() {
-			if (my_graph) {
-				showMap();
-			} else {
-				showGraph();
-			}
-		};
-
-		buttons.appendChild(buttonToggle);
-
-		if (config.fullscreen || config.fullscreenFrame && window.frameElement) {
-			var buttonFullscreen = document.createElement('button');
-			buttonFullscreen.classList.add('ion-full-enter');
-			buttonFullscreen.setAttribute('title', 'Toggle Fullscreen');
-			buttonFullscreen.appendChild(document.createTextNode("F"));
-			buttonFullscreen.onclick = function onclick() {
-				toggleFullscreen(buttonFullscreen);
-			};
-
-			buttons.appendChild(buttonFullscreen);
+	function toggleView() {
+		if (my_graph) {
+			showMap();
+		} else {
+			showGraph();
 		}
+	}
 
-		return buttons;
+	function saveScreenshot() {
+		if (my_graph) {
+			const canvas = document.getElementById("graph").firstChild;
+			const fileName = (new Date).toISOString().slice(0,-5) + ".png";
+			const link = document.createElement('a');
+			link.setAttribute('download', fileName);
+			link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+			link.click();
+		}
 	}
 
 	function handle_data(data) {
@@ -214,18 +198,18 @@
 	}
 
 	// fetch graph update
-	function run_graph_update_loop() {
+	function run_fetch_data_loop() {
 		var interval_ms = 250;
 
-		function looped_request_graph() {
+		function request_data() {
 			// request graph
 			send("/cmd/graph", {}, function(data) {
 				handle_data(data);
-				setTimeout(looped_request_graph, interval_ms);
+				setTimeout(request_data, interval_ms);
 			});
 		}
 
-		looped_request_graph();
+		request_data();
 	}
 
 	// get command reply update
@@ -248,6 +232,11 @@
 			return;
 		}
 
+		if (!selection.isAnythingSelected()) {
+			alert("No node/link selected.");
+			return;
+		}
+
 		if ($('#clear_on_send').checked) {
 			$('#command_reply').value = '';
 		}
@@ -267,16 +256,26 @@
 
 	// Preconfigured buttons
 	function addSidebarButtons() {
-		var div = $('#custom_buttons');
-		config.buttons.forEach(function(button) {
-			var input = document.createElement('input');
-			input.type = 'button';
-			input.value = button.name;
-			input.onclick = function () {
-				sendCommand(button.command);
-			};
-			div.appendChild(input);
-		});
+		const fieldset = $('#custom_buttons');
+		const div = $('#custom_buttons div');
+
+		if (config.buttons && config.buttons.length) {
+
+			fieldset.classList.remove("hidden");
+			console.log(fieldset);
+
+			config.buttons.forEach(function(button) {
+				var input = document.createElement('input');
+				input.type = 'button';
+				input.value = button.name;
+				input.onclick = function () {
+					sendCommand(button.command);
+				};
+				div.appendChild(input);
+			});
+		} else {
+			fieldset.classList.add("hidden");
+		}
 	}
 
 	function init() {
@@ -289,15 +288,12 @@
 			createActiveArea();
 			createClientLayer();
 
-			buttons = attachButtonsDiv();
-			document.getElementById('content').appendChild(buttons);
-
 			showGraph();
 
 			addSidebarButtons();
 
 			// polling - TODO: Use websockets
-			run_graph_update_loop();
+			run_fetch_data_loop();
 			run_command_update_loop();
 		});
 	}
@@ -306,11 +302,17 @@
 <body onload="init()">
 	<div id="alert_bar">Some error occured</div>
 	<div id="content" class="content">
+		<div id="buttons">
+			<button class="button ion-eye" title="Toggle View" onclick="toggleView(this)"></button>
+			<button class="button ion-outline" title="Toggle Fullscreen" onclick="toggleFullscreen(this)"></button>
+			<button class="button ion-camera hidden" title="Save Screeshot" onclick="saveScreenshot(this)"></button>
+			<button class="button ion-locate hidden" title="Location Picker"></button>
+		</div>
 	</div>
 
-	<div class="sidebar hidden">
-		<button class="sidebarhandle" title="Toggle Sidebar" onclick="sidebar.onClick();">&lt;</button>
-		<div class="container">
+	<div class="sidebar sidebar_hidden">
+		<button class="button sidebarhandle" title="Toggle Sidebar" onclick="sidebar.onClick();">&lt;</button>
+		<div class="container hidden">
 			<fieldset>
 				<legend>Change Selection</legend>
 				<div>
@@ -318,26 +320,26 @@
 					<input type="button" onclick="selection.clearSelection(); if (my_graph) { my_graph.redraw(); }" value="unselect" />
 				</div>
 			</fieldset>
-			<fieldset>
+			<fieldset id="custom_buttons">
 				<legend>Custom Buttons</legend>
-				<div id="custom_buttons">
+				<div>
 					<!-- added via config -->
 				</div>
 			</fieldset>
-			<fieldset>
+			<fieldset id="sidebar_table">
 				<legend>Node/Link</legend>
-				<div id="sidebar_table"></div>
+				<div></div>
 			</fieldset>
 			<fieldset>
 				<legend>Send Command</legend>
 				<div>
-					<input type="text" value="" onkeypress="onCommandChar(event)" style="width: 50%" id="command_request" />
+					<input type="text" value="" id="command_request" onkeypress="onCommandChar(event)" />
 					<input type="button" value="send" onclick="sendCommand($('#command_request').value)" />
 					<input type="button" value="clear" onclick="$('#command_reply').value = '';" />
 					<input type="checkbox" id="clear_on_send" />
 				</div>
 				<div>
-					<textarea id="command_reply" rows="30" style="width: 100%; resize: none; white-space: pre-wrap;"></textarea>
+					<textarea id="command_reply"></textarea>
 				</div>
 			</fieldset>
 		</div>

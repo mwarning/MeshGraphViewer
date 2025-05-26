@@ -14,7 +14,7 @@ class Map {
 	linkScale
 	el
 
-	constructor(parent, selection, linkScale, sidebar, buttons) {
+	constructor(parent, selection, linkScale, sidebar) {
 		var baseLayers = {};
 		this.sidebar = sidebar;
 		this.linkScale = linkScale;
@@ -24,6 +24,8 @@ class Map {
 		this.el.classList.add('map');
 		this.el.setAttribute('id', 'map');
 		parent.appendChild(this.el);
+
+		document.getElementsByClassName("ion-locate")[0].classList.remove("hidden");
 
 		this.options = {
 			worldCopyJump: true,
@@ -60,7 +62,7 @@ class Map {
 			baseLayers[d.name] = d.layer;
 		});
 
-		this.button = new Button()(this.map, buttons);
+		this.button = new Button()(this.map);
 
 		var self = this;
 		this.map.on('locationfound', this.button.locationFound);
@@ -88,7 +90,7 @@ class Map {
 		var layerControl = L.control.layers(baseLayers, [], { position: 'bottomright' });
 		layerControl.addTo(this.map);
 
-		this.map.zoomControl.setPosition('topright');
+		this.map.zoomControl.setPosition('bottomright');
 
 		var tmp1 = createClientLayer();
 		this.clientLayer = new tmp1({ minZoom: config.clientZoom });
@@ -101,7 +103,7 @@ class Map {
 		this.labelLayer.setZIndex(6);
 
 		var sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
-		/*sidebar.button*/ sidebar_button.addEventListener('visibility', this.setActiveArea);
+		sidebar_button.addEventListener('visibility', this.setActiveArea);
 
 		var self = this;
 		this.map.on('zoom', function () {
@@ -292,6 +294,8 @@ class Map {
 
 	destroy() {
 		this.button.clearButtons();
+		document.getElementsByClassName("ion-locate")[0].classList.add("hidden");
+
 		var sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
 		/*sidebar.button*/sidebar_button.removeEventListener('visibility', this.setActiveArea);
 		this.map.remove();
