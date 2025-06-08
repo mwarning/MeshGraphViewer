@@ -121,7 +121,7 @@ function createSelection() {
     };
 
     self.selectLink = function (sourceId, targetId) {
-        var id = sourceId + ',' + targetId;
+        const id = sourceId + ',' + targetId;
 
         if (self.isMetaPressed()) {
             var i = selectedLinks.indexOf(id);

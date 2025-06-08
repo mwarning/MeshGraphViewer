@@ -47,7 +47,8 @@ function createDraw(selection) {
     }
 
     function drawSelectedNode(d) {
-        if (selection.isNodeSelected(d.o.id)) {
+        const id = getNodeId(d.o);
+        if (selection.isNodeSelected(id)) {
             ctx.arc(d.x, d.y, NODE_RADIUS * 1.5, 0, 2 * Math.PI);
             ctx.fillStyle = config.graph_selectColor;
             ctx.fill();
@@ -56,7 +57,9 @@ function createDraw(selection) {
     }
 
     function drawSelectedLink(d, to) {
-        if (selection.isLinkSelected(d.source.o.id, d.target.o.id)) {
+        const source_id = getNodeId(d.source.o);
+        const target_id = getNodeId(d.target.o);
+        if (selection.isLinkSelected(source_id, target_id)) {
             ctx.lineTo(to[0], to[1]);
             ctx.strokeStyle = config.graph_selectColor;
             ctx.lineWidth = LINE_RADIUS * 2;

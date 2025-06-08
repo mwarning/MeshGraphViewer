@@ -37,11 +37,11 @@ function try_get(obj, key, def) {
 }
 
 function getNodeLatitude(node) {
-    return node.x || (node.location.latitude);
+    return node.x || (node.location ? node.location.latitude : undefined);
 }
 
 function getNodeLongitude(node) {
-    return node.y || (node.location.longitude);
+    return node.y || (node.location ? node.location.longitude : undefined);
 }
 
 function getNodeName(node) {

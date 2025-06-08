@@ -348,7 +348,8 @@ function createGraph(parent, selection, sidebar) {
 
     function selectNode (d) {
         // Focus node if no ctrl key pressed
-        selection.selectNode(d.o.id);
+        const id = getNodeId(d.o);
+        selection.selectNode(id);
 
         // fill info table
         updateSidebarTable(d.o);
