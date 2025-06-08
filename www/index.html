@@ -177,7 +177,7 @@
 		}
 	}
 
-	function handle_data(data) {
+	function handleData(data) {
 		if (data === undefined || data.length == 0) {
 			// invalid data
 			return false;
@@ -228,35 +228,35 @@
 	}
 
 	// fetch graph update
-	function run_fetch_data_loop() {
+	function runFetchGraphDataLoop() {
 		const interval_ms = 1000;
 
-		function request_data(force_full) {
+		function requestGraphData(force_full) {
 			const command = force_full ? "/cmd/graph_full" : "/cmd/graph_update";
 			// request graph
 			send(command, {}, function(data) {
 				// force full data if the previous fetch failed or got invalid data
-				const force_full = !handle_data(data);
-				setTimeout(request_data, interval_ms, force_full);
+				const force_full = !handleData(data);
+				setTimeout(requestGraphData, interval_ms, force_full);
 			});
 		}
 
-		request_data(true);
+		requestGraphData(true);
 	}
 
 	// get content from the call program/path
-	function run_command_update_loop() {
+	function runCommandReplyLoop() {
 		var interval_ms = 1000;
 
-		function request_command_reply() {
+		function requestCommandReply() {
 			// request graph
 			send("/cmd/call_receive", {}, function(data) {
 				$("#command_reply").value += data;
-				setTimeout(request_command_reply, interval_ms);
+				setTimeout(requestCommandReply, interval_ms);
 			});
 		}
 
-		request_command_reply();
+		requestCommandReply();
 	}
 
 	function sendCommand(query) {
@@ -325,8 +325,8 @@
 			addSidebarButtons();
 
 			// polling - TODO: Use websockets
-			run_fetch_data_loop();
-			run_command_update_loop();
+			runFetchGraphDataLoop();
+			runCommandReplyLoop();
 		});
 	}
 </script>
