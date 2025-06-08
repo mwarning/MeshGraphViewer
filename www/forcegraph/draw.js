@@ -101,6 +101,7 @@ function createDraw(selection) {
 
         to = drawSelectedLink(d, to);
 
+        ctx.lineCap = 'round';
         if ('color' in d.o) {
             ctx.strokeStyle = d.o.color;
         } else {
