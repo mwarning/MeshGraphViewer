@@ -2,383 +2,383 @@
 
 <html>
 <head>
-	<meta charset="utf-8">
-	<title>Graph Viewer</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
-	<link rel="stylesheet" href="leaflet-1.9.4.css"/>
+    <meta charset="utf-8">
+    <title>Graph Viewer</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="leaflet-1.9.4.css"/>
 
-	<!-- Source https://leafletjs.com/ -->
-	<script src="leaflet-1.9.4.js"></script>
+    <!-- Source https://leafletjs.com/ -->
+    <script src="leaflet-1.9.4.js"></script>
 
-	<!-- Source: https://d3js.org -->
-	<script src="d3.v5.min.js"></script>
-	<script src="rbush-2.0.2.min.js"></script>
+    <!-- Source: https://d3js.org -->
+    <script src="d3.v5.min.js"></script>
+    <script src="rbush-2.0.2.min.js"></script>
 
-	<script src="utils.js"></script>
-	<script src="sidebar.js"></script>
-	<script src="selection.js"></script>
+    <script src="utils.js"></script>
+    <script src="sidebar.js"></script>
+    <script src="selection.js"></script>
 
-	<script src="forcegraph.js"></script>
-	<script src="forcegraph/draw.js"></script>
+    <script src="forcegraph.js"></script>
+    <script src="forcegraph/draw.js"></script>
 
-	<script src="map.js"></script>
-	<script src="map/button.js"></script>
-	<script src="map/activearea.js"></script>
-	<script src="map/clientlayer.js"></script>
-	<script src="map/labellayer.js"></script>
-	<script src="map/locationmarker.js"></script>
+    <script src="map.js"></script>
+    <script src="map/button.js"></script>
+    <script src="map/activearea.js"></script>
+    <script src="map/clientlayer.js"></script>
+    <script src="map/labellayer.js"></script>
+    <script src="map/locationmarker.js"></script>
 
-	<script>
-		var config = {
-		buttons: [],
-		useIdsAsName: true,
-		mapLayers: [{
-			'name': 'OpenStreetMap.HOT',
-			'url': 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-			'config': {
-				'maxZoom': 19,
-				'attribution': '&copy; Openstreetmap France | &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-			}
-		}],
-		clientZoom: 15,
-		nodeZoom: 18,
-		geo: null,
-		graph_clientColor: '#e6324b',
-		graph_selectColor: 'rgba(255, 255, 255, 0.2)',
-		map_tqFrom: '#F02311',
-		map_tqTo: '#04C714',
-		map_selectedNode: {
-			color: 'rgba(173, 35, 88, 1.0)',
-			weight: 30,
-			fillOpacity: 1,
-			opacity: 0.4,
-			className: 'stroke-first'
-		},
-		map_selectedLink: {
-			color: 'rgba(173, 35, 88, 1.0)',
-			weight: 5,
-			fillOpacity: 1,
-			opacity: 0.5,
-			dashArray: "none"
-		},
-		fullscreen: true,
-		fullscreenFrame: true
-	};
+    <script>
+        var config = {
+        buttons: [],
+        useIdsAsName: true,
+        mapLayers: [{
+            'name': 'OpenStreetMap.HOT',
+            'url': 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+            'config': {
+                'maxZoom': 19,
+                'attribution': '&copy; Openstreetmap France | &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }
+        }],
+        clientZoom: 15,
+        nodeZoom: 18,
+        geo: null,
+        graph_clientColor: '#e6324b',
+        graph_selectColor: 'rgba(255, 255, 255, 0.2)',
+        map_tqFrom: '#F02311',
+        map_tqTo: '#04C714',
+        map_selectedNode: {
+            color: 'rgba(173, 35, 88, 1.0)',
+            weight: 30,
+            fillOpacity: 1,
+            opacity: 0.4,
+            className: 'stroke-first'
+        },
+        map_selectedLink: {
+            color: 'rgba(173, 35, 88, 1.0)',
+            weight: 5,
+            fillOpacity: 1,
+            opacity: 0.5,
+            dashArray: "none"
+        },
+        fullscreen: true,
+        fullscreenFrame: true
+    };
 
-	var sidebar;
-	var selection;
-	var my_graph;
-	var my_map;
-	var my_data = {nodes:[], links: []};
+    var sidebar;
+    var selection;
+    var my_graph;
+    var my_map;
+    var my_data = {nodes:[], links: []};
 
-	function updateSidebarTable(obj) {
-		var div = $('#sidebar_table div');
+    function updateSidebarTable(obj) {
+        var div = $('#sidebar_table div');
 
-		// remove all children
-		while (div.firstChild) {
-			div.removeChild(div.firstChild);
-		}
+        // remove all children
+        while (div.firstChild) {
+            div.removeChild(div.firstChild);
+        }
 
-		function append(parent, name, content) {
-			var e = document.createElement(name);
-			if ((typeof content === 'string') || (typeof content === 'number')) {
-				var text = document.createTextNode(content.toString());
-				e.appendChild(text);
-			}
-			parent.appendChild(e);
-			return e;
-		}
+        function append(parent, name, content) {
+            var e = document.createElement(name);
+            if ((typeof content === 'string') || (typeof content === 'number')) {
+                var text = document.createTextNode(content.toString());
+                e.appendChild(text);
+            }
+            parent.appendChild(e);
+            return e;
+        }
 
-		function toTable(parent, element) {
-			var type = (typeof element);
-			if (type === 'string' || type === 'boolean' || type === 'number') {
-				append(parent, 'span', element.toString());
-			} else if (element === null) {
-				append(parent, 'span', 'null');
-			} else if (type === 'object') {
-				var table = append(parent, 'table');
-				for (let [key, value] of Object.entries(element)) {
-					// <tr><td><span>key</span></td><td><span>value</span></td></tr>
-					let tr = append(table, 'tr');
-					let td1 = append(tr, 'td');
-					append(td1, 'span', key.toString());
-					let td2 = append(tr, 'td');
-					toTable(td2, value);
-				}
-			} else {
-				append(parent, 'span', '???');
-			}
-		}
+        function toTable(parent, element) {
+            var type = (typeof element);
+            if (type === 'string' || type === 'boolean' || type === 'number') {
+                append(parent, 'span', element.toString());
+            } else if (element === null) {
+                append(parent, 'span', 'null');
+            } else if (type === 'object') {
+                var table = append(parent, 'table');
+                for (let [key, value] of Object.entries(element)) {
+                    // <tr><td><span>key</span></td><td><span>value</span></td></tr>
+                    let tr = append(table, 'tr');
+                    let td1 = append(tr, 'td');
+                    append(td1, 'span', key.toString());
+                    let td2 = append(tr, 'td');
+                    toTable(td2, value);
+                }
+            } else {
+                append(parent, 'span', '???');
+            }
+        }
 
-		if (obj) {
-			toTable(div, obj);
-		}
-	}
+        if (obj) {
+            toTable(div, obj);
+        }
+    }
 
-	function showMap() {
-		if (my_graph) {
-			my_graph.destroy();
-			my_graph = null;
-		}
-		var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
-		var parent = $('#content');
-		my_map = new Map(parent, selection, linkScale, sidebar);
-		my_map.setData(my_data);
-		my_map.resetView();
-	}
+    function showMap() {
+        if (my_graph) {
+            my_graph.destroy();
+            my_graph = null;
+        }
+        var linkScale = d3.interpolate(config.map_tqFrom, config.map_tqTo);
+        var parent = $('#content');
+        my_map = new Map(parent, selection, linkScale, sidebar);
+        my_map.setData(my_data);
+        my_map.resetView();
+    }
 
-	function showGraph() {
-		if (my_map) {
-			my_map.destroy();
-			my_map = null;
-		}
-		var parent = $('#content');
-		my_graph = createGraph(parent, selection, sidebar);
-		my_graph.setData(my_data);
-	}
+    function showGraph() {
+        if (my_map) {
+            my_map.destroy();
+            my_map = null;
+        }
+        var parent = $('#content');
+        my_graph = createGraph(parent, selection, sidebar);
+        my_graph.setData(my_data);
+    }
 
-	// Send command when enter key is pressed
-	function onCommandChar(event) {
-		if (event.which == 13 || event.keyCode == 13) {
-			sendCommand($('#command_request').value);
-		}
-	}
+    // Send command when enter key is pressed
+    function onCommandChar(event) {
+        if (event.which == 13 || event.keyCode == 13) {
+            sendCommand($('#command_request').value);
+        }
+    }
 
-	function toggleView() {
-		if (my_graph) {
-			showMap();
-		} else {
-			showGraph();
-		}
-	}
+    function toggleView() {
+        if (my_graph) {
+            showMap();
+        } else {
+            showGraph();
+        }
+    }
 
-	function saveScreenshot() {
-		if (my_graph) {
-			const canvas = document.getElementById("graph").firstChild;
-			const fileName = (new Date).toISOString().slice(0,-5) + ".png";
-			const link = document.createElement('a');
-			link.setAttribute('download', fileName);
-			link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
-			link.click();
-		}
-	}
+    function saveScreenshot() {
+        if (my_graph) {
+            const canvas = document.getElementById("graph").firstChild;
+            const fileName = (new Date).toISOString().slice(0,-5) + ".png";
+            const link = document.createElement('a');
+            link.setAttribute('download', fileName);
+            link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+            link.click();
+        }
+    }
 
-	function doExtendSelection() {
-		selection.extendSelection(my_data);
-		if (my_graph) {
-			my_graph.redraw();
-		}
-	}
+    function doExtendSelection() {
+        selection.extendSelection(my_data);
+        if (my_graph) {
+            my_graph.redraw();
+        }
+    }
 
-	function doClearSelection() {
-		selection.clearSelection();
-		if (my_graph) {
-			my_graph.redraw();
-		}
-	}
+    function doClearSelection() {
+        selection.clearSelection();
+        if (my_graph) {
+            my_graph.redraw();
+        }
+    }
 
-	function handleData(data) {
-		if (data === undefined || data.length == 0) {
-			// invalid data
-			return false;
-		}
+    function handleData(data) {
+        if (data === undefined || data.length == 0) {
+            // invalid data
+            return false;
+        }
 
-		if (data == "{}") {
-			// ignore
-			return true;
-		}
+        if (data == "{}") {
+            // ignore
+            return true;
+        }
 
-		let bar = $('#alert_bar')
-		bar.style.visibility = 'hidden';
+        let bar = $('#alert_bar')
+        bar.style.visibility = 'hidden';
 
-		var json = {};
-		try {
-			json = JSON.parse(data);
-		} catch (e) {
-			bar.innerText = e
-			bar.style.visibility = 'visible';
-			// invalid data
-			return false;
-		}
+        var json = {};
+        try {
+            json = JSON.parse(data);
+        } catch (e) {
+            bar.innerText = e
+            bar.style.visibility = 'visible';
+            // invalid data
+            return false;
+        }
 
-		if (json.nodes || json.links) {
-			if (!('nodes' in json)) {
-				json['nodes'] = []
-			}
+        if (json.nodes || json.links) {
+            if (!('nodes' in json)) {
+                json['nodes'] = []
+            }
 
-			if (!('links' in json)) {
-				json['links'] = []
-			}
+            if (!('links' in json)) {
+                json['links'] = []
+            }
 
-			// remove selected items that do not exist anymore
-			selection.filterSelections(json.nodes, json.links);
+            // remove selected items that do not exist anymore
+            selection.filterSelections(json.nodes, json.links);
 
-			if (my_graph) {
-				my_graph.setData(json, true);
-				my_data = json;
-			}
+            if (my_graph) {
+                my_graph.setData(json, true);
+                my_data = json;
+            }
 
-			if (my_map) {
-				my_map.setData(json);
-				my_data = json;
-			}
-		}
+            if (my_map) {
+                my_map.setData(json);
+                my_data = json;
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	// fetch graph update
-	function runFetchGraphDataLoop() {
-		const interval_ms = 1000;
+    // fetch graph update
+    function runFetchGraphDataLoop() {
+        const interval_ms = 1000;
 
-		function requestGraphData(force_full) {
-			const command = force_full ? "/cmd/graph_full" : "/cmd/graph_update";
-			// request graph
-			send(command, {}, function(data) {
-				// force full data if the previous fetch failed or got invalid data
-				const force_full = !handleData(data);
-				setTimeout(requestGraphData, interval_ms, force_full);
-			});
-		}
+        function requestGraphData(force_full) {
+            const command = force_full ? "/cmd/graph_full" : "/cmd/graph_update";
+            // request graph
+            send(command, {}, function(data) {
+                // force full data if the previous fetch failed or got invalid data
+                const force_full = !handleData(data);
+                setTimeout(requestGraphData, interval_ms, force_full);
+            });
+        }
 
-		requestGraphData(true);
-	}
+        requestGraphData(true);
+    }
 
-	// get content from the call program/path
-	function runCommandReplyLoop() {
-		var interval_ms = 1000;
+    // get content from the call program/path
+    function runCommandReplyLoop() {
+        var interval_ms = 1000;
 
-		function requestCommandReply() {
-			// request graph
-			send("/cmd/call_receive", {}, function(data) {
-				$("#command_reply").value += data;
-				setTimeout(requestCommandReply, interval_ms);
-			});
-		}
+        function requestCommandReply() {
+            // request graph
+            send("/cmd/call_receive", {}, function(data) {
+                $("#command_reply").value += data;
+                setTimeout(requestCommandReply, interval_ms);
+            });
+        }
 
-		requestCommandReply();
-	}
+        requestCommandReply();
+    }
 
-	function sendCommand(query) {
-		if (typeof query !== 'string') {
-			return;
-		}
+    function sendCommand(query) {
+        if (typeof query !== 'string') {
+            return;
+        }
 
-		if (!selection.isAnythingSelected()) {
-			alert("No node/link selected.");
-			return;
-		}
+        if (!selection.isAnythingSelected()) {
+            alert("No node/link selected.");
+            return;
+        }
 
-		if ($('#clear_on_send').checked) {
-			$('#command_reply').value = '';
-		}
+        if ($('#clear_on_send').checked) {
+            $('#command_reply').value = '';
+        }
 
-		if (query.indexOf("%selected_nodes%") !== -1) {
-			var node_ids = selection.getSelectedNodes();
-			query = query.replace("%selected_nodes%", node_ids.join(","));
-		}
+        if (query.indexOf("%selected_nodes%") !== -1) {
+            var node_ids = selection.getSelectedNodes();
+            query = query.replace("%selected_nodes%", node_ids.join(","));
+        }
 
-		if (query.indexOf("%selected_links%") !== -1) {
-			var link_ids = selection.getSelectedLinks();
-			query = query.replace("%selected_links%", link_ids.join(","));
-		}
+        if (query.indexOf("%selected_links%") !== -1) {
+            var link_ids = selection.getSelectedLinks();
+            query = query.replace("%selected_links%", link_ids.join(","));
+        }
 
-		send("/cmd/call_execute", { "query": query }, null);
-	}
+        send("/cmd/call_execute", { "query": query }, null);
+    }
 
-	// Preconfigured buttons
-	function addSidebarButtons() {
-		const fieldset = $('#custom_buttons');
-		const div = $('#custom_buttons div');
+    // Preconfigured buttons
+    function addSidebarButtons() {
+        const fieldset = $('#custom_buttons');
+        const div = $('#custom_buttons div');
 
-		if (config.buttons && config.buttons.length) {
+        if (config.buttons && config.buttons.length) {
 
-			fieldset.classList.remove("hidden");
-			console.log(fieldset);
+            fieldset.classList.remove("hidden");
+            console.log(fieldset);
 
-			config.buttons.forEach(function(button) {
-				var input = document.createElement('input');
-				input.type = 'button';
-				input.value = button.name;
-				input.onclick = function () {
-					sendCommand(button.command);
-				};
-				div.appendChild(input);
-			});
-		} else {
-			fieldset.classList.add("hidden");
-		}
-	}
+            config.buttons.forEach(function(button) {
+                var input = document.createElement('input');
+                input.type = 'button';
+                input.value = button.name;
+                input.onclick = function () {
+                    sendCommand(button.command);
+                };
+                div.appendChild(input);
+            });
+        } else {
+            fieldset.classList.add("hidden");
+        }
+    }
 
-	function init() {
-		send("/config.json", {}, function(data) {
-			config = Object.assign(config, JSON.parse(data));
-			sidebar = createSidebar()();
-			selection = createSelection();
+    function init() {
+        send("/config.json", {}, function(data) {
+            config = Object.assign(config, JSON.parse(data));
+            sidebar = createSidebar()();
+            selection = createSelection();
 
-			// extends leaflet with activearea
-			createActiveArea();
-			createClientLayer();
+            // extends leaflet with activearea
+            createActiveArea();
+            createClientLayer();
 
-			showGraph();
+            showGraph();
 
-			addSidebarButtons();
+            addSidebarButtons();
 
-			// polling - TODO: Use websockets
-			runFetchGraphDataLoop();
-			runCommandReplyLoop();
-		});
-	}
+            // polling - TODO: Use websockets
+            runFetchGraphDataLoop();
+            runCommandReplyLoop();
+        });
+    }
 </script>
 </head>
 <body onload="init()">
-	<div id="alert_bar">Some error occured</div>
-	<div id="content" class="content">
-		<div id="buttons">
-			<button class="button ion-eye" title="Toggle View" onclick="toggleView(this)"></button>
-			<button class="button ion-outline" title="Toggle Fullscreen" onclick="toggleFullscreen(this)"></button>
-			<button class="button ion-camera hidden" title="Save Screeshot" onclick="saveScreenshot(this)"></button>
-			<button class="button ion-locate hidden" title="Location Picker"></button>
-		</div>
-	</div>
+    <div id="alert_bar">Some error occured</div>
+    <div id="content" class="content">
+        <div id="buttons">
+            <button class="button ion-eye" title="Toggle View" onclick="toggleView(this)"></button>
+            <button class="button ion-outline" title="Toggle Fullscreen" onclick="toggleFullscreen(this)"></button>
+            <button class="button ion-camera hidden" title="Save Screeshot" onclick="saveScreenshot(this)"></button>
+            <button class="button ion-locate hidden" title="Location Picker"></button>
+        </div>
+    </div>
 
-	<div class="sidebar sidebar_hidden">
-		<button class="button sidebarhandle" title="Toggle Sidebar" onclick="sidebar.onClick();">&lt;</button>
-		<div class="container hidden">
-			<fieldset>
-				<legend>Change Selection</legend>
-				<div>
-					<input type="button" onclick="doExtendSelection()" value="extend" />
-					<input type="button" onclick="doClearSelection()" value="unselect" />
-				</div>
-			</fieldset>
-			<fieldset id="custom_buttons">
-				<legend>Custom Buttons</legend>
-				<div>
-					<!-- added via config -->
-				</div>
-			</fieldset>
-			<fieldset id="sidebar_table">
-				<legend>Node/Link</legend>
-				<div></div>
-			</fieldset>
-			<fieldset>
-				<legend>Send Command</legend>
-				<div>
-					<input type="text" value="" id="command_request" onkeypress="onCommandChar(event)" />
-					<input type="button" value="send" onclick="sendCommand($('#command_request').value)" />
-					<input type="button" value="clear" onclick="$('#command_reply').value = '';" />
-					<input type="checkbox" id="clear_on_send" />
-				</div>
-				<div>
-					<textarea id="command_reply"></textarea>
-				</div>
-			</fieldset>
-		</div>
-	</div>
+    <div class="sidebar sidebar_hidden">
+        <button class="button sidebarhandle" title="Toggle Sidebar" onclick="sidebar.onClick();">&lt;</button>
+        <div class="container hidden">
+            <fieldset>
+                <legend>Change Selection</legend>
+                <div>
+                    <input type="button" onclick="doExtendSelection()" value="extend" />
+                    <input type="button" onclick="doClearSelection()" value="unselect" />
+                </div>
+            </fieldset>
+            <fieldset id="custom_buttons">
+                <legend>Custom Buttons</legend>
+                <div>
+                    <!-- added via config -->
+                </div>
+            </fieldset>
+            <fieldset id="sidebar_table">
+                <legend>Node/Link</legend>
+                <div></div>
+            </fieldset>
+            <fieldset>
+                <legend>Send Command</legend>
+                <div>
+                    <input type="text" value="" id="command_request" onkeypress="onCommandChar(event)" />
+                    <input type="button" value="send" onclick="sendCommand($('#command_request').value)" />
+                    <input type="button" value="clear" onclick="$('#command_reply').value = '';" />
+                    <input type="checkbox" id="clear_on_send" />
+                </div>
+                <div>
+                    <textarea id="command_reply"></textarea>
+                </div>
+            </fieldset>
+        </div>
+    </div>
 
-	<noscript>
-		<strong>JavaScript required</strong>
-	</noscript>
+    <noscript>
+        <strong>JavaScript required</strong>
+    </noscript>
 </body>
 </html>

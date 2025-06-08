@@ -1,112 +1,112 @@
 
 function $(selector) {
-	return document.querySelector(selector);
+    return document.querySelector(selector);
 }
 
 function positionClients(ctx, p, startAngle, clients, startDistance) {
-	if (clients === 0) {
-		return;
-	}
+    if (clients === 0) {
+        return;
+    }
 
-	var radius = 3;
-	var a = 1.2;
+    var radius = 3;
+    var a = 1.2;
 
-	for (var orbit = 0, i = 0; i < clients; orbit++) {
-		var distance = startDistance + orbit * 2 * radius * a;
-		var n = Math.floor((Math.PI * distance) / (a * radius));
-		var delta = clients - i;
+    for (var orbit = 0, i = 0; i < clients; orbit++) {
+        var distance = startDistance + orbit * 2 * radius * a;
+        var n = Math.floor((Math.PI * distance) / (a * radius));
+        var delta = clients - i;
 
-		for (var j = 0; j < Math.min(delta, n); i++, j++) {
-			var angle = 2 * Math.PI / n * j;
-			var x = p.x + distance * Math.cos(angle + startAngle);
-			var y = p.y + distance * Math.sin(angle + startAngle);
+        for (var j = 0; j < Math.min(delta, n); i++, j++) {
+            var angle = 2 * Math.PI / n * j;
+            var x = p.x + distance * Math.cos(angle + startAngle);
+            var y = p.y + distance * Math.sin(angle + startAngle);
 
-			ctx.moveTo(x, y);
-			ctx.arc(x, y, radius, 0, 2 * Math.PI);
-		}
-	}
+            ctx.moveTo(x, y);
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        }
+    }
 }
 
 function try_get(obj, key, def) {
-	var v = obj[key];
-	if (v !== undefined) {
-		return v;
-	} else {
-		return def;
-	}
+    var v = obj[key];
+    if (v !== undefined) {
+        return v;
+    } else {
+        return def;
+    }
 }
 
 function getNodeLatitude(node) {
-	return node.x || (node.location.latitude);
+    return node.x || (node.location.latitude);
 }
 
 function getNodeLongitude(node) {
-	return node.y || (node.location.longitude);
+    return node.y || (node.location.longitude);
 }
 
 function getNodeName(node) {
-	return node.name || node.hostname || getNodeId(node);
+    return node.name || node.hostname || getNodeId(node);
 }
 
 function getNodeLabel(node) {
-	return node.label;
+    return node.label;
 }
 
 function getNodeClients(node) {
-	return node.clients;
+    return node.clients;
 }
 
 function getNodeId(node) {
-	return node.id || node.node_id;
+    return node.id || node.node_id;
 }
 
 function getLinkId(link) {
-	return String(link.source) + ',' + link.target;
+    return String(link.source) + ',' + link.target;
 }
 
 function limitFloat(value, min, max) {
-	if (value < min || isNaN(value)) {
-		return min;
-	}
-	if (value > max) {
-		return max;
-	}
-	return value;
+    if (value < min || isNaN(value)) {
+        return min;
+    }
+    if (value > max) {
+        return max;
+    }
+    return value;
 }
 
 function params(obj) {
-	var str = '';
-	for (var key in obj) {
-		str += str.length ? '&' : '?';
-		str += encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
-	}
-	return str.replace(/%20/g, '+');
+    var str = '';
+    for (var key in obj) {
+        str += str.length ? '&' : '?';
+        str += encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
+    }
+    return str.replace(/%20/g, '+');
 }
 
 function send(url, obj, func) {
-	url += params(obj);
-	jx.load(url, func, 'text');
+    url += params(obj);
+    jx.load(url, func, 'text');
 }
 
 function toggleFullscreen(btn) {
-	if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement) {
-		var fel = document.firstElementChild;
-		var func = fel.requestFullscreen
-			|| fel.webkitRequestFullScreen
-			|| fel.mozRequestFullScreen;
-		func.call(fel);
-		btn.classList.remove('ion-full-enter');
-		btn.classList.add('ion-full-exit');
-	} else {
-		func = document.exitFullscreen
-			|| document.webkitExitFullscreen
-			|| document.mozCancelFullScreen;
-		if (func) {
-			func.call(document);
-			btn.classList.remove('ion-full-exit');
-			btn.classList.add('ion-full-enter');
-		}
-	}
+    if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement) {
+        var fel = document.firstElementChild;
+        var func = fel.requestFullscreen
+            || fel.webkitRequestFullScreen
+            || fel.mozRequestFullScreen;
+        func.call(fel);
+        btn.classList.remove('ion-full-enter');
+        btn.classList.add('ion-full-exit');
+    } else {
+        func = document.exitFullscreen
+            || document.webkitExitFullscreen
+            || document.mozCancelFullScreen;
+        if (func) {
+            func.call(document);
+            btn.classList.remove('ion-full-exit');
+            btn.classList.add('ion-full-enter');
+        }
+    }
 }
 
 //from jx_compressed.js
