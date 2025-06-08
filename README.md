@@ -131,4 +131,4 @@ The base of the JavaScript/CSS code was taken from the [MeshViewer](https://gith
 
 ## License
 
-All JavaScript/CSS code is AGPL-3 because it is the original license, everything else is MIT.
+AGPL-3.0-or-later
