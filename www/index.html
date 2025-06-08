@@ -49,15 +49,17 @@
 		map_tqTo: '#04C714',
 		map_selectedNode: {
 			color: 'rgba(173, 35, 88, 1.0)',
-			weight: 8,
+			weight: 30,
 			fillOpacity: 1,
 			opacity: 0.4,
 			className: 'stroke-first'
 		},
 		map_selectedLink: {
-			color: 'rgba(255, 255, 255, 0.2)',
-			weight: 4,
-			opacity: 1
+			color: 'rgba(173, 35, 88, 1.0)',
+			weight: 5,
+			fillOpacity: 1,
+			opacity: 0.5,
+			dashArray: "none"
 		},
 		fullscreen: true,
 		fullscreenFrame: true
@@ -69,12 +71,22 @@
 	var my_map;
 	var my_data = {nodes:[], links: []};
 
-	function updateSidebarTable(node) {
+	function updateSidebarTable(obj) {
 		var div = $('#sidebar_table div');
 
 		// remove all children
 		while (div.firstChild) {
 			div.removeChild(div.firstChild);
+		}
+
+		function append(parent, name, content) {
+			var e = document.createElement(name);
+			if ((typeof content === 'string') || (typeof content === 'number')) {
+				var text = document.createTextNode(content.toString());
+				e.appendChild(text);
+			}
+			parent.appendChild(e);
+			return e;
 		}
 
 		function toTable(parent, element) {
@@ -98,7 +110,9 @@
 			}
 		}
 
-		toTable(div, node);
+		if (obj) {
+			toTable(div, obj);
+		}
 	}
 
 	function showMap() {
@@ -149,10 +163,29 @@
 		}
 	}
 
+	function doExtendSelection() {
+		selection.extendSelection(my_data);
+		if (my_graph) {
+			my_graph.redraw();
+		}
+	}
+
+	function doClearSelection() {
+		selection.clearSelection();
+		if (my_graph) {
+			my_graph.redraw();
+		}
+	}
+
 	function handle_data(data) {
-		if (data.length == 2) {
-			// empty data '{}'
-			return;
+		if (data === undefined || data.length == 0) {
+			// invalid data
+			return false;
+		}
+
+		if (data == "{}") {
+			// ignore
+			return true;
 		}
 
 		let bar = $('#alert_bar')
@@ -164,7 +197,8 @@
 		} catch (e) {
 			bar.innerText = e
 			bar.style.visibility = 'visible';
-			return;
+			// invalid data
+			return false;
 		}
 
 		if (json.nodes || json.links) {
@@ -189,42 +223,40 @@
 				my_data = json;
 			}
 		}
-	}
 
-	function request_graph() {
-		send("/cmd/graph", {}, function(data) {
-			handle_data(data);
-		});
+		return true;
 	}
 
 	// fetch graph update
 	function run_fetch_data_loop() {
-		var interval_ms = 250;
+		const interval_ms = 1000;
 
-		function request_data() {
+		function request_data(force_full) {
+			const command = force_full ? "/cmd/graph_full" : "/cmd/graph_update";
 			// request graph
-			send("/cmd/graph", {}, function(data) {
-				handle_data(data);
-				setTimeout(request_data, interval_ms);
+			send(command, {}, function(data) {
+				// force full data if the previous fetch failed or got invalid data
+				const force_full = !handle_data(data);
+				setTimeout(request_data, interval_ms, force_full);
 			});
 		}
 
-		request_data();
+		request_data(true);
 	}
 
-	// get command reply update
+	// get content from the call program/path
 	function run_command_update_loop() {
-		var interval_ms = 500;
+		var interval_ms = 1000;
 
-		function looped_request_command_reply() {
+		function request_command_reply() {
 			// request graph
 			send("/cmd/call_receive", {}, function(data) {
 				$("#command_reply").value += data;
-				setTimeout(looped_request_command_reply, interval_ms);
+				setTimeout(request_command_reply, interval_ms);
 			});
 		}
 
-		looped_request_command_reply();
+		request_command_reply();
 	}
 
 	function sendCommand(query) {
@@ -316,8 +348,8 @@
 			<fieldset>
 				<legend>Change Selection</legend>
 				<div>
-					<input type="button" onclick="selection.extendSelection(my_data); if (my_graph) { my_graph.redraw(); }" value="extend" />
-					<input type="button" onclick="selection.clearSelection(); if (my_graph) { my_graph.redraw(); }" value="unselect" />
+					<input type="button" onclick="doExtendSelection()" value="extend" />
+					<input type="button" onclick="doClearSelection()" value="unselect" />
 				</div>
 			</fieldset>
 			<fieldset id="custom_buttons">

@@ -56,7 +56,7 @@ function createClientLayer() {
 				return tile;
 			}
 
-			var startDistance = 10;
+			var startDistance = 15;
 
 			nodes.forEach(function (d) {
 				var p = map.project([d.node.x, d.node.y]);

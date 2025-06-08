@@ -23,18 +23,6 @@ function createLabelLayer() {
 		return (d * 100).toFixed(0) + '%';
 	}
 
-	function subtract(a, b) {
-		var ids = {};
-
-		b.forEach(function (d) {
-			ids[d.o.id] = true;
-		});
-
-		return a.filter(function (d) {
-			return !ids[d.o.id];
-		});
-	}
-
 	function getTileBBox(s, map, tileSize, margin) {
 		var tl = map.unproject([s.x - margin, s.y - margin]);
 		var br = map.unproject([s.x + margin + tileSize, s.y + margin + tileSize]);
@@ -73,13 +61,13 @@ function createLabelLayer() {
 			var font = fontSize + 'px ' + bodyStyle.fontFamily;
 			return {
 				position: L.latLng(d.x, d.y),
-				label: d.o.name,
+				label: getNodeName(d.o),
 				offset: offset,
 				fillStyle: fillStyle,
 				height: fontSize * 1.2,
 				font: font,
 				stroke: stroke,
-				width: measureText(font, d.o.name).width
+				width: measureText(font, getNodeName(d.o)).width
 			};
 		};
 	}
@@ -113,27 +101,37 @@ function createLabelLayer() {
 		return { minX: x, minY: y, maxX: x + width, maxY: y + height };
 	}
 
-	function mkMarker(iconFunc) {
+	function mkMarker(nodeDict, iconFunc) {
 		return function (d) {
-			var m = L.circleMarker([d.x, d.y], iconFunc(d));
+			var marker = L.circleMarker([d.x, d.y], iconFunc(d));
+			const id = getNodeId(d.o);
 
-			m.resetStyle = function resetStyle() {
-				m.setStyle(iconFunc(d));
+			marker.resetStyle = function resetStyle() {
+				if (selection.isNodeSelected(id)) {
+					marker.setStyle(config.map_selectedNode);
+				} else {
+					marker.setStyle(iconFunc(d));
+				}
 			};
 
-			m.on('click', function () {
-				selection.selectNode(d.o);
+			marker.on('click', function (m) {
+				selection.selectNode(id);
+
+				// fill info table
+				updateSidebarTable(d.o);
+
+				marker.resetStyle();
 			});
 
-			if ('name' in d.o) {
-				m.bindTooltip(escape(d.o.name));
-			}
+			marker.bindTooltip(escape(getNodeName(d.o)));
 
-			return m;
+			nodeDict[id] = marker;
+
+			return marker;
 		};
 	}
 
-	function addLinksToMap(linkScale, graph) {
+	function addLinksToMap(linkDict, linkScale, graph) {
 		return graph.map(function (d) {
 			var opts = {
 				weight: 4,
@@ -155,16 +153,27 @@ function createLabelLayer() {
 			var line = L.polyline(latlngs, opts);
 
 			line.resetStyle = function resetStyle() {
-				line.setStyle(opts);
+				if (selection.isLinkSelected(d.o.source, d.o.target)) {
+					line.setStyle(config.map_selectedLink);
+				} else {
+					line.setStyle(opts);
+				}
 			};
 
-			line.bindTooltip('<center>' + escape(d.source.o.name + " – " + d.target.o.name) + '</center>'
+			line.bindTooltip('<center>' + escape(getNodeName(d.source.o) + " – " + getNodeName(d.target.o)) + '</center>'
 				+ '<strong>' + showDistance(d) + ' / ' + showTq(source_tq)
 				+ ' - ' + showTq(target_tq) + '</strong>');
 
 			line.on('click', function () {
-				selection.selectLink(d.o);
+				selection.selectLink(d.o.source, d.o.target);
+
+				// fill info table
+				updateSidebarTable(d.o);
+
+				line.resetStyle();
 			});
+
+			linkDict[d.id] = line;
 
 			return line;
 		});
@@ -177,7 +186,7 @@ function createLabelLayer() {
 				this.prepareLabels();
 			}
 		},
-		setData: function (data, map, linkScale) {
+		setData: function (data, map, nodeDict, linkDict, linkScale) {
 			var iconOnline = {
 				'fillOpacity': 0.6,
 				'opacity': 0.6,
@@ -194,10 +203,10 @@ function createLabelLayer() {
 				groupLines.clearLayers();
 			}
 
-			var lines = addLinksToMap(linkScale, data.links);
+			var lines = addLinksToMap(linkDict, linkScale, data.links);
 			groupLines = L.featureGroup(lines).addTo(map);
 
-			var markersOnline = data.nodes.map(mkMarker(function () {
+			var markersOnline = data.nodes.map(mkMarker(nodeDict, function () {
 				return iconOnline;
 			}));
 

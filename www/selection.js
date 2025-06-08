@@ -36,7 +36,8 @@ function createSelection() {
 		var connections = {};
 
 		data.nodes.forEach(function(n) {
-			connections[n.id] = [];
+			const id = getNodeId(n);
+			connections[id] = [];
 		});
 
 		data.links.forEach(function(l) {
@@ -48,7 +49,7 @@ function createSelection() {
 			selectedNodesDict[id] = true;
 			if (id in connections) {
 				connections[id].forEach(function(l) {
-					var link_id = l.source + "," + l.target;
+					var link_id = getLinkId(l);
 					if (!(link_id in selectedLinksDict)) {
 						selectedLinksDict[link_id] = true;
 					}
@@ -78,7 +79,6 @@ function createSelection() {
 
 	// Remove selected nodes/links that were deleted
 	self.filterSelections = function (nodes, links) {
-
 		selectedNodes = selectedNodes.filter(function(e) {
 			return (nodes.indexOf(e.id) !== -1);
 		});
@@ -88,20 +88,22 @@ function createSelection() {
 		});
 	}
 
-	self.isSelectedLink = function (id) {
+	self.isLinkSelected = function (sourceId, targetId) {
+		const id = sourceId + "," + targetId;
 		return (selectedLinks.indexOf(id) !== -1);
 	}
 
-	self.isSelectedNode = function (id) {
+	self.isNodeSelected = function (nodeId) {
+		const id = String(nodeId);
 		return (selectedNodes.indexOf(id) !== -1);
 	}
 
 	self.isAnythingSelected = function () {
-		return (selectedNodes === 0) && (selectedLinks.length === 0);
+		return (selectedNodes.length > 0) || (selectedLinks.length > 0);
 	}
 
-	self.selectNode = function (node) {
-		var id = node.id;
+	self.selectNode = function (nodeId) {
+		const id = String(nodeId);
 
 		if (self.isMetaPressed()) {
 			var i = selectedNodes.indexOf(id);
@@ -116,13 +118,10 @@ function createSelection() {
 			selectedNodes = [id];
 			selectedLinks = [];
 		}
-
-		// fill info table
-		updateSidebarTable(node);
 	};
 
-	self.selectLink = function (link) {
-		var id = link.source + ',' + link.target;
+	self.selectLink = function (sourceId, targetId) {
+		var id = sourceId + ',' + targetId;
 
 		if (self.isMetaPressed()) {
 			var i = selectedLinks.indexOf(id);
@@ -135,9 +134,6 @@ function createSelection() {
 			selectedNodes = [];
 			selectedLinks = [id];
 		}
-
-		// fill info table
-		updateSidebarTable(link);
 	};
 
 	return self;

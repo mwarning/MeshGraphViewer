@@ -18,6 +18,7 @@ class Map {
 		var baseLayers = {};
 		this.sidebar = sidebar;
 		this.linkScale = linkScale;
+		this.selection = selection;
 
 		// add html
 		this.el = document.createElement('div');
@@ -151,20 +152,14 @@ class Map {
 	}
 
 	resetMarkerStyles() {
+		const self = this;
+
 		Object.keys(this.nodeDict).forEach(function (id) {
-			if (selection.isSelectedNode(id)) {
-				this.nodeDict[id].setStyle(config.map_selectedNode);
-			} else {
-				this.nodeDict[id].resetStyle();
-			}
+			self.nodeDict[id].resetStyle();
 		});
 
 		Object.keys(this.linkDict).forEach(function (id) {
-			if (selection.isSelectedLink(id.replace("-", ","))) {
-				linkDict[id].setStyle(config.map_selectedLink);
-			} else {
-				linkDict[id].resetStyle();
-			}
+			self.linkDict[id].resetStyle();
 		});
 	}
 
@@ -217,18 +212,6 @@ class Map {
 	updateView(nopanzoom) {
 		this.resetMarkerStyles();
 
-		/*
-		if (highlight !== undefined) {
-			if (highlight.type === 'node' && nodeDict[highlight.o.node_id]) {
-				m = nodeDict[highlight.o.node_id];
-				m.setStyle(config.map.highlightNode);
-			} else if (highlight.type === 'link' && linkDict[highlight.o.id]) {
-				m = linkDict[highlight.o.id];
-				m.setStyle(config.map.highlightLink);
-			}
-		}
-		*/
-
 		if (!nopanzoom) {
 			if (this.savedView) {
 				this.map.setView(this.savedView.center, this.savedView.zoom);
@@ -249,24 +232,24 @@ class Map {
 			var self = this;
 
 			data.nodes.forEach(function (d) {
-				if (Math.abs(d.x) < 90 && Math.abs(d.y) < 180) {
-					if (config.useIdsAsName && !('name' in d)) {
-						d.name = '' + d.id;
-					}
-					var node = {o: d, x: d.x, y: d.y};
-					self.nodeDict['' + d.id] = node;
+				const x = getNodeLatitude(d);
+				const y = getNodeLongitude(d);
+				if (Math.abs(x) < 90 && Math.abs(y) < 180) {
+					const id = getNodeId(d);
+					var node = {o: d, x: x, y: y};
+					self.nodeDict[id] = node;
 					nodes.push(node);
 				}
 			});
 
 			data.links.forEach(function (d) {
-				var sid = '' + d.source;
-				var tid = '' + d.target;
-				var source = self.nodeDict[sid];
-				var target = self.nodeDict[tid];
+				const sid = String(d.source);
+				const tid = String(d.target);
+				const source = self.nodeDict[sid];
+				const target = self.nodeDict[tid];
 				if (source && target) {
-					var lid = [sid, tid].join('-');
-					var link = {o: d, id: lid, source: source, target: target};
+					const lid = sid + '-' + tid;
+					const link = {o: d, id: lid, source: source, target: target};
 					links.push(link);
 				}
 			});
@@ -279,7 +262,8 @@ class Map {
 
 		this.nodeBounds = Map.getNodeBounds(nodes);
 		this.clientLayer.setData(data);
-		this.labelLayer.setData(data, this.map, this.linkScale);
+		this.labelLayer.setData(data, this.map, this.nodeDict, this.linkDict, this.linkScale);
+		//labelLayer.setData(data, map, nodeDict, linkDict, linkScale);
 
 		this.updateView(true);
 	}
@@ -297,7 +281,7 @@ class Map {
 		document.getElementsByClassName("ion-locate")[0].classList.add("hidden");
 
 		var sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
-		/*sidebar.button*/sidebar_button.removeEventListener('visibility', this.setActiveArea);
+		sidebar_button.removeEventListener('visibility', this.setActiveArea);
 		this.map.remove();
 
 		if (this.el.parentNode) {

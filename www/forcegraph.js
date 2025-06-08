@@ -235,17 +235,6 @@ function createGraph(parent, selection, sidebar) {
 		redraw();
 	});
 
-	// Create a bidirectional link identifier
-	function linkId(source, target) {
-		var sid = '' + source.id;
-		var tid = '' + target.id;
-		return (sid > tid) ? (tid + '=>' + sid) : (sid + '=>' + tid);
-	}
-
-	function nodeId(n) {
-		return '' + n.o.id;
-	}
-
 	/* Update graph
 	* d3.js uses memebers x, y and index for own purposes.
 	* x and y may initialized with starting positions.
@@ -258,12 +247,14 @@ function createGraph(parent, selection, sidebar) {
 		if (is_update) {
 			// Keep existing data
 			var dnodes = {};
-			data.nodes.forEach(function (e) {
-				dnodes['' + e.id] = e;
+			data.nodes.forEach(function (d) {
+				const id = getNodeId(d);
+				dnodes[id] = d;
 			});
 			intNodes.forEach(function (e) {
-				if (nodeId(e) in dnodes) {
-					nodeDict[nodeId(e)] = e;
+				const id = getNodeId(d);
+				if (id in dnodes) {
+					nodeDict[id] = e;
 				}
 			});
 		}
@@ -280,11 +271,7 @@ function createGraph(parent, selection, sidebar) {
 		var py = lastClick[1] - my;
 
 		function addNode(node) {
-			var id = '' + node.id;
-
-			if (config.useIdsAsName && !('name' in node)) {
-				node.name = id;
-			}
+			var id = getNodeId(node);
 
 			if (id in nodeDict) {
 				var n = nodeDict[id];
@@ -305,8 +292,8 @@ function createGraph(parent, selection, sidebar) {
 		}
 
 		function addLink(link) {
-			var sid = '' + link.source;
-			var tid = '' + link.target;
+			var sid = String(link.source);
+			var tid = String(link.target);
 
 			if (!(sid in nodeDict)) {
 				addNode({'id': sid});
@@ -318,7 +305,7 @@ function createGraph(parent, selection, sidebar) {
 
 			var source = nodeDict[sid];
 			var target = nodeDict[tid];
-			var id = linkId(source.o, target.o);
+			var id = getLinkId(link);
 
 			if (id in linkDict) {
 				var l = linkDict[id];
@@ -359,21 +346,27 @@ function createGraph(parent, selection, sidebar) {
 		moveTo([0, 0, (ZOOM_MIN + 1) / 2], true);
 	};
 
-	function selectNode (node) {
+	function selectNode (d) {
 		// Focus node if no ctrl key pressed
-		selection.selectNode(node.o);
+		selection.selectNode(d.o.id);
+
+		// fill info table
+		updateSidebarTable(d.o);
 
 		if (!selection.isMetaPressed()) {
-			moveTo([node.x, node.y, (ZOOM_MAX + 1) / 2]);
+			moveTo([d.x, d.y, (ZOOM_MAX + 1) / 2]);
 		}
 	};
 
-	function selectLink (link) {
+	function selectLink (d) {
 		// Focus link if no ctrl key pressed
-		selection.selectLink(link.o);
+		selection.selectLink(d.o.source, d.o.target);
+
+		// fill info table
+		updateSidebarTable(d.o);
 
 		if (!selection.isMetaPressed()) {
-			moveTo([(link.source.x + link.target.x) / 2, (link.source.y + link.target.y) / 2, (ZOOM_MAX / 2) + ZOOM_MIN]);
+			moveTo([(d.source.x + d.target.x) / 2, (d.source.y + d.target.y) / 2, (ZOOM_MAX / 2) + ZOOM_MIN]);
 		}
 	};
 

@@ -36,14 +36,32 @@ function try_get(obj, key, def) {
 	}
 }
 
-function append(parent, name, content) {
-  var e = document.createElement(name);
-  if ((typeof content === 'string') || (typeof content === 'number')) {
-    var text = document.createTextNode(content.toString());
-    e.appendChild(text);
-  }
-  parent.appendChild(e);
-  return e;
+function getNodeLatitude(node) {
+	return node.x || (node.location.latitude);
+}
+
+function getNodeLongitude(node) {
+	return node.y || (node.location.longitude);
+}
+
+function getNodeName(node) {
+	return node.name || node.hostname || getNodeId(node);
+}
+
+function getNodeLabel(node) {
+	return node.label;
+}
+
+function getNodeClients(node) {
+	return node.clients;
+}
+
+function getNodeId(node) {
+	return node.id || node.node_id;
+}
+
+function getLinkId(link) {
+	return String(link.source) + ',' + link.target;
 }
 
 function limitFloat(value, min, max) {
@@ -59,8 +77,7 @@ function limitFloat(value, min, max) {
 function params(obj) {
 	var str = '';
 	for (var key in obj) {
-		if (str.length) str += '&';
-		else str += '?';
+		str += str.length ? '&' : '?';
 		str += encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
 	}
 	return str.replace(/%20/g, '+');

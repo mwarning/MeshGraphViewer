@@ -103,14 +103,20 @@ static int send_reply(struct MHD_Connection *connection, int status_code, const 
   return ret;
 }
 
-static int send_empty_text(struct MHD_Connection *connection)
-{
-  return send_reply(connection, MHD_HTTP_OK, "text/plain", MHD_RESPMEM_PERSISTENT, NULL, 0);
-}
-
 static int send_empty_json(struct MHD_Connection *connection)
 {
   return send_reply(connection, MHD_HTTP_OK, "application/json", MHD_RESPMEM_PERSISTENT, "{}", 2);
+}
+
+static int send_text(struct MHD_Connection *connection, const char *text)
+{
+  size_t length = text ? strlen(text) : 0;
+  return send_reply(connection, MHD_HTTP_OK, "application/plain", MHD_RESPMEM_PERSISTENT, text, length);
+}
+
+static int send_empty_text(struct MHD_Connection *connection)
+{
+  return send_text(connection, NULL);
 }
 
 static int send_error(struct MHD_Connection *connection)
@@ -136,6 +142,7 @@ static int get_query(void *cls, enum MHD_ValueKind kind, const char *key, const 
 
 static int handle_call_receive(struct MHD_Connection *connection)
 {
+  // send new buffer content and clear
   int ret = send_reply(connection, MHD_HTTP_OK, "text/plain", MHD_RESPMEM_MUST_COPY, g_com_buf, strlen(g_com_buf));
   memset(g_com_buf, 0, sizeof(g_com_buf));
 
@@ -165,7 +172,7 @@ static int handle_call_execute(struct MHD_Connection *connection)
   return send_empty_text(connection);
 }
 
-static int handle_graph(struct MHD_Connection *connection)
+static int handle_graph(struct MHD_Connection *connection, bool force_full_file)
 {
   if (g_graph == NULL) {
     return send_empty_json(connection);
@@ -174,29 +181,32 @@ static int handle_graph(struct MHD_Connection *connection)
   // get timestamp
   struct stat attr;
   if (stat(g_graph, &attr) == -1) {
+    // graph file not found
     fprintf(stderr, "stat(): %s %s\n", strerror(errno), g_graph);
-    return send_empty_json(connection);
+    return send_empty_text(connection);
   }
 
-  if (attr.st_mtime == g_graph_mtime) {
-    // no change
-    return send_empty_json(connection);
+  if (!force_full_file) {
+    if (attr.st_mtime == g_graph_mtime) {
+      // no change
+      return send_empty_json(connection);
+    }
   }
 
   // update global timestamp
   g_graph_mtime = attr.st_mtime;
 
-  // Fetch JSON data
   if (g_graph == NULL) {
-    return send_not_found(connection);
+    // no graph file set
+    return send_empty_text(connection);
   }
 
-  size_t size = 0;
+  size_t size = -1;
   uint8_t *data = read_file(&size, g_graph);
 
-  if (data == NULL || size == 0) {
-    // no change
-    return send_empty_json(connection);
+  if (data == NULL || size < 0) {
+    // failed to read file (or file is empty)
+    return send_empty_text(connection);
   }
 
   struct MHD_Response *response = MHD_create_response_from_buffer(size, data, MHD_RESPMEM_MUST_FREE);
@@ -211,7 +221,7 @@ static int handle_content(struct MHD_Connection *connection, const char *url)
 {
   enum MHD_ResponseMemoryMode mode;
   const uint8_t *content_data = NULL;
-  size_t content_size = 0;
+  size_t content_size = -1;
 
   if (!is_valid_path(url)) {
     return send_error(connection);
@@ -249,7 +259,7 @@ static int handle_content(struct MHD_Connection *connection, const char *url)
   }
 
   // Error if no file was found
-  if (NULL == content_data) {
+  if (NULL == content_data || content_size < 0) {
     return send_not_found(connection);
   }
 
@@ -269,8 +279,10 @@ static int send_response(void *cls, struct MHD_Connection *connection,
     return handle_call_execute(connection);
   } else if (0 == strcmp(url, "/cmd/call_receive")) {
     return handle_call_receive(connection);
-  } else if (0 == strcmp(url, "/cmd/graph")) {
-    return handle_graph(connection);
+  } else if (0 == strcmp(url, "/cmd/graph_full")) {
+    return handle_graph(connection, true);
+  } else if (0 == strcmp(url, "/cmd/graph_update")) {
+    return handle_graph(connection, false);
   } else {
     return handle_content(connection, url);
   }

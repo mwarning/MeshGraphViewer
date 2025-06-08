@@ -20,21 +20,24 @@ function createDraw(selection) {
 
 	function drawDetailNode(d) {
 		if (transform.k > 1) {
-			if ('clients' in d.o) {
+			const clients = getNodeClients(d.o);
+			if (clients !== undefined) {
 				ctx.beginPath();
 				ctx.fillStyle = config.graph_clientColor;
 				positionClients(ctx, d, Math.PI, d.o.clients, 15);
 				ctx.fill();
 			}
 
-			if ('name' in d.o) {
+			const name = getNodeName(d.o);
+			if (name !== undefined) {
 				ctx.beginPath();
 				ctx.textAlign = 'center';
 				ctx.fillStyle = '#fff';
-				ctx.fillText(d.o.name, d.x, d.y + 20);
+				ctx.fillText(name, d.x, d.y + 20);
 			}
 
-			if ('label' in d.o) {
+			const label = getNodeLabel(d.o);
+			if (label !== undefined) {
 				ctx.beginPath();
 				ctx.textAlign = 'center';
 				ctx.fillStyle = 'black';
@@ -44,7 +47,7 @@ function createDraw(selection) {
 	}
 
 	function drawSelectedNode(d) {
-		if (selection.isSelectedNode(d.o.id)) {
+		if (selection.isNodeSelected(d.o.id)) {
 			ctx.arc(d.x, d.y, NODE_RADIUS * 1.5, 0, 2 * Math.PI);
 			ctx.fillStyle = config.graph_selectColor;
 			ctx.fill();
@@ -53,7 +56,7 @@ function createDraw(selection) {
 	}
 
 	function drawSelectedLink(d, to) {
-		if (selection.isSelectedLink(d.source.o.id + "," + d.target.o.id)) {
+		if (selection.isLinkSelected(d.source.o.id, d.target.o.id)) {
 			ctx.lineTo(to[0], to[1]);
 			ctx.strokeStyle = config.graph_selectColor;
 			ctx.lineWidth = LINE_RADIUS * 2;

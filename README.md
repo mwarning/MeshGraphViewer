@@ -79,10 +79,12 @@ More elaborate example:
 Note:
 
 * `id`/`source`/`target`: Node identifier. These are mandatory options.
+  * An alternative for `id` is `node_id`.
 * `target_tq`/`source_tq`: link quality in the range of `[0..1]`.
 * `label`: Display a label on top of a node or link.
 * `name`: Display a name under a node. Defaults to `id` if not disabled.
 * `x`/`y`: Geographical position, also used for initial position in topological view.
+  * An alternative for `x`/`y` is `location: { longitude: 52.5162, latitude: 13.3777}`.
 * `clients`: Display a number of small circles around each node.
 * `color`: Color of a node or link. CSS color format. By default the link color is based on `target_tq` and `source_tq`.
 * `radius`: Radius of the node circle.
