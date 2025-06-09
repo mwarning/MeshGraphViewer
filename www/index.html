@@ -71,7 +71,7 @@
     var my_data = {nodes:[], links: []};
 
     function updateSidebarTable(obj) {
-        var div = $('#sidebar_table div');
+        var div = $('#object_tab div');
 
         // remove all children
         while (div.firstChild) {
@@ -162,11 +162,19 @@
         }
     }
 
+    function updateStats() {
+        $("#selected_node_count").innerText = selection.getSelectedNodes().length;
+        $("#selected_link_count").innerText = selection.getSelectedLinks().length;
+        $("#node_count").innerText = my_data.links.length;
+        $("#link_count").innerText = my_data.nodes.length;
+    }
+
     function doExtendSelection() {
         selection.extendSelection(my_data);
         if (my_graph) {
             my_graph.redraw();
         }
+        updateStats();
     }
 
     function doClearSelection() {
@@ -174,6 +182,7 @@
         if (my_graph) {
             my_graph.redraw();
         }
+        updateStats();
     }
 
     function handleData(data) {
@@ -221,6 +230,8 @@
                 my_map.setData(json);
                 my_data = json;
             }
+
+            updateStats();
         }
 
         return true;
@@ -287,8 +298,8 @@
 
     // Preconfigured buttons
     function addSidebarButtons() {
-        const fieldset = $('#custom_buttons');
-        const div = $('#custom_buttons div');
+        const fieldset = $('#actions_tab');
+        const div = $('#actions_tab div');
 
         if (config.buttons && config.buttons.length) {
 
@@ -328,6 +339,16 @@
             runCommandReplyLoop();
         });
     }
+
+    function selectTab(header, content) {
+        if (header.classList.contains("visible")) {
+            header.classList.remove("visible");
+            content.classList.add("hidden");
+        } else {
+            header.classList.add("visible");
+            content.classList.remove("hidden");
+        }
+    }
 </script>
 </head>
 <body onload="init()">
@@ -344,24 +365,32 @@
     <div class="sidebar sidebar_hidden">
         <button class="button sidebarhandle" title="Toggle Sidebar" onclick="sidebar.onClick();">&lt;</button>
         <div class="container hidden">
-            <fieldset>
+            <ul id="tabs">
+                <li onclick="selectTab(this, $('#object_tab'))" class="visible">Object</li>
+                <li onclick="selectTab(this, $('#actions_tab'))" class="visible">Actions</li>
+                <li onclick="selectTab(this, $('#command_tab'))" class="visible">Command</li>
+                <li onclick="selectTab(this, $('#selection_tab'))" class="visible">Selection</li>
+            </ul>
+            <fieldset id="selection_tab">
                 <legend>Change Selection</legend>
                 <div>
                     <input type="button" onclick="doExtendSelection()" value="extend" />
                     <input type="button" onclick="doClearSelection()" value="unselect" />
                 </div>
+                <div><span id="selected_node_count">0</span>nodes and<span id="selected_link_count">0</span>links selected.</div>
+                <div><span id="node_count">0</span>nodes and<span id="link_count">0</span>links overall.</div>
             </fieldset>
-            <fieldset id="custom_buttons">
-                <legend>Custom Buttons</legend>
+            <fieldset id="actions_tab">
+                <legend>Custom Actions</legend>
                 <div>
                     <!-- added via config -->
                 </div>
             </fieldset>
-            <fieldset id="sidebar_table">
+            <fieldset id="object_tab">
                 <legend>Node/Link</legend>
                 <div></div>
             </fieldset>
-            <fieldset>
+            <fieldset id="command_tab">
                 <legend>Send Command</legend>
                 <div>
                     <input type="text" value="" id="command_request" onkeypress="onCommandChar(event)" />

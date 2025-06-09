@@ -3,6 +3,10 @@ function $(selector) {
     return document.querySelector(selector);
 }
 
+function $$(selector) {
+    return document.querySelectorAll(selector);
+}
+
 function positionClients(ctx, p, startAngle, clients, startDistance) {
     if (clients === 0) {
         return;

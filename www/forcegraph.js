@@ -350,6 +350,7 @@ function createGraph(parent, selection, sidebar) {
         // Focus node if no ctrl key pressed
         const id = getNodeId(d.o);
         selection.selectNode(id);
+        updateStats();
 
         // fill info table
         updateSidebarTable(d.o);
@@ -362,6 +363,7 @@ function createGraph(parent, selection, sidebar) {
     function selectLink (d) {
         // Focus link if no ctrl key pressed
         selection.selectLink(d.o.source, d.o.target);
+        updateStats();
 
         // fill info table
         updateSidebarTable(d.o);

@@ -116,6 +116,7 @@ function createLabelLayer() {
 
             marker.on('click', function (m) {
                 selection.selectNode(id);
+                updateStats();
 
                 // fill info table
                 updateSidebarTable(d.o);
@@ -166,6 +167,7 @@ function createLabelLayer() {
 
             line.on('click', function () {
                 selection.selectLink(d.o.source, d.o.target);
+                updateStats();
 
                 // fill info table
                 updateSidebarTable(d.o);
