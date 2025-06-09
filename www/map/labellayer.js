@@ -120,8 +120,6 @@ function createLabelLayer() {
 
                 // fill info table
                 updateSidebarTable(d.o);
-
-                marker.resetStyle();
             });
 
             marker.bindTooltip(escape(getNodeName(d.o)));
@@ -171,8 +169,6 @@ function createLabelLayer() {
 
                 // fill info table
                 updateSidebarTable(d.o);
-
-                line.resetStyle();
             });
 
             linkDict[d.id] = line;
@@ -207,12 +203,24 @@ function createLabelLayer() {
 
             const lines = addLinksToMap(linkDict, linkScale, data.links);
             groupLines = L.featureGroup(lines).addTo(map);
+            groupLines.on('click', function() {
+                // redraw line markers if selection changes
+                for (let line of lines) {
+                    line.resetStyle();
+                }
+            })
 
             const markersOnline = data.nodes.map(mkMarker(nodeDict, function () {
                 return iconOnline;
             }));
 
             groupOnline = L.featureGroup(markersOnline).addTo(map);
+            groupOnline.on('click', function() {
+                // redraw node markers if selection changes
+                for (let marker of markersOnline) {
+                    marker.resetStyle();
+                }
+            })
 
             this.data = data.nodes;
             this.updateLayer();
