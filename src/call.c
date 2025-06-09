@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/stat.h>
 
 #include "main.h"
 #include "utils.h"
@@ -15,6 +16,7 @@
 
 
 int g_com_sock = -1;
+struct sockaddr_storage g_addr = {0};
 char g_com_buf[2048] = { 0 };
 
 
@@ -32,44 +34,54 @@ static void append_message(const char *msg) {
 
 void call_receive()
 {
-  size_t len;
-
-  if (g_com_sock >= 0) {
-    if (is_prefix("udp://", g_call) || is_prefix("tcp://", g_call) || is_prefix("unix://", g_call)) {
-      len = strlen(g_com_buf);
-      // read data from socket
-      if (read(g_com_sock, g_com_buf + len, sizeof(g_com_buf) - len) <= 0) {
-        close(g_com_sock);
-        g_com_sock = -1;
-      }
+  if (g_com_sock >= 0 && g_call) {
+    size_t len = strlen(g_com_buf);
+    // read data from socket
+    if (read(g_com_sock, g_com_buf + len, sizeof(g_com_buf) - len) <= 0) {
+      close(g_com_sock);
+      g_com_sock = -1;
     }
   }
 }
 
-static void tcp_send(const char* addr_str, const char *msg)
+static bool tcp_init(const char* addr_str)
 {
   const int opt_on = 1;
-  struct sockaddr_storage addr = {0};
 
+  if (addr_parse_full(&g_addr, addr_str, DEFAULT_PORT, AF_UNSPEC) != 0) {
+    fprintf(stderr, "Failed to parse IP address '%s'\n", addr_str);
+    return false;
+  }
+
+  if ((g_com_sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+    return false;
+  }
+
+  if (setsockopt(g_com_sock, SOL_SOCKET, SO_REUSEADDR, &opt_on, sizeof(opt_on)) < 0) {
+    return false;
+  }
+
+  if (connect(g_com_sock, (struct sockaddr*) &g_addr, sizeof(g_addr)) < 0) {
+    return false;
+  }
+
+  net_set_nonblocking(g_com_sock);
+
+  return true;
+}
+
+static void tcp_uninit()
+{
+  close(g_com_sock);
+  g_com_sock = -1;
+}
+
+static void tcp_send(const char* addr_str, const char *msg)
+{
   if (g_com_sock < 0) {
-    if (addr_parse_full(&addr, addr_str, DEFAULT_PORT, AF_UNSPEC) != 0) {
-      fprintf(stderr, "Failed to parse IP address '%s'\n", addr_str);
+    if (!tcp_init(addr_str)) {
       goto error;
     }
-
-    if ((g_com_sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-      goto error;
-    }
-
-    if (setsockopt(g_com_sock, SOL_SOCKET, SO_REUSEADDR, &opt_on, sizeof(opt_on)) < 0) {
-      goto error;
-    }
-
-    if (connect(g_com_sock, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
-      goto error;
-    }
-
-    net_set_nonblocking(g_com_sock);
   }
 
   if (send(g_com_sock, msg, strlen(msg), 0) < 0) {
@@ -79,8 +91,7 @@ static void tcp_send(const char* addr_str, const char *msg)
   return;
 
 error:
-  close(g_com_sock);
-  g_com_sock = -1;
+  tcp_uninit();
 
   fprintf(stderr, "%s\n", strerror(errno));
 
@@ -91,38 +102,51 @@ error:
   return;
 }
 
-static void udp_send(const char* addr_str, const char *msg)
+static bool udp_init(const char* addr_str)
 {
   const int opt_on = 1;
-  struct sockaddr_storage addr = {0};
-  socklen_t addrlen;
 
+  if (addr_parse_full(&g_addr, addr_str, DEFAULT_PORT, AF_UNSPEC) != 0) {
+    fprintf(stderr, "Failed to parse IP address: %s\n", addr_str);
+    return false;
+  }
+
+  if ((g_com_sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+    return false;
+  }
+
+  net_set_nonblocking(g_com_sock);
+
+  if (setsockopt(g_com_sock, SOL_SOCKET, SO_REUSEADDR, &opt_on, sizeof(opt_on)) < 0) {
+    return false;
+  }
+
+  return true;
+}
+
+static void udp_uninit()
+{
+  close(g_com_sock);
+  g_com_sock = -1;
+}
+
+static void udp_send(const char* addr_str, const char *msg)
+{
   if (g_com_sock < 0) {
-    if (addr_parse_full(&addr, addr_str, DEFAULT_PORT, AF_UNSPEC) != 0) {
-      fprintf(stderr, "Failed to parse IP address '%s'\n", addr_str);
-      goto error;
-    }
-
-    if ((g_com_sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-      goto error;
-    }
-    net_set_nonblocking(g_com_sock);
-
-    if (setsockopt(g_com_sock, SOL_SOCKET, SO_REUSEADDR, &opt_on, sizeof(opt_on)) < 0) {
+    if (!udp_init(addr_str)) {
       goto error;
     }
   }
 
-  addrlen = sizeof(struct sockaddr_in);
-  if (sendto(g_com_sock, msg, strlen(msg), 0, (struct sockaddr*) &addr, addrlen) < 0) {
+  socklen_t addrlen = sizeof(struct sockaddr_in);
+  if (sendto(g_com_sock, msg, strlen(msg), 0, (struct sockaddr*) &g_addr, addrlen) < 0) {
     goto error;
   }
 
   return;
 
 error:
-  close(g_com_sock);
-  g_com_sock = -1;
+  udp_uninit();
 
   fprintf(stderr, "%s\n", strerror(errno));
 
@@ -133,21 +157,35 @@ error:
   return;
 }
 
+static bool unix_init(const char* addr_str)
+{
+  struct sockaddr_un *addr = (struct sockaddr_un *) &g_addr;
+
+  if ((g_com_sock = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
+    return false;
+  }
+  net_set_nonblocking(g_com_sock);
+
+  addr->sun_family = AF_LOCAL;
+  strcpy(addr->sun_path, addr_str);
+
+  return true;
+}
+
+static void unix_uninit() {
+  close(g_com_sock);
+  g_com_sock = -1;
+}
+
 static void unix_send(const char* addr_str, const char *msg)
 {
-  struct sockaddr_un addr = {0};
-
   if (g_com_sock < 0) {
-    if ((g_com_sock = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
+    if (!unix_init(addr_str)) {
       goto error;
     }
-    net_set_nonblocking(g_com_sock);
-
-    addr.sun_family = AF_LOCAL;
-    strcpy(addr.sun_path, addr_str);
   }
 
-  if (connect(g_com_sock, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+  if (connect(g_com_sock, (struct sockaddr *) &g_addr, sizeof(g_addr)) < 0) {
     fprintf(stderr, "Failed to connect to '%s': %s\n", addr_str, strerror(errno));
     goto error;
   }
@@ -159,8 +197,7 @@ static void unix_send(const char* addr_str, const char *msg)
   return;
 
 error:
-  close(g_com_sock);
-  g_com_sock = -1;
+  unix_uninit();
 
   fprintf(stderr, "%s\n", strerror(errno));
 
@@ -171,7 +208,44 @@ error:
   return;
 }
 
-void call_send(const char *addr_str, const char *msg)
+static bool prog_init(const char* path)
+{
+  struct stat attr;
+  if (stat(path, &attr) == 0 && attr.st_mode & S_IXUSR) {
+    // file exists and is executable
+    return true;
+  } else {
+    fprintf(stderr, "Not executable: %s\n", path);
+    return false;
+  }
+}
+
+bool call_validate(const char *call) {
+  bool ok = false;
+
+  if (is_prefix("udp://", call)) {
+    ok = udp_init(g_call + 6);
+  } else if (is_prefix("tcp://", call)) {
+    ok = tcp_init(g_call + 6);
+  } else if (is_prefix("unix://", call)) {
+    ok = unix_init(g_call + 7);
+  } else {
+    ok = prog_init(g_call);
+  }
+
+  return ok;
+}
+
+static void shell_send(const char *path, const char *msg)
+{
+  size_t len = strlen(g_com_buf);
+  int ret = execute_ret(g_com_buf + len, sizeof(g_com_buf) - len, "%s %s", path, msg);
+  if (ret < 0) {
+    append_message("cannot execute command\n");
+  }
+}
+
+void call_send(const char *msg)
 {
   if (is_prefix("udp://", g_call)) {
     udp_send(g_call + 6, msg);
@@ -180,10 +254,6 @@ void call_send(const char *addr_str, const char *msg)
   } else if (is_prefix("unix://", g_call)) {
     unix_send(g_call + 7, msg);
   } else {
-    size_t len = strlen(g_com_buf);
-    int ret = execute_ret(g_com_buf + len, sizeof(g_com_buf) - len, "%s %s", g_call, msg);
-    if (ret < 0) {
-      append_message("cannot execute command\n");
-    }
+    shell_send(g_call, msg);
   }
 }

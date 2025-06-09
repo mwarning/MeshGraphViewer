@@ -210,12 +210,12 @@ int main(int argc, char **argv)
   }
 
   if (g_graph == NULL) {
-    fprintf(stderr, "Missing input file\n");
+    fprintf(stderr, "Missing graph file.\n");
     return EXIT_FAILURE;
   }
 
   if (g_graph && !is_file(g_graph)) {
-    fprintf(stderr, "File does not exist: %s\n", g_graph);
+    fprintf(stderr, "Graph file does not exist: %s\n", g_graph);
     return EXIT_FAILURE;
   }
 
@@ -226,6 +226,11 @@ int main(int argc, char **argv)
 
   if (webserver_path && !is_directory(webserver_path)) {
     fprintf(stderr, "Invalid webserver path: %s\n", webserver_path);
+    return EXIT_FAILURE;
+  }
+
+  // validate call argument
+  if (g_call && !call_validate(g_call)) {
     return EXIT_FAILURE;
   }
 

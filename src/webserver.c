@@ -163,10 +163,7 @@ static int handle_call_execute(struct MHD_Connection *connection)
     return send_empty_text(connection);
   }
 
-  if (query != NULL) {
-    call_send(g_call, query);
-  }
-
+  call_send(query);
   free(query);
 
   return send_empty_text(connection);
