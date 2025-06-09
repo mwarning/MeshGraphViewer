@@ -1,12 +1,13 @@
 # Mesh Graph Viewer
 
-Read a simple JSON graph file from disk and display a fancy interactive mesh graph. Interactions with the graph (selection, deletion, etc.) and custom commands can be passed to external programs. The view is updated as soon as the input file is changed.
+View mesh networks described in a JSON file. This tool is meant to visualize mesh network simulations for research. Interactions with the graph (selection, deletion, etc.) and custom commands can be passed to external programs. The view is updated as soon as the JSON file is changed.
 
 Written in an unholy combination of C and JavaScript. Build with [d3js](https://d3js.org/), [leafletjs](https://leafletjs.com/) and [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/).
 
-![graph and map view](screenshot.png)
-
-Topological and geographical view of the same graph. Switch between views with the `S` icon.
+<img src="screenshots/screenshot-grid-graph.png" width="400">
+<img src="screenshots/screenshot-grid-map.png" width="400">
+<img src="screenshots/screenshot-ff-map.png" width="400">
+<img src="screenshots/screenshot-ff-graph.png" width="400">
 
 ## Usage
 
