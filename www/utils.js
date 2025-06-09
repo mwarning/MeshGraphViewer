@@ -64,6 +64,10 @@ function getLinkId(link) {
     return String(link.source) + ',' + link.target;
 }
 
+function getLinkLabel(link) {
+    return link.label;
+}
+
 function limitFloat(value, min, max) {
     if (value < min || isNaN(value)) {
         return min;

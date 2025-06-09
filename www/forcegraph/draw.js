@@ -24,7 +24,7 @@ function createDraw(selection) {
             if (clients !== undefined) {
                 ctx.beginPath();
                 ctx.fillStyle = config.graph_clientColor;
-                positionClients(ctx, d, Math.PI, d.o.clients, 15);
+                positionClients(ctx, d, Math.PI, clients, 15);
                 ctx.fill();
             }
 
@@ -120,11 +120,12 @@ function createDraw(selection) {
         ctx.globalAlpha = 0.8;
         ctx.lineWidth = 2.5;
 
-        if ('label' in d.o) {
+        const label = getLinkLabel(d.o);
+        if (label !== undefined) {
             ctx.beginPath();
             ctx.textAlign = 'center';
             ctx.fillStyle = 'black';
-            ctx.fillText(d.o.label, (d.source.x + to[0]) / 2, (d.source.y + to[1]) / 2 + 3);
+            ctx.fillText(label, (d.source.x + to[0]) / 2, (d.source.y + to[1]) / 2 + 3);
         }
     };
 
