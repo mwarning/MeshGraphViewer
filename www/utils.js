@@ -41,11 +41,33 @@ function try_get(obj, key, def) {
 }
 
 function getNodeLatitude(node) {
-    return node.x || (node.location ? node.location.latitude : undefined);
+    const x = node.x;
+    if (typeof x === "number") {
+        return x;
+    }
+    const location = node.location;
+    if (typeof location === "object") {
+        const latitude = location.latitude;
+        if (typeof latitude === "number") {
+            return latitude;
+        }
+    }
+    return undefined;
 }
 
 function getNodeLongitude(node) {
-    return node.y || (node.location ? node.location.longitude : undefined);
+    const y = node.y;
+    if (typeof y === "number") {
+        return y;
+    }
+    const location = node.location;
+    if (typeof location === "object") {
+        const longitude = location.longitude;
+        if (typeof longitude === "number") {
+            return longitude;
+        }
+    }
+    return undefined;
 }
 
 function getNodeName(node) {

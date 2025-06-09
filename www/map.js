@@ -238,6 +238,8 @@ class Map {
                     let node = {o: d, x: x, y: y};
                     self.nodeDict[id] = node;
                     nodes.push(node);
+                } else {
+                    // missing or invalid coordinates
                 }
             });
 
