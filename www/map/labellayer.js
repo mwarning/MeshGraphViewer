@@ -8,9 +8,9 @@ function createLabelLayer() {
     }
 
     function showDistance(d) {
-        var source_lat = L.latLng(d.source.x, d.source.y);
-        var target_lat = L.latLng(d.target.x, d.target.y);
-        var distance = source_lat.distanceTo(target_lat);
+        const source_lat = L.latLng(d.source.x, d.source.y);
+        const target_lat = L.latLng(d.target.x, d.target.y);
+        const distance = source_lat.distanceTo(target_lat);
 
         if (isNaN(distance)) {
             return '';
@@ -24,16 +24,16 @@ function createLabelLayer() {
     }
 
     function getTileBBox(s, map, tileSize, margin) {
-        var tl = map.unproject([s.x - margin, s.y - margin]);
-        var br = map.unproject([s.x + margin + tileSize, s.y + margin + tileSize]);
+        const tl = map.unproject([s.x - margin, s.y - margin]);
+        const br = map.unproject([s.x + margin + tileSize, s.y + margin + tileSize]);
 
         return { minX: br.lat, minY: tl.lng, maxX: tl.lat, maxY: br.lng };
     }
 
-    var groupOnline;
-    var groupLines;
+    let groupOnline;
+    let groupLines;
 
-    var labelLocations = [['left', 'middle', 0 / 8],
+    const labelLocations = [['left', 'middle', 0 / 8],
         ['center', 'top', 6 / 8],
         ['right', 'middle', 4 / 8],
         ['left', 'top', 7 / 8],
@@ -41,11 +41,11 @@ function createLabelLayer() {
         ['right', 'top', 5 / 8],
         ['center', 'ideographic', 2 / 8],
         ['right', 'ideographic', 3 / 8]];
-    var labelShadow;
-    var bodyStyle = { fontFamily: 'sans-serif' };
-    var nodeRadius = 4;
+    let labelShadow;
+    let bodyStyle = { fontFamily: 'sans-serif' };
+    const nodeRadius = 4;
 
-    var cFont = document.createElement('canvas').getContext('2d');
+    let cFont = document.createElement('canvas').getContext('2d');
 
     function measureText(font, text) {
         cFont.font = font;
@@ -58,7 +58,7 @@ function createLabelLayer() {
 
     function prepareLabel(fillStyle, fontSize, offset, stroke) {
         return function (d) {
-            var font = fontSize + 'px ' + bodyStyle.fontFamily;
+            const font = fontSize + 'px ' + bodyStyle.fontFamily;
             return {
                 position: L.latLng(d.x, d.y),
                 label: getNodeName(d.o),
@@ -78,32 +78,32 @@ function createLabelLayer() {
     }
 
     function labelRect(p, offset, anchor, label, minZoom, maxZoom, z) {
-        var margin = 1 + 1.41 * (1 - (z - minZoom) / (maxZoom - minZoom));
+        const margin = 1 + 1.41 * (1 - (z - minZoom) / (maxZoom - minZoom));
 
-        var width = label.width * margin;
-        var height = label.height * margin;
+        const width = label.width * margin;
+        const height = label.height * margin;
 
-        var dx = {
+        const dx = {
             left: 0,
             right: -width,
             center: -width / 2
         };
 
-        var dy = {
+        const dy = {
             top: 0,
             ideographic: -height,
             middle: -height / 2
         };
 
-        var x = p.x + offset[0] + dx[anchor[0]];
-        var y = p.y + offset[1] + dy[anchor[1]];
+        const x = p.x + offset[0] + dx[anchor[0]];
+        const y = p.y + offset[1] + dy[anchor[1]];
 
         return { minX: x, minY: y, maxX: x + width, maxY: y + height };
     }
 
     function mkMarker(nodeDict, iconFunc) {
         return function (d) {
-            var marker = L.circleMarker([d.x, d.y], iconFunc(d));
+            const marker = L.circleMarker([d.x, d.y], iconFunc(d));
             const id = getNodeId(d.o);
 
             marker.resetStyle = function resetStyle() {
@@ -133,14 +133,14 @@ function createLabelLayer() {
 
     function addLinksToMap(linkDict, linkScale, graph) {
         return graph.map(function (d) {
-            var opts = {
+            let opts = {
                 weight: 4,
                 opacity: 0.5,
                 dashArray: 'none'
             };
 
-            var source_tq = try_get(d.o, 'source_tq', 1.0);
-            var target_tq = try_get(d.o, 'target_tq', 1.0);
+            const source_tq = try_get(d.o, 'source_tq', 1.0);
+            const target_tq = try_get(d.o, 'target_tq', 1.0);
 
             if ('color' in d.o) {
                 opts.color = d.o.color;
@@ -149,8 +149,8 @@ function createLabelLayer() {
                 opts.color = linkScale((source_tq + target_tq) / 2);
             }
 
-            var latlngs = [L.latLng(d.source.x, d.source.y), L.latLng(d.target.x, d.target.y)];
-            var line = L.polyline(latlngs, opts);
+            const latlngs = [L.latLng(d.source.x, d.source.y), L.latLng(d.target.x, d.target.y)];
+            let line = L.polyline(latlngs, opts);
 
             line.resetStyle = function resetStyle() {
                 if (selection.isLinkSelected(d.o.source, d.o.target)) {
@@ -187,14 +187,14 @@ function createLabelLayer() {
             }
         },
         setData: function (data, map, nodeDict, linkDict, linkScale) {
-            var iconOnline = {
-                'fillOpacity': 0.6,
-                'opacity': 0.6,
-                'weight': 2,
-                'radius': 6,
-                'className': 'stroke-first',
-                'color': '#1566A9',
-                'fillColor': '#1566A9'
+            let iconOnline = {
+                fillOpacity: 0.6,
+                opacity: 0.6,
+                weight: 2,
+                radius: 6,
+                className: 'stroke-first',
+                color: '#1566A9',
+                fillColor: '#1566A9'
             };
 
             // Check if init or data is already set
@@ -203,10 +203,10 @@ function createLabelLayer() {
                 groupLines.clearLayers();
             }
 
-            var lines = addLinksToMap(linkDict, linkScale, data.links);
+            const lines = addLinksToMap(linkDict, linkScale, data.links);
             groupLines = L.featureGroup(lines).addTo(map);
 
-            var markersOnline = data.nodes.map(mkMarker(nodeDict, function () {
+            const markersOnline = data.nodes.map(mkMarker(nodeDict, function () {
                 return iconOnline;
             }));
 
@@ -229,35 +229,35 @@ function createLabelLayer() {
             // - minZoom (inclusive)
             // - label (string)
             // - color (string)
-            var labels = this.data.map(prepareLabel(null, 11, 8, true));
-            var minZoom = this.options.minZoom;
-            var maxZoom = this.options.maxZoom;
+            let labels = this.data.map(prepareLabel(null, 11, 8, true));
+            const minZoom = this.options.minZoom;
+            const maxZoom = this.options.maxZoom;
 
-            var trees = [];
+            let trees = [];
 
-            var map = this._map;
+            let map = this._map;
 
             function nodeToRect(z) {
                 return function (n) {
-                    var p = map.project(n.position, z);
+                    const p = map.project(n.position, z);
                     return { minX: p.x - nodeRadius, minY: p.y - nodeRadius, maxX: p.x + nodeRadius, maxY: p.y + nodeRadius };
                 };
             }
 
-            for (var z = minZoom; z <= maxZoom; z++) {
+            for (let z = minZoom; z <= maxZoom; z++) {
                 trees[z] = rbush(9);
                 trees[z].load(labels.map(nodeToRect(z)));
             }
 
             labels = labels.map(function (n) {
-                var best = labelLocations.map(function (loc) {
-                    var offset = calcOffset(n.offset, loc);
-                    var i;
+                const best = labelLocations.map(function (loc) {
+                    const offset = calcOffset(n.offset, loc);
+                    let i;
 
                     for (i = maxZoom; i >= minZoom; i--) {
-                        var p = map.project(n.position, i);
-                        var rect = labelRect(p, offset, loc, n, minZoom, maxZoom, i);
-                        var candidates = trees[i].search(rect);
+                        const p = map.project(n.position, i);
+                        const rect = labelRect(p, offset, loc, n, minZoom, maxZoom, i);
+                        const candidates = trees[i].search(rect);
 
                         if (candidates.length > 0) {
                             break;
@@ -276,9 +276,9 @@ function createLabelLayer() {
                     n.minZoom = best.z;
                     n.anchor = best.loc;
 
-                    for (var i = maxZoom; i >= best.z; i--) {
-                        var p = map.project(n.position, i);
-                        var rect = labelRect(p, n.offset, best.loc, n, minZoom, maxZoom, i);
+                    for (let i = maxZoom; i >= best.z; i--) {
+                        const p = map.project(n.position, i);
+                        const rect = labelRect(p, n.offset, best.loc, n, minZoom, maxZoom, i);
                         trees[i].insert(rect);
                     }
 
@@ -303,9 +303,9 @@ function createLabelLayer() {
             this.redraw();
         },
         createTile: function (tilePoint) {
-            var tile = L.DomUtil.create('canvas', 'leaflet-tile');
+            let tile = L.DomUtil.create('canvas', 'leaflet-tile');
 
-            var tileSize = this.options.tileSize;
+            const tileSize = this.options.tileSize;
             tile.width = tileSize;
             tile.height = tileSize;
 
@@ -313,13 +313,13 @@ function createLabelLayer() {
                 return tile;
             }
 
-            var s = tilePoint.multiplyBy(tileSize);
-            var map = this._map;
+            const s = tilePoint.multiplyBy(tileSize);
+            let map = this._map;
             bodyStyle = window.getComputedStyle(document.querySelector('body'));
             labelShadow = bodyStyle.backgroundColor.replace(/rgb/i, 'rgba').replace(/\)/i, ',0.7)');
 
             function projectNodes(d) {
-                var p = map.project(d.label.position);
+                let p = map.project(d.label.position);
 
                 p.x -= s.x;
                 p.y -= s.y;
@@ -327,9 +327,9 @@ function createLabelLayer() {
                 return { p: p, label: d.label };
             }
 
-            var bbox = getTileBBox(s, map, tileSize, this.margin);
-            var labels = this.labels.search(bbox).map(projectNodes);
-            var ctx = tile.getContext('2d');
+            const bbox = getTileBBox(s, map, tileSize, this.margin);
+            const labels = this.labels.search(bbox).map(projectNodes);
+            const ctx = tile.getContext('2d');
 
             ctx.lineWidth = 5;
             ctx.strokeStyle = labelShadow;

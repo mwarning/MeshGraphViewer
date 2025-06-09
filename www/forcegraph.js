@@ -1,44 +1,44 @@
 
 function createGraph(parent, selection, sidebar) {
-    var draw = createDraw(selection);
-    var d3Interpolate = d3;
-    var d3Zoom = d3;
-    var d3Force = d3;
-    var d3Drag = d3;
-    var d3Selection = d3;
-    var d3Timer = d3;
-    var d3Ease = d3;
-    var animationEnabled = true;
+    let draw = createDraw(selection);
+    let d3Interpolate = d3;
+    let d3Zoom = d3;
+    let d3Force = d3;
+    let d3Drag = d3;
+    let d3Selection = d3;
+    let d3Timer = d3;
+    let d3Ease = d3;
+    let animationEnabled = true;
 
     // add html
-    var el = document.createElement('div');
+    let el = document.createElement('div');
     el.classList.add('graph');
     el.setAttribute('id', 'graph');
     parent.appendChild(el);
 
     document.getElementsByClassName("ion-camera")[0].classList.remove("hidden");
 
-    var self = this;
-    var lastClick = [0, 0];
-    var canvas;
-    var ctx;
-    var force;
-    var forceLink;
+    let self = this;
+    let lastClick = [0, 0];
+    let canvas;
+    let ctx;
+    let force;
+    let forceLink;
 
-    var transform = d3Zoom.zoomIdentity;
-    var intNodes = [];
-    var intLinks = [];
-    var movetoTimer;
+    let transform = d3Zoom.zoomIdentity;
+    let intNodes = [];
+    let intLinks = [];
+    let movetoTimer;
 
-    var NODE_RADIUS_DRAG = 10;
-    var NODE_RADIUS_SELECT = 15;
-    var LINK_RADIUS_SELECT = 12;
-    var ZOOM_ANIMATE_DURATION = 350;
+    let NODE_RADIUS_DRAG = 10;
+    let NODE_RADIUS_SELECT = 15;
+    let LINK_RADIUS_SELECT = 12;
+    let ZOOM_ANIMATE_DURATION = 350;
 
-    var ZOOM_MIN = 1 / 8;
-    var ZOOM_MAX = 3;
+    let ZOOM_MIN = 1 / 8;
+    let ZOOM_MAX = 3;
 
-    var FORCE_ALPHA = 0.3;
+    let FORCE_ALPHA = 0.3;
 
     draw.setTransform(transform);
 
@@ -52,11 +52,11 @@ function createGraph(parent, selection, sidebar) {
         };
 
         /* http://stackoverflow.com/questions/849211 */
-        var l2 = distance(a, b);
+        const l2 = distance(a, b);
         if (l2 === 0) {
             return distance(p, a);
         }
-        var t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
+        const t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
         if (t < 0) {
             return distance(p, a);
         } else if (t > 1) {
@@ -89,24 +89,24 @@ function createGraph(parent, selection, sidebar) {
             return;
         }
 
-        var x = pos[0];
-        var y = pos[1];
-        var k = pos[2];
-        var end = { k: k };
+        const x = pos[0];
+        const y = pos[1];
+        const k = pos[2];
+        const end = { k: k };
 
         end.x = (canvas.width + sidebar.getWidth()) / 2 - x * k;
         end.y = canvas.height / 2 - y * k;
 
-        var start = { x: transform.x, y: transform.y, k: transform.k };
-        var interpolate = d3Interpolate.interpolateObject(start, end);
+        const start = { x: transform.x, y: transform.y, k: transform.k };
+        const interpolate = d3Interpolate.interpolateObject(start, end);
 
-        var timer = d3Timer.timer(function (t) {
+        const timer = d3Timer.timer(function (t) {
             if (t >= ZOOM_ANIMATE_DURATION) {
                 timer.stop();
                 return;
             }
 
-            var v = interpolate(d3Ease.easeQuadInOut(t / ZOOM_ANIMATE_DURATION));
+            const v = interpolate(d3Ease.easeQuadInOut(t / ZOOM_ANIMATE_DURATION));
             transformPosition(v);
             window.requestAnimationFrame(redraw);
         });
@@ -117,8 +117,8 @@ function createGraph(parent, selection, sidebar) {
             return;
         }
 
-        var e = transform.invert(d3.mouse(this));
-        var n = force.find(e[0], e[1], NODE_RADIUS_SELECT);
+        let e = transform.invert(d3.mouse(this));
+        const n = force.find(e[0], e[1], NODE_RADIUS_SELECT);
 
         // Remember last click position
         lastClick = e;
@@ -130,10 +130,10 @@ function createGraph(parent, selection, sidebar) {
 
         e = { x: e[0], y: e[1] };
 
-        var closedLink;
-        var radius = LINK_RADIUS_SELECT;
+        let closedLink;
+        let radius = LINK_RADIUS_SELECT;
         intLinks.forEach(function (d) {
-            var distance = distanceLink(e, d.source, d.target);
+            const distance = distanceLink(e, d.source, d.target);
             if (distance < radius) {
                 closedLink = d;
                 radius = distance;
@@ -172,7 +172,7 @@ function createGraph(parent, selection, sidebar) {
             return limitFloat(1 / d.target_tq, 0.5, 1);
         });
 
-    var zoom = d3Zoom.zoom()
+    const zoom = d3Zoom.zoom()
         .scaleExtent([ZOOM_MIN, ZOOM_MAX])
         .on('zoom', function () {
             transform = d3Selection.event.transform;
@@ -189,10 +189,10 @@ function createGraph(parent, selection, sidebar) {
         .on('tick', redraw)
         .alphaDecay(0.015);
 
-    var drag = d3Drag.drag()
+    const drag = d3Drag.drag()
         .subject(function () {
-            var e = transform.invert([d3Selection.event.x, d3Selection.event.y]);
-            var n = force.find(e[0], e[1], NODE_RADIUS_DRAG);
+            const e = transform.invert([d3Selection.event.x, d3Selection.event.y]);
+            const n = force.find(e[0], e[1], NODE_RADIUS_DRAG);
 
             if (n !== undefined) {
                 n.x = d3Selection.event.x;
@@ -241,12 +241,12 @@ function createGraph(parent, selection, sidebar) {
     */
     self.setData = function (data, is_update = false) {
         // For fast node/link lookup
-        var nodeDict = {};
-        var linkDict = {};
+        let nodeDict = {};
+        let linkDict = {};
 
         if (is_update) {
             // Keep existing data
-            var dnodes = {};
+            let dnodes = {};
             data.nodes.forEach(function (d) {
                 const id = getNodeId(d);
                 dnodes[id] = d;
@@ -263,24 +263,24 @@ function createGraph(parent, selection, sidebar) {
         intLinks = [];
 
         // New nodes center
-        var mx = data.nodes.reduce(function(acc, e) { return acc + e.x; }, 0) / data.nodes.length;
-        var my = data.nodes.reduce(function(acc, e) { return acc + e.y; }, 0) / data.nodes.length;
+        const mx = data.nodes.reduce(function(acc, e) { return acc + e.x; }, 0) / data.nodes.length;
+        const my = data.nodes.reduce(function(acc, e) { return acc + e.y; }, 0) / data.nodes.length;
 
         // Center new nodes at last click location
-        var px = lastClick[0] - mx;
-        var py = lastClick[1] - my;
+        const px = lastClick[0] - mx;
+        const py = lastClick[1] - my;
 
         function addNode(node) {
-            var id = getNodeId(node);
+            const id = getNodeId(node);
 
             if (id in nodeDict) {
-                var n = nodeDict[id];
+                let n = nodeDict[id];
                 // Update existing node (keep position)
                 n.o = node;
                 intNodes.push(n);
                 return n;
             } else {
-                var n = {};
+                let n = {};
                 nodeDict[id] = n;
                 // intialize node position with center offset + geo position
                 n.x = node.x + px;
@@ -292,8 +292,8 @@ function createGraph(parent, selection, sidebar) {
         }
 
         function addLink(link) {
-            var sid = String(link.source);
-            var tid = String(link.target);
+            const sid = String(link.source);
+            const tid = String(link.target);
 
             if (!(sid in nodeDict)) {
                 addNode({'id': sid});
@@ -303,17 +303,17 @@ function createGraph(parent, selection, sidebar) {
                 addNode({'id': tid});
             }
 
-            var source = nodeDict[sid];
-            var target = nodeDict[tid];
-            var id = getLinkId(link);
+            const source = nodeDict[sid];
+            const target = nodeDict[tid];
+            const id = getLinkId(link);
 
             if (id in linkDict) {
-                var l = linkDict[id];
+                let l = linkDict[id];
                 // Update existing link
                 l.o = link;
                 intLinks.push(l);
             } else {
-                var l = {};
+                let l = {};
                 linkDict[id] = l;
                 l.source = source;
                 l.target = target;

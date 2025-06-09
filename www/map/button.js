@@ -1,8 +1,8 @@
 
 function Button() {
-    var self = {};
+    let self = {};
 
-    var ButtonBase = L.Control.extend({
+    let ButtonBase = L.Control.extend({
       options: {
         position: 'bottomright'
       },
@@ -25,7 +25,7 @@ function Button() {
       }
     });
 
-    var CoordsPickerButton = ButtonBase.extend({
+    let CoordsPickerButton = ButtonBase.extend({
       doInit: function () {
         this.button = document.getElementsByClassName("ion-locate")[0];
 
@@ -43,10 +43,9 @@ function Button() {
     });
 
     return function (map) {
-      var userLocation;
+      let userLocation;
 
-      var showCoordsPickerButton = new CoordsPickerButton(function (d) {
-        console.log("CoordsPickerButton " + d);
+      let showCoordsPickerButton = new CoordsPickerButton(function (d) {
         if (d) {
           enableCoords();
         } else {

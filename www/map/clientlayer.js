@@ -1,8 +1,8 @@
 
 function createClientLayer() {
     function getTileBBox(s, map, tileSize, margin) {
-        var tl = map.unproject([s.x - margin, s.y - margin]);
-        var br = map.unproject([s.x + margin + tileSize, s.y + margin + tileSize]);
+        const tl = map.unproject([s.x - margin, s.y - margin]);
+        const br = map.unproject([s.x + margin + tileSize, s.y + margin + tileSize]);
 
         return { minX: br.lat, minY: tl.lng, maxX: tl.lat, maxY: br.lng };
     }
@@ -16,7 +16,7 @@ function createClientLayer() {
             };
         },
         setData: function (data) {
-            var rtreeOnlineAll = rbush(9);
+            const rtreeOnlineAll = rbush(9);
 
             this.data = rtreeOnlineAll.load(data.nodes.map(this.mapRTree));
 
@@ -27,9 +27,9 @@ function createClientLayer() {
             this.redraw();
         },
         createTile: function (tilePoint) {
-            var tile = L.DomUtil.create('canvas', 'leaflet-tile');
+            const tile = L.DomUtil.create('canvas', 'leaflet-tile');
 
-            var tileSize = this.options.tileSize;
+            const tileSize = this.options.tileSize;
             tile.width = tileSize;
             tile.height = tileSize;
 
@@ -37,12 +37,12 @@ function createClientLayer() {
                 return tile;
             }
 
-            var ctx = tile.getContext('2d');
-            var s = tilePoint.multiplyBy(tileSize);
-            var map = this._map;
+            const ctx = tile.getContext('2d');
+            const s = tilePoint.multiplyBy(tileSize);
+            const map = this._map;
 
-            var margin = 50;
-            var bbox = getTileBBox(s, map, tileSize, margin);
+            const margin = 50;
+            const bbox = getTileBBox(s, map, tileSize, margin);
 
             //TODO: let's try this to remove rbush.js dependency
             //var nodes = this.data.nodes.filter(function(d) {
@@ -50,13 +50,13 @@ function createClientLayer() {
             //    d.y >= bbox.minY && d.y <= bbox.maxY;
             //});
 
-            var nodes = this.data.search(bbox);
+            let nodes = this.data.search(bbox);
 
             if (nodes.length === 0) {
                 return tile;
             }
 
-            var startDistance = 15;
+            const startDistance = 15;
 
             nodes.forEach(function (d) {
                 var p = map.project([d.node.x, d.node.y]);

@@ -78,8 +78,8 @@ function createDraw(selection) {
 
         drawSelectedNode(d);
 
-        var color = try_get(d.o, 'color', '#fff');
-        var radius = try_get(d.o, 'radius', 7);
+        const color = try_get(d.o, 'color', '#fff');
+        const radius = try_get(d.o, 'radius', 7);
 
         ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
         ctx.fillStyle = color;
@@ -89,17 +89,16 @@ function createDraw(selection) {
     };
 
     self.drawLink = function (d) {
-        var zero = transform.invert([0, 0]);
-        var area = transform.invert([width, height]);
+        const zero = transform.invert([0, 0]);
+        const area = transform.invert([width, height]);
         if (d.source.x < zero[0] && d.target.x < zero[0] || d.source.y < zero[1] && d.target.y < zero[1] ||
                 d.source.x > area[0] && d.target.x > area[0] || d.source.y > area[1] && d.target.y > area[1]) {
             return;
         }
         ctx.beginPath();
         ctx.moveTo(d.source.x, d.source.y);
-        var to = [d.target.x, d.target.y];
 
-        to = drawSelectedLink(d, to);
+        const to = drawSelectedLink(d, [d.target.x, d.target.y]);
 
         ctx.lineCap = 'round';
         if ('color' in d.o) {

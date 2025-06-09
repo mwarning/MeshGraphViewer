@@ -15,7 +15,7 @@ class Map {
     el
 
     constructor(parent, selection, linkScale, sidebar) {
-        var baseLayers = {};
+        let baseLayers = {};
         this.sidebar = sidebar;
         this.linkScale = linkScale;
         this.selection = selection;
@@ -37,7 +37,7 @@ class Map {
         this.map = L.map(this.el, this.options);
         this.mapActiveArea();
 
-        var now = new Date();
+        const now = new Date();
         config.mapLayers.forEach(function (item, i) {
             if ((typeof item.config.start === 'number' && item.config.start <= now.getHours()) || (typeof item.config.end === 'number' && item.config.end > now.getHours())) {
                 item.config.order = item.config.start * -1;
@@ -50,7 +50,7 @@ class Map {
             return a.config.order - b.config.order;
         });
 
-        var layers = config.mapLayers.map(function (d) {
+        const layers = config.mapLayers.map(function (d) {
             return {
                 'name': d.name,
                 'layer': L.tileLayer(d.url.replace('{retina}', L.Browser.retina ? '@2x' : ''), d.config)
@@ -65,7 +65,7 @@ class Map {
 
         this.button = new Button()(this.map);
 
-        var self = this;
+        let self = this;
         this.map.on('locationfound', this.button.locationFound);
         this.map.on('locationerror', this.button.locationError);
         this.map.on('dragend', function() {
@@ -88,25 +88,24 @@ class Map {
 
         this.button.init();
 
-        var layerControl = L.control.layers(baseLayers, [], { position: 'bottomright' });
+        let layerControl = L.control.layers(baseLayers, [], { position: 'bottomright' });
         layerControl.addTo(this.map);
 
         this.map.zoomControl.setPosition('bottomright');
 
-        var tmp1 = createClientLayer();
+        const tmp1 = createClientLayer();
         this.clientLayer = new tmp1({ minZoom: config.clientZoom });
         this.clientLayer.addTo(this.map);
         this.clientLayer.setZIndex(5);
 
-        var tmp2 = createLabelLayer();
+        const tmp2 = createLabelLayer();
         this.labelLayer = new tmp2({ minZoom: config.clientZoom });
         this.labelLayer.addTo(this.map);
         this.labelLayer.setZIndex(6);
 
-        var sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
+        let sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
         sidebar_button.addEventListener('visibility', this.setActiveArea);
 
-        var self = this;
         this.map.on('zoom', function () {
             self.clientLayer.redraw();
             self.labelLayer.redraw();
@@ -168,7 +167,7 @@ class Map {
     }
 
     goto(m) {
-        var bounds;
+        let bounds;
 
         if ('getBounds' in m) {
             bounds = m.getBounds();
@@ -182,10 +181,10 @@ class Map {
     }
 
     static getNodeBounds(nodes) {
-        var min_x = Number.POSITIVE_INFINITY;
-        var max_x = Number.NEGATIVE_INFINITY;
-        var min_y = Number.POSITIVE_INFINITY;
-        var max_y = Number.NEGATIVE_INFINITY;
+        let min_x = Number.POSITIVE_INFINITY;
+        let max_x = Number.NEGATIVE_INFINITY;
+        let min_y = Number.POSITIVE_INFINITY;
+        let max_y = Number.NEGATIVE_INFINITY;
 
         nodes.forEach(function (d) {
             if (d.x < min_x) {
@@ -226,17 +225,17 @@ class Map {
     setData(data) {
         {
             // some preprocessing
-            var nodes = [];
-            var links = [];
+            let nodes = [];
+            let links = [];
             this.nodeDict = {};
-            var self = this;
+            let self = this;
 
             data.nodes.forEach(function (d) {
                 const x = getNodeLatitude(d);
                 const y = getNodeLongitude(d);
                 if (Math.abs(x) < 90 && Math.abs(y) < 180) {
                     const id = getNodeId(d);
-                    var node = {o: d, x: x, y: y};
+                    let node = {o: d, x: x, y: y};
                     self.nodeDict[id] = node;
                     nodes.push(node);
                 }
@@ -260,7 +259,7 @@ class Map {
         this.nodeDict = {};
         this.linkDict = {};
 
-        this.nodeBounds = Map.getNodeBounds(nodes);
+        this.nodeBounds = Map.getNodeBounds(data.nodes);
         this.clientLayer.setData(data);
         this.labelLayer.setData(data, this.map, this.nodeDict, this.linkDict, this.linkScale);
         //labelLayer.setData(data, map, nodeDict, linkDict, linkScale);
@@ -280,7 +279,7 @@ class Map {
         this.button.clearButtons();
         document.getElementsByClassName("ion-locate")[0].classList.add("hidden");
 
-        var sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
+        let sidebar_button = document.getElementsByClassName('sidebarhandle')[0];
         sidebar_button.removeEventListener('visibility', this.setActiveArea);
         this.map.remove();
 

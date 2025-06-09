@@ -1,10 +1,10 @@
 
 function createSelection() {
-    var self = this;
+    let self = this;
 
-    var selectedNodes = [];
-    var selectedLinks = [];
-    var meta_pressed = false;
+    let selectedNodes = [];
+    let selectedLinks = [];
+    let meta_pressed = false;
 
     window.onmousemove = function (e) {
         if (!e) e = window.event;
@@ -29,11 +29,11 @@ function createSelection() {
     }
 
     self.extendSelection = function (data) {
-        var selectedNodesDict = {};
-        var selectedLinksDict = {};
+        let selectedNodesDict = {};
+        let selectedLinksDict = {};
 
         // Map node id to array of link objects
-        var connections = {};
+        let connections = {};
 
         data.nodes.forEach(function(n) {
             const id = getNodeId(n);
@@ -49,7 +49,7 @@ function createSelection() {
             selectedNodesDict[id] = true;
             if (id in connections) {
                 connections[id].forEach(function(l) {
-                    var link_id = getLinkId(l);
+                    const link_id = getLinkId(l);
                     if (!(link_id in selectedLinksDict)) {
                         selectedLinksDict[link_id] = true;
                     }
@@ -68,7 +68,7 @@ function createSelection() {
         });
 
         selectedLinks.forEach(function (id) {
-            var link = id.split(",");
+            const link = id.split(",");
             selectNode(link[0]);
             selectNode(link[1]);
         });
@@ -106,7 +106,7 @@ function createSelection() {
         const id = String(nodeId);
 
         if (self.isMetaPressed()) {
-            var i = selectedNodes.indexOf(id);
+            const i = selectedNodes.indexOf(id);
             if (i < 0) {
                 // add to selection
                 selectedNodes.push(id);

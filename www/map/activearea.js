@@ -1,11 +1,11 @@
-//define(function () {
+
 function createActiveArea() {
   /**
    * https://github.com/Mappy/Leaflet-active-area
    * Apache 2.0 license https://www.apache.org/licenses/LICENSE-2.0
    */
 
-  var previousMethods = {
+  let previousMethods = {
     getCenter: L.Map.prototype.getCenter,
     setView: L.Map.prototype.setView,
     setZoomAround: L.Map.prototype.setZoomAround,
@@ -18,9 +18,9 @@ function createActiveArea() {
       if (this._viewport) {
         return this.getViewportLatLngBounds();
       }
-      var bounds = this.getPixelBounds();
-      var sw = this.unproject(bounds.getBottomLeft());
-      var ne = this.unproject(bounds.getTopRight());
+      const bounds = this.getPixelBounds();
+      const sw = this.unproject(bounds.getBottomLeft());
+      const ne = this.unproject(bounds.getTopRight());
 
       return new L.LatLngBounds(sw, ne);
     },
@@ -47,23 +47,23 @@ function createActiveArea() {
     },
 
     getViewportLatLngBounds: function () {
-      var bounds = this.getViewportBounds();
+      const bounds = this.getViewportBounds();
       return L.latLngBounds(this.containerPointToLatLng(bounds.min), this.containerPointToLatLng(bounds.max));
     },
 
     getOffset: function () {
-      var mCenter = this.getSize().divideBy(2);
-      var vCenter = this.getViewportBounds().getCenter();
+      const mCenter = this.getSize().divideBy(2);
+      const vCenter = this.getViewportBounds().getCenter();
 
       return mCenter.subtract(vCenter);
     },
 
     getCenter: function (withoutViewport) {
-      var center = previousMethods.getCenter.call(this);
+      let center = previousMethods.getCenter.call(this);
 
       if (this.getViewport() && !withoutViewport) {
-        var zoom = this.getZoom();
-        var point = this.project(center, zoom);
+        const zoom = this.getZoom();
+        let point = this.project(center, zoom);
         point = point.subtract(this.getOffset());
 
         center = this.unproject(point, zoom);
@@ -77,7 +77,7 @@ function createActiveArea() {
       zoom = zoom === undefined ? this._zoom : this._limitZoom(zoom);
 
       if (this.getViewport()) {
-        var point = this.project(center, this._limitZoom(zoom));
+        let point = this.project(center, this._limitZoom(zoom));
         point = point.add(this.getOffset());
         center = this.unproject(point, this._limitZoom(zoom));
       }
@@ -86,15 +86,15 @@ function createActiveArea() {
     },
 
     setZoomAround: function (latlng, zoom, options) {
-      var vp = this.getViewport();
+      let vp = this.getViewport();
 
       if (vp) {
-        var scale = this.getZoomScale(zoom);
-        var viewHalf = this.getViewportBounds().getCenter();
-        var containerPoint = latlng instanceof L.Point ? latlng : this.latLngToContainerPoint(latlng);
+        const scale = this.getZoomScale(zoom);
+        const viewHalf = this.getViewportBounds().getCenter();
+        const containerPoint = latlng instanceof L.Point ? latlng : this.latLngToContainerPoint(latlng);
 
-        var centerOffset = containerPoint.subtract(viewHalf).multiplyBy(1 - 1 / scale);
-        var newCenter = this.containerPointToLatLng(viewHalf.add(centerOffset));
+        const centerOffset = containerPoint.subtract(viewHalf).multiplyBy(1 - 1 / scale);
+        const newCenter = this.containerPointToLatLng(viewHalf.add(centerOffset));
 
         return this.setView(newCenter, zoom, { zoom: options });
       }
@@ -105,17 +105,17 @@ function createActiveArea() {
       bounds = L.latLngBounds(bounds);
       padding = L.point(padding || [0, 0]);
 
-      var zoom = this.getZoom() || 0;
-      var min = this.getMinZoom();
-      var max = this.getMaxZoom();
-      var nw = bounds.getNorthWest();
-      var se = bounds.getSouthEast();
-      var vp = this.getViewport();
-      var size = (vp ? L.point(vp.clientWidth, vp.clientHeight) : this.getSize()).subtract(padding);
-      var boundsSize = this.project(se, zoom).subtract(this.project(nw, zoom));
-      var snap = L.Browser.any3d ? this.options.zoomSnap : 1;
+      let zoom = this.getZoom() || 0;
+      const min = this.getMinZoom();
+      const max = this.getMaxZoom();
+      const nw = bounds.getNorthWest();
+      const se = bounds.getSouthEast();
+      const vp = this.getViewport();
+      const size = (vp ? L.point(vp.clientWidth, vp.clientHeight) : this.getSize()).subtract(padding);
+      const boundsSize = this.project(se, zoom).subtract(this.project(nw, zoom));
+      const snap = L.Browser.any3d ? this.options.zoomSnap : 1;
 
-      var scale = Math.min(size.x / boundsSize.x, size.y / boundsSize.y);
+      const scale = Math.min(size.x / boundsSize.x, size.y / boundsSize.y);
 
       zoom = this.getScaleZoom(scale, zoom);
 
@@ -130,7 +130,7 @@ function createActiveArea() {
 
   L.Map.include({
     setActiveArea: function (css, keepCenter, animate) {
-      var center;
+      let center;
       if (keepCenter && this._zoom) {
         // save center if map is already initialized
         // and keepCenter is passed
@@ -139,7 +139,7 @@ function createActiveArea() {
 
       if (!this._viewport) {
         // Make viewport if not already made
-        var container = this.getContainer();
+        let container = this.getContainer();
         this._viewport = L.DomUtil.create('div', '');
         container.insertBefore(this._viewport, container.firstChild);
       }
@@ -170,14 +170,14 @@ function createActiveArea() {
 
   L.GridLayer.include({
     _updateLevels: function () {
-      var zoom = this._tileZoom;
-      var maxZoom = this.options.maxZoom;
+      const zoom = this._tileZoom;
+      const maxZoom = this.options.maxZoom;
 
       if (zoom === undefined) {
         return undefined;
       }
 
-      for (var z in this._levels) {
+      for (let z in this._levels) {
         if (this._levels[z].el.children.length || z === zoom) {
           this._levels[z].el.style.zIndex = maxZoom - Math.abs(zoom - z);
         } else {
@@ -187,8 +187,8 @@ function createActiveArea() {
         }
       }
 
-      var level = this._levels[zoom];
-      var map = this._map;
+      let level = this._levels[zoom];
+      let map = this._map;
 
       if (!level) {
         level = this._levels[zoom] = {};
@@ -211,16 +211,16 @@ function createActiveArea() {
     },
 
     _resetView: function (e) {
-      var animating = e && (e.pinch || e.flyTo);
+      const animating = e && (e.pinch || e.flyTo);
       this._setView(this._map.getCenter(true), this._map.getZoom(), animating, animating);
     },
 
     _update: function (center) {
-      var map = this._map;
+      let map = this._map;
       if (!map) {
         return;
       }
-      var zoom = map.getZoom();
+      const zoom = map.getZoom();
 
       if (center === undefined) {
         center = map.getCenter(this);
@@ -229,12 +229,12 @@ function createActiveArea() {
         return;
       }    // if out of minzoom/maxzoom
 
-      var pixelBounds = this._getTiledPixelBounds(center);
-      var tileRange = this._pxBoundsToTileRange(pixelBounds);
-      var tileCenter = tileRange.getCenter();
-      var queue = [];
+      const pixelBounds = this._getTiledPixelBounds(center);
+      const tileRange = this._pxBoundsToTileRange(pixelBounds);
+      const tileCenter = tileRange.getCenter();
+      let queue = [];
 
-      for (var key in this._tiles) {
+      for (let key in this._tiles) {
         this._tiles[key].current = false;
       }
 
@@ -246,8 +246,8 @@ function createActiveArea() {
       }
 
       // create a queue of coordinates to load tiles from
-      for (var j = tileRange.min.y; j <= tileRange.max.y; j++) {
-        for (var i = tileRange.min.x; i <= tileRange.max.x; i++) {
+      for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
+        for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
           var coords = new L.Point(i, j);
           coords.z = this._tileZoom;
 
@@ -255,7 +255,7 @@ function createActiveArea() {
             continue;
           }
 
-          var tile = this._tiles[this._tileCoordsToKey(coords)];
+          let tile = this._tiles[this._tileCoordsToKey(coords)];
           if (tile) {
             tile.current = true;
           } else {
@@ -279,7 +279,7 @@ function createActiveArea() {
         }
 
         // create DOM fragment to append tiles in one batch
-        var fragment = document.createDocumentFragment();
+        const fragment = document.createDocumentFragment();
 
         for (i = 0; i < queue.length; i++) {
           this._addTile(queue[i], fragment);
