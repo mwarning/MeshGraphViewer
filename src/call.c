@@ -26,11 +26,13 @@ static int net_set_nonblocking(int fd)
   return fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 }
 
+/*
 static void append_message(const char *msg) {
   // append error message to message buffer
   size_t buflen = strlen(g_com_buf);
   strncpy(g_com_buf + buflen, msg, sizeof(g_com_buf) - buflen);
 }
+*/
 
 void call_receive()
 {
@@ -96,11 +98,11 @@ static void tcp_send(const char* addr_str, const char *msg)
 error:
   tcp_uninit();
 
-  fprintf(stderr, "%s\n", strerror(errno));
+  fprintf(stderr, "tcp: %s\n", strerror(errno));
 
   // append error message to message buffer
-  append_message(strerror(errno));
-  append_message("\n");
+  //append_message(strerror(errno));
+  //append_message("\n");
 
   return;
 }
@@ -154,11 +156,11 @@ static void udp_send(const char* addr_str, const char *msg)
 error:
   udp_uninit();
 
-  fprintf(stderr, "%s\n", strerror(errno));
+  fprintf(stderr, "udp: %s\n", strerror(errno));
 
   // append error message to message buffer
-  append_message(strerror(errno));
-  append_message("\n");
+  //append_message(strerror(errno));
+  //append_message("\n");
 
   return;
 }
@@ -208,11 +210,11 @@ static void unix_send(const char* addr_str, const char *msg)
 error:
   unix_uninit();
 
-  fprintf(stderr, "%s\n", strerror(errno));
+  fprintf(stderr, "unix: %s\n", strerror(errno));
 
   // append error message to message buffer
-  append_message(strerror(errno));
-  append_message("\n");
+  //append_message(strerror(errno));
+  //append_message("\n");
 
   return;
 }
@@ -250,7 +252,8 @@ static void shell_send(const char *path, const char *msg)
   size_t len = strlen(g_com_buf);
   int ret = execute_ret(g_com_buf + len, sizeof(g_com_buf) - len, "%s %s", path, msg);
   if (ret < 0) {
-    append_message("cannot execute command\n");
+    fprintf(stderr, "shell: Failed to to execute %s\n", path);
+    //append_message("cannot execute command\n");
   }
 }
 
