@@ -252,7 +252,7 @@ function createGraph(parent, selection, sidebar) {
                 dnodes[id] = d;
             });
             intNodes.forEach(function (e) {
-                const id = getNodeId(d);
+                const id = getNodeId(e);
                 if (id in dnodes) {
                     nodeDict[id] = e;
                 }
