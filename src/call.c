@@ -44,9 +44,18 @@ void call_receive()
   }
 }
 
+static void tcp_uninit()
+{
+  memset(&g_addr, 0, sizeof(g_addr));
+  close(g_com_sock);
+  g_com_sock = -1;
+}
+
 static bool tcp_init(const char* addr_str)
 {
   const int opt_on = 1;
+
+  tcp_uninit();
 
   if (addr_parse_full(&g_addr, addr_str, DEFAULT_PORT, AF_UNSPEC) != 0) {
     fprintf(stderr, "Failed to parse IP address '%s'\n", addr_str);
@@ -68,12 +77,6 @@ static bool tcp_init(const char* addr_str)
   net_set_nonblocking(g_com_sock);
 
   return true;
-}
-
-static void tcp_uninit()
-{
-  close(g_com_sock);
-  g_com_sock = -1;
 }
 
 static void tcp_send(const char* addr_str, const char *msg)
@@ -102,9 +105,18 @@ error:
   return;
 }
 
+static void udp_uninit()
+{
+  memset(&g_addr, 0, sizeof(g_addr));
+  close(g_com_sock);
+  g_com_sock = -1;
+}
+
 static bool udp_init(const char* addr_str)
 {
   const int opt_on = 1;
+
+  udp_uninit();
 
   if (addr_parse_full(&g_addr, addr_str, DEFAULT_PORT, AF_UNSPEC) != 0) {
     fprintf(stderr, "Failed to parse IP address: %s\n", addr_str);
@@ -122,12 +134,6 @@ static bool udp_init(const char* addr_str)
   }
 
   return true;
-}
-
-static void udp_uninit()
-{
-  close(g_com_sock);
-  g_com_sock = -1;
 }
 
 static void udp_send(const char* addr_str, const char *msg)
@@ -157,8 +163,16 @@ error:
   return;
 }
 
-static bool unix_init(const char* addr_str)
+static void unix_uninit() {
+  memset(&g_addr, 0, sizeof(g_addr));
+  close(g_com_sock);
+  g_com_sock = -1;
+}
+
+static bool unix_init(const char* path)
 {
+  unix_uninit();
+
   struct sockaddr_un *addr = (struct sockaddr_un *) &g_addr;
 
   if ((g_com_sock = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
@@ -167,14 +181,14 @@ static bool unix_init(const char* addr_str)
   net_set_nonblocking(g_com_sock);
 
   addr->sun_family = AF_LOCAL;
-  strcpy(addr->sun_path, addr_str);
+  strcpy(addr->sun_path, path);
+
+  if (connect(g_com_sock, (struct sockaddr *) addr, sizeof(*addr)) < 0) {
+    fprintf(stderr, "Failed to connect to '%s': %s\n", path, strerror(errno));
+    return false;
+  }
 
   return true;
-}
-
-static void unix_uninit() {
-  close(g_com_sock);
-  g_com_sock = -1;
 }
 
 static void unix_send(const char* addr_str, const char *msg)
@@ -183,11 +197,6 @@ static void unix_send(const char* addr_str, const char *msg)
     if (!unix_init(addr_str)) {
       goto error;
     }
-  }
-
-  if (connect(g_com_sock, (struct sockaddr *) &g_addr, sizeof(g_addr)) < 0) {
-    fprintf(stderr, "Failed to connect to '%s': %s\n", addr_str, strerror(errno));
-    goto error;
   }
 
   if (send(g_com_sock, msg, strlen(msg), 0) < 0) {
