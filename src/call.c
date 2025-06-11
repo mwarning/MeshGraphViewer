@@ -17,7 +17,7 @@
 
 int g_com_sock = -1;
 struct sockaddr_storage g_addr = {0};
-char g_com_buf[2048] = { 0 };
+char g_com_buf[10 * 1024] = { 0 };
 
 
 // Set a socket non-blocking
