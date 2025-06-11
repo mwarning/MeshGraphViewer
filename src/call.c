@@ -193,10 +193,12 @@ static bool unix_init(const char* path)
   return true;
 }
 
-static void unix_send(const char* addr_str, const char *msg)
+static void unix_send(const char* path, const char *msg)
 {
+  unix_init(path);
+
   if (g_com_sock < 0) {
-    if (!unix_init(addr_str)) {
+    if (!unix_init(path)) {
       goto error;
     }
   }
@@ -215,8 +217,6 @@ error:
   // append error message to message buffer
   //append_message(strerror(errno));
   //append_message("\n");
-
-  return;
 }
 
 static bool prog_init(const char* path)
