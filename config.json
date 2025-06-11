@@ -2,6 +2,8 @@
   "buttons": [
     {"name": "Connect", "command": "connect_nodes '%selected_nodes%'"},
     {"name": "Disconnect", "command": "disconnect_nodes '%selected_nodes%'"},
-    {"name": "Remove", "command": "remove_nodes '%selected_nodes' '%selected_links%'"}
+    {"name": "Remove", "command": "remove '%selected_nodes%' '%selected_links%'"},
+    {"name": "New Node", "command": "add_node"},
+    {"name": "Info", "command": "get_node_info '%selected_nodes%'"}
   ]
 }
