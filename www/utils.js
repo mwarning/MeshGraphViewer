@@ -45,6 +45,9 @@ function getNodeLatitude(node) {
     if (typeof x === "number") {
         return x;
     }
+    if (typeof x === "string") {
+        return parseFloat(x)
+    }
     const location = node.location;
     if (typeof location === "object") {
         const latitude = location.latitude;
@@ -59,6 +62,9 @@ function getNodeLongitude(node) {
     const y = node.y;
     if (typeof y === "number") {
         return y;
+    }
+    if (typeof y === "string") {
+        return parseFloat(y)
     }
     const location = node.location;
     if (typeof location === "object") {
