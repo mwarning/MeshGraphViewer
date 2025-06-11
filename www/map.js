@@ -76,16 +76,6 @@ class Map {
         });
         this.map.on('contextmenu', Map.contextMenuOpenLayerMenu);
 
-        if (config.geo) {
-            [].forEach.call(config.geo, function (geo) {
-                geo.json().then(function (result) {
-                    if (result) {
-                        L.geoJSON(result, geo.option).addTo(map);
-                    }
-                });
-            });
-        }
-
         this.button.init();
 
         let layerControl = L.control.layers(baseLayers, [], { position: 'bottomright' });
