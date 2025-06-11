@@ -83,7 +83,9 @@
 
         function toTable(parent, element) {
             var type = (typeof element);
-            if (type === 'string' || type === 'boolean' || type === 'number') {
+            if (type === 'string') {
+                append(parent, 'span', '"' + element.toString() + '"');
+            } else if (type === 'boolean' || type === 'number') {
                 append(parent, 'span', element.toString());
             } else if (element === null) {
                 append(parent, 'span', 'null');
