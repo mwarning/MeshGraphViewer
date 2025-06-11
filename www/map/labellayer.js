@@ -101,16 +101,47 @@ function createLabelLayer() {
         return { minX: x, minY: y, maxX: x + width, maxY: y + height };
     }
 
-    function mkMarker(nodeDict, iconFunc) {
+    function mkMarker(nodeDict) {
+        let iconOnline = {
+            fillOpacity: 1.0,
+            opacity: 1.0,
+            weight: 4,
+            radius: 4,
+            fillColor: config.map_defaultNodeColor,
+            color: config.map_defaultNodeColor
+        };
+
+        let iconOnlineSelected = {
+            fillOpacity: 1.0,
+            opacity: 0.6,
+            weight: 8,
+            radius: 10,
+            color: config.map_selectedColor,
+            fillColor: config.map_defaultNodeColor
+        };
+
         return function (d) {
-            const marker = L.circleMarker([d.x, d.y], iconFunc(d));
+            const color = d.o.color
+            if (typeof color === 'string') {
+                iconOnline.color = color;
+                iconOnline.fillColor = color;
+                iconOnlineSelected.fillColor = color;
+            }
+
+            const radius = d.o.radius
+            if (typeof radius === 'number') {
+                iconOnline.radius = radius;
+                iconOnlineSelected.radius = radius * 2;
+            }
+
+            const marker = L.circleMarker([d.x, d.y], iconOnline);
             const id = getNodeId(d.o);
 
             marker.resetStyle = function resetStyle() {
                 if (selection.isNodeSelected(id)) {
-                    marker.setStyle(config.map_selectedNode);
+                    marker.setStyle(iconOnlineSelected);
                 } else {
-                    marker.setStyle(iconFunc(d));
+                    marker.setStyle(iconOnline);
                 }
             };
 
@@ -131,31 +162,33 @@ function createLabelLayer() {
     }
 
     function addLinksToMap(linkDict, linkScale, graph) {
-        return graph.map(function (d) {
-            let opts = {
-                weight: 4,
-                opacity: 0.5,
-                dashArray: 'none'
-            };
+        let linkStyle = {
+            weight: 4,
+        };
 
+        let linkStyleSelected = {
+            weight: 6,
+            opacity: 0.6,
+            fillOpacity: 1,
+            color: config.map_selectedColor
+        };
+
+        return graph.map(function (d) {
             const source_tq = try_get(d.o, 'source_tq', 1.0);
             const target_tq = try_get(d.o, 'target_tq', 1.0);
 
-            if ('color' in d.o) {
-                opts.color = d.o.color;
-            } else {
-                // TODO: use gradient
-                opts.color = linkScale((source_tq + target_tq) / 2);
-            }
+            let color = d.o.color || linkScale((source_tq + target_tq) / 2);
+            linkStyle.color = color;
+            //linkStyleSelected.color = color;
 
             const latlngs = [L.latLng(d.source.x, d.source.y), L.latLng(d.target.x, d.target.y)];
-            let line = L.polyline(latlngs, opts);
+            let line = L.polyline(latlngs, linkStyle);
 
             line.resetStyle = function resetStyle() {
                 if (selection.isLinkSelected(d.o.source, d.o.target)) {
-                    line.setStyle(config.map_selectedLink);
+                    line.setStyle(linkStyleSelected);
                 } else {
-                    line.setStyle(opts);
+                    line.setStyle(linkStyle);
                 }
             };
 
@@ -185,16 +218,6 @@ function createLabelLayer() {
             }
         },
         setData: function (data, map, nodeDict, linkDict, linkScale) {
-            let iconOnline = {
-                fillOpacity: 0.6,
-                opacity: 0.6,
-                weight: 2,
-                radius: 6,
-                className: 'stroke-first',
-                color: '#1566A9',
-                fillColor: '#1566A9'
-            };
-
             // Check if init or data is already set
             if (groupLines) {
                 groupOnline.clearLayers();
@@ -210,9 +233,7 @@ function createLabelLayer() {
                 }
             })
 
-            const markersOnline = data.nodes.map(mkMarker(nodeDict, function () {
-                return iconOnline;
-            }));
+            const markersOnline = data.nodes.map(mkMarker(nodeDict));
 
             groupOnline = L.featureGroup(markersOnline).addTo(map);
             groupOnline.on('click', function() {

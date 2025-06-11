@@ -32,7 +32,7 @@ function createDraw(selection) {
             if (name !== undefined) {
                 ctx.beginPath();
                 ctx.textAlign = 'center';
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = config.graph_defaultNodeColor
                 ctx.fillText(name, d.x, d.y + 20);
             }
 
@@ -78,7 +78,7 @@ function createDraw(selection) {
 
         drawSelectedNode(d);
 
-        const color = try_get(d.o, 'color', '#fff');
+        const color = try_get(d.o, 'color', config.graph_defaultNodeColor);
         const radius = try_get(d.o, 'radius', 7);
 
         ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
