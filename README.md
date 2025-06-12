@@ -13,6 +13,7 @@ Features:
 ![Grid on Map](screenshots/screenshot-grid-map.png)
 ![Freifunk data on Graph](screenshots/screenshot-ff-graph.png)
 ![Freifunk on Map](screenshots/screenshot-ff-map.png)
+![Freifunk zoomed out Graph](screenshots/screenshot-ff-overview-graph.png)
 
 ## Usage
 
