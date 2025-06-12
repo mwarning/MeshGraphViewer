@@ -2,7 +2,12 @@
 
 View mesh networks described in a JSON file. This tool is meant to visualize mesh network simulations for research. Interactions with the graph (selection, deletion, etc.) and custom commands can be passed to external programs. The view is updated as soon as the JSON file is changed.
 
-Written in an unholy combination of C and JavaScript. Build with [d3js](https://d3js.org/), [leafletjs](https://leafletjs.com/) and [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/).
+Features:
+
+* Forcegraph and OpenStreet Map view
+* Edit JSON file and view results live
+* Graph data inspection via web interface
+* Pass through connection to external programs
 
 ![Grid on Graph](screenshots/screenshot-grid-graph.png)
 ![Grid on Map](screenshots/screenshot-grid-map.png)
@@ -83,16 +88,19 @@ Note:
   * An alternative for `id` is `node_id`.
 * `target_tq`/`source_tq`: link quality in the range of `[0..1]`.
 * `label`: Display a label on top of a node or link.
-* `name`: Display a name under a node. Defaults to `id` if not disabled.
+* `name`: Display a name under a node.
+  * Uses `hostname` or `id` as an alternative source.
 * `x`/`y`: Geographical position, also used for initial position in topological view.
-  * An alternative for `x`/`y` is `"location": { "longitude": 52.5162, "latitude": 13.3777}`.
+  * Uses `"location": { "longitude": 52.5162, "latitude": 13.3777}` as an alternative source.
 * `clients`: Display a number of small circles around each node.
 * `color`: Color of a node or link. CSS color format. By default the link color is based on `target_tq` and `source_tq`.
 * `radius`: Radius of the node circle.
 
 ## Build
 
-Install:
+MeshGraphViewer is written in an unholy combination of C and JavaScript. Build with [d3js](https://d3js.org/), [leafletjs](https://leafletjs.com/) and [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/).
+
+Requirements:
 
 - C compiler (e.g. clang or gcc)
 - xxd tool to include html/js/css data into binary (package `xxd` or as part of `vim-common`)
@@ -109,8 +117,6 @@ This should create a single standalone program called `graph-viewer`.
 ## Custom Buttons
 
 Add new buttons using the configuration file [config.json](config.json) and pass it to grap-viewer via the `--config` argument. Other available options like colors etc. can be gathered from the internal index.html default config object.
-
-## Command line variables
 
 In the command line, the variables `%selected_nodes%` and `%selected_links%` will be expanded to a comma separated list.
 
