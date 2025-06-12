@@ -234,7 +234,7 @@
 
     // fetch graph update
     function runFetchGraphDataLoop() {
-        const interval_ms = 1000;
+        const interval_ms = 500;
 
         function requestGraphData(force_full) {
             const command = force_full ? "/cmd/graph_full" : "/cmd/graph_update";
@@ -251,7 +251,7 @@
 
     // get content from the call program/path
     function runCommandReplyLoop() {
-        var interval_ms = 1000;
+        var interval_ms = 500;
 
         function requestCommandReply() {
             // request graph
