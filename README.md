@@ -120,6 +120,40 @@ Add new buttons using the configuration file [config.json](config.json) and pass
 
 In the command line, the variables `%selected_nodes%` and `%selected_links%` will be expanded to a comma separated list.
 
+## Connection to MeshnetLab
+
+MeshGraphViewer can be used to interact with [MeshnetLab](https://github.com/mwarning/meshnet-lab/), a mesh network simulation and test framework. This allows to run a virtual mesh network that can be viewed, edited and controlled via MeshGraphViewer.
+
+Example with an initial empty graph.
+
+Installation:
+```
+apt install libmicrohttpd-dev xxd
+mkdir project
+cd project
+git clone https://github.com/mwarning/meshnet-lab/
+git clone https://github.com/mwarning/MeshGraphViewer/
+cd MeshGraphviewer
+make
+```
+
+Run:
+```
+cd project/MeshGraphviewer
+echo '{"nodes": [], "links": []}' > graph.json
+sudo ./meshnet-lab-bridge.py ../meshnet-lab /tmp/sim_connector.sock ./graph.json
+# switch to a new termial, same working directory
+./graph-viewer --call unix:///tmp/sim_connector.sock --config config.json ./graph.json
+```
+
+Access MeshgraphViewer via the browser (https://localhost:8000). Use the buttons there to add nodes (running [batman-adv](https://en.wikipedia.org/wiki/B.A.T.M.A.N.)) and links.
+
+Shut down the simulation afterwards in the meshnet-lab folder:
+```
+./software.py clear
+./network.py clear
+```
+
 ## Related Software
 
 * [WebView D3](https://github.com/byt3bl33d3r/webview_d3)
