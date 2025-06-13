@@ -79,12 +79,25 @@ function createSelection() {
 
     // Remove selected nodes/links that were deleted
     self.filterSelections = function (nodes, links) {
+        node_set = new Set();
+        link_set = new Set();
+
+        for (node in nodes) {
+            node_set.add(String(node.id));
+        }
+
+        for (link in links) {
+            link_set.add(link.source + "," + link.target);
+        }
+
         selectedNodes = selectedNodes.filter(function(e) {
-            return (nodes.indexOf(e.id) !== -1);
+            const node_id = String(e.id);
+            return node_set.has(node_id);
         });
 
         selectedLinks = selectedLinks.filter(function(e) {
-            return (links.indexOf(e.source + "," + e.target) !== -1);
+            const link_id = e.source + "," + e.target
+            return link_set.has(link_id);
         });
     }
 
