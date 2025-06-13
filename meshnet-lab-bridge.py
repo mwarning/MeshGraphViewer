@@ -30,6 +30,9 @@ os.chmod(socket_path, 0o777)
 
 print(f"listen on {socket_path}")
 
+def split(s):
+    return [x for x in s.split(",") if x]
+
 def node_exists(node_id, graph):
   for node in graph["nodes"]:
     if node["id"] == node_id:
@@ -92,15 +95,18 @@ def update_graph(graph_new):
   if len(node_ids_create) > 0:
     subprocess.run([f"{meshnetlab_path}/software.py", "start", "batman-adv"] + list(node_ids_create))
 
+def convert_link_ids(links_ids):
+  # map [(source, target), ...] to list of link ids
+  ret = []
+  for i in range(0, len(links_ids), 2):
+    if (i+1) < len(links_ids):
+      source = links_ids[i]
+      target = links_ids[i+1]
+      ret.append(get_link_id({"source": source, "target": target}))
+  return ret
 
 def remove(conn, remove_node_ids, _remove_link_ids):
-  # map to list of node ids
-  remove_link_ids = []
-  for i in range(0, len(_remove_link_ids), 2):
-    if (i+1) < len(_remove_link_ids): 
-      source = _remove_link_ids[i]
-      target = _remove_link_ids[i+1]
-      remove_link_ids.append(get_link_id({"source": source, "target": target}))
+  remove_link_ids = convert_link_ids(_remove_link_ids)
 
   graph = get_graph()
 
@@ -222,17 +228,30 @@ def get_node_info(conn, node_id):
   else:
     print_and_send(conn, f"Node does not exist: {node_id}")
 
-def set_property(conn, node_id, key, value):
+def change_property(conn, node_ids, _link_ids, key, value):
   if key == "id":
     print_and_send(conn, f"Bad idea to change id field => denied")
     return
 
+  link_ids = convert_link_ids(_link_ids)
+
+  if len(node_ids) == 0 and len(link_ids) == 0:
+    print_and_send(conn, f"Nothing selected")
+    return
+
   graph = get_graph()
   nodes = get_node_map(graph)
+  links = get_link_map(graph)
 
-  if node_id not in nodes:
-    print_and_send(conn, f"Node does not exist: {node_id}")
-    return
+  for node_id in node_ids:
+    if node_id not in nodes:
+      print_and_send(conn, f"Node does not exist: {node_id}")
+      return
+
+  for link_id in link_ids:
+    if link_id not in links:
+      print_and_send(conn, f"Link does not exist: {link_id}")
+      return
 
   def is_float(string):
     try:
@@ -241,18 +260,40 @@ def set_property(conn, node_id, key, value):
     except ValueError:
       return False
 
-  if value.startswith('"') and value.endswith('"'):
-    nodes[node_id][key] = value
-  elif value.isnumeric():
-    nodes[node_id][key] = int(value)
-  elif is_float(value):
-    nodes[node_id][key] = float(value)
-  elif value == "true":
-    nodes[node_id][key] = True
-  elif value == "false":
-    nodes[node_id][key] = True
-  else:
-    nodes[node_id][key] = value
+  def get_typed_value(value):
+    if value is None:
+      return None
+    elif value.startswith('"') and value.endswith('"'):
+      return value[1:-1]
+    elif value == "{}":
+      return {}
+    elif value == "[]":
+      return []
+    elif value.isnumeric():
+      return int(value)
+    elif is_float(value):
+      return float(value)
+    elif value == "true":
+      return True
+    elif value == "false":
+      return False
+    else:
+      return value
+
+  typed_value = get_typed_value(value)
+
+  for node_id in node_ids:
+    if typed_value is None:
+      del nodes[node_id][key]
+    else:
+      nodes[node_id][key] = typed_value
+
+  for link_id in link_ids:
+    if typed_value is None:
+      print(f"remove link_id: {link_id}, key: {key}")
+      del links[link_id][key]
+    else:
+      links[link_id][key] = typed_value
 
   update_graph(graph)
   print_and_send(conn, "done")
@@ -262,7 +303,8 @@ disconnect_nodes_re = re.compile("disconnect_nodes '(.*)'")
 remove_re = re.compile("remove '(.*)' '(.*)'")
 add_node_re = re.compile("add_node")
 get_node_info_re = re.compile("get_node_info '(.*)'")
-set_property_re = re.compile("set (.*) (.*) (.*)")
+set_property_re = re.compile("set '(.*)' '(.*)' '(.*)' '(.*)'")
+unset_property_re = re.compile("unset '(.*)' '(.*)' '(.*)'")
 
 while True:
   server.listen(1)
@@ -274,20 +316,20 @@ while True:
 
     m = connect_nodes_re.fullmatch(text)
     if m:
-      node_ids = m.group(1).split(",")
+      node_ids = split(m.group(1))
       connect_nodes(conn, node_ids)
       continue
 
     m = disconnect_nodes_re.fullmatch(text)
     if m:
-      node_ids = m.group(1).split(",")
+      node_ids = split(m.group(1))
       disconnect_nodes(conn, node_ids)
       continue
 
     m = remove_re.fullmatch(text)
     if m:
-      node_ids = m.group(1).split(",")
-      link_ids = m.group(2).split(",")
+      node_ids = split(m.group(1))
+      link_ids = split(m.group(2))
       remove(conn, node_ids, link_ids)
       continue
 
@@ -304,10 +346,19 @@ while True:
 
     m = set_property_re.fullmatch(text)
     if m:
-      node_id = m.group(1)
-      key = m.group(2)
-      value = m.group(3)
-      set_property(conn, node_id, key, value)
+      node_ids = split(m.group(1))
+      link_ids = split(m.group(2))
+      key = m.group(3)
+      value = m.group(4)
+      change_property(conn, node_ids, link_ids, key, value)
+      continue
+
+    m = unset_property_re.fullmatch(text)
+    if m:
+      node_ids = split(m.group(1))
+      link_ids = split(m.group(2))
+      key = m.group(3)
+      change_property(conn, node_ids, link_ids, key, None)
       continue
 
     conn.send(f"Unknown command: {text}\n".encode())
