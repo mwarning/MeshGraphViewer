@@ -111,10 +111,6 @@ function createSelection() {
         return (selectedNodes.indexOf(id) !== -1);
     }
 
-    self.isAnythingSelected = function () {
-        return (selectedNodes.length > 0) || (selectedLinks.length > 0);
-    }
-
     self.selectNode = function (nodeId) {
         const id = String(nodeId);
 
