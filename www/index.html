@@ -292,7 +292,6 @@
         const div = $('#actions_tab div');
 
         if (config.buttons && config.buttons.length) {
-
             fieldset.classList.remove("hidden");
             console.log(fieldset);
 
@@ -339,6 +338,27 @@
             content.classList.remove("hidden");
         }
     }
+
+    function changeEntry(doSet) {
+        const key = $("#object_add_key").value;
+        const value = $("#object_add_value").value;
+
+        const node_ids = selection.getSelectedNodes();
+        const link_ids = selection.getSelectedLinks();
+        if (node_ids.length > 0 || link_ids.length > 0) {
+            if (key.length > 0) {
+                if (doSet) {
+                    sendCommand("set '" + node_ids.join(",") + "' '" + link_ids.join(",") + "' '" + key + "' '" + value + "'");
+                } else {
+                    sendCommand("unset '" + node_ids.join(",") + "' '" + link_ids.join(",") + "' '" + key + "'");
+                }
+            } else {
+                alert("Key is empty!");
+            }
+        } else {
+            alert("Nothing selected!");
+        }
+    }
 </script>
 </head>
 <body onload="init()">
@@ -362,13 +382,14 @@
                 <li onclick="selectTab(this, $('#selection_tab'))" class="visible">Selection</li>
             </ul>
             <fieldset id="selection_tab">
-                <legend>Change Selection</legend>
+                <legend>Selection</legend>
                 <div>
                     <input type="button" onclick="doExtendSelection()" value="Extend Selection" />
                     <input type="button" onclick="doClearSelection()" value="Clear Selection" />
                 </div>
                 <div><span id="node_count">0</span>nodes and<span id="link_count">0</span>links overall.</div>
                 <div><span id="selected_node_count">0</span>nodes and<span id="selected_link_count">0</span>links selected.</div>
+                <div><input type="text" value="" id="object_add_key">:<input type="text" value="" id="object_add_value"><input type="button" value="set" onclick="changeEntry(true)" /><input type="button" value="unset" onclick="changeEntry(false)" /></div>
             </fieldset>
             <fieldset id="actions_tab">
                 <legend>Custom Actions</legend>
