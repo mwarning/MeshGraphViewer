@@ -326,6 +326,10 @@
             // polling - TODO: Use websockets
             runFetchGraphDataLoop();
             runCommandReplyLoop();
+
+            if (config.allow_edit_objects) {
+                $("#object_edit").classList.remove("hidden");
+            }
         });
     }
 
@@ -389,7 +393,7 @@
                 </div>
                 <div><span id="node_count">0</span>nodes and<span id="link_count">0</span>links overall.</div>
                 <div><span id="selected_node_count">0</span>nodes and<span id="selected_link_count">0</span>links selected.</div>
-                <div><input type="text" value="" id="object_add_key">:<input type="text" value="" id="object_add_value"><input type="button" value="set" onclick="changeEntry(true)" /><input type="button" value="unset" onclick="changeEntry(false)" /></div>
+                <div id="object_edit" class="hidden"><input type="text" value="" id="object_add_key">:<input type="text" value="" id="object_add_value"><input type="button" value="set" onclick="changeEntry(true)" /><input type="button" value="unset" onclick="changeEntry(false)" /></div>
             </fieldset>
             <fieldset id="actions_tab">
                 <legend>Custom Actions</legend>

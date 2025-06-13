@@ -5,5 +5,6 @@
     {"name": "Remove", "command": "remove '%selected_nodes%' '%selected_links%'"},
     {"name": "New Node", "command": "add_node"},
     {"name": "Info", "command": "get_node_info '%selected_nodes%'"}
-  ]
+  ],
+  "allow_edit_objects": true
 }
