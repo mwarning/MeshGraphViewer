@@ -6,5 +6,5 @@
     {"name": "New Node", "command": "add_node"},
     {"name": "Info", "command": "get_node_info '%selected_nodes%'"}
   ],
-  "allow_edit_objects": true
+  "show_edit_json_row": true
 }
