@@ -74,8 +74,9 @@ def print_and_send(conn, message):
   print(message)
   conn.send((message + "\n").encode())
 
-def update_graph(graph_new):
+def update_graph(conn, graph_new):
   graph_old = get_graph()
+
   node_ids_old_set = set(get_node_map(graph_old).keys())
   node_ids_new_set = set(get_node_map(graph_new).keys())
 
@@ -94,6 +95,8 @@ def update_graph(graph_new):
 
   if len(node_ids_create) > 0:
     subprocess.run([f"{meshnetlab_path}/software.py", "start", "batman-adv"] + list(node_ids_create))
+
+  print_and_send(conn, "done")
 
 def convert_link_ids(links_ids):
   # map [(source, target), ...] to list of link ids
@@ -122,8 +125,7 @@ def remove(conn, remove_node_ids, _remove_link_ids):
   # remove links
   graph["links"] = [link for link in graph["links"] if not delete_link(link)]
 
-  update_graph(graph)
-  print_and_send(conn, "done")
+  update_graph(conn, graph)
 
 def disconnect_nodes(conn, node_ids):
   if len(node_ids) != 2:
@@ -159,8 +161,7 @@ def disconnect_nodes(conn, node_ids):
   del links[link_id]
   graph["links"] = list(links.values())
 
-  update_graph(graph)
-  print_and_send(conn, "done")
+  update_graph(conn, graph)
 
 def connect_nodes(conn, node_ids):
   if len(node_ids) != 2:
@@ -195,8 +196,7 @@ def connect_nodes(conn, node_ids):
 
   graph["links"].append(link)
 
-  update_graph(graph)
-  print_and_send(conn, "done")
+  update_graph(conn, graph)
 
 def add_node(conn):
   print(f"add node")
@@ -214,8 +214,7 @@ def add_node(conn):
   node = {"id": node_id}
   graph["nodes"].append(node)
 
-  update_graph(graph)
-  print_and_send(conn, f"add new node {node_id} - done")
+  update_graph(conn, graph)
 
 def get_node_info(conn, node_id):
   graph = get_graph()
@@ -295,8 +294,7 @@ def change_property(conn, node_ids, _link_ids, key, value):
     else:
       links[link_id][key] = typed_value
 
-  update_graph(graph)
-  print_and_send(conn, "done")
+  update_graph(conn, graph)
 
 connect_nodes_re = re.compile("connect_nodes '(.*)'")
 disconnect_nodes_re = re.compile("disconnect_nodes '(.*)'")
@@ -311,55 +309,59 @@ while True:
   conn, addr = server.accept()
   datagram = conn.recv(1024)
   if datagram:
-    text = datagram.decode("ascii")
-    print(text)
+    try:
+      text = datagram.decode("ascii")
+      print(text)
 
-    m = connect_nodes_re.fullmatch(text)
-    if m:
-      node_ids = split(m.group(1))
-      connect_nodes(conn, node_ids)
-      continue
+      m = connect_nodes_re.fullmatch(text)
+      if m:
+        node_ids = split(m.group(1))
+        connect_nodes(conn, node_ids)
+        continue
 
-    m = disconnect_nodes_re.fullmatch(text)
-    if m:
-      node_ids = split(m.group(1))
-      disconnect_nodes(conn, node_ids)
-      continue
+      m = disconnect_nodes_re.fullmatch(text)
+      if m:
+        node_ids = split(m.group(1))
+        disconnect_nodes(conn, node_ids)
+        continue
 
-    m = remove_re.fullmatch(text)
-    if m:
-      node_ids = split(m.group(1))
-      link_ids = split(m.group(2))
-      remove(conn, node_ids, link_ids)
-      continue
+      m = remove_re.fullmatch(text)
+      if m:
+        node_ids = split(m.group(1))
+        link_ids = split(m.group(2))
+        remove(conn, node_ids, link_ids)
+        continue
 
-    m = add_node_re.fullmatch(text)
-    if m:
-      add_node(conn)
-      continue
+      m = add_node_re.fullmatch(text)
+      if m:
+        add_node(conn)
+        continue
 
-    m = get_node_info_re.fullmatch(text)
-    if m:
-      node_id = m.group(1)
-      get_node_info(conn, node_id)
-      continue
+      m = get_node_info_re.fullmatch(text)
+      if m:
+        node_id = m.group(1)
+        get_node_info(conn, node_id)
+        continue
 
-    m = set_property_re.fullmatch(text)
-    if m:
-      node_ids = split(m.group(1))
-      link_ids = split(m.group(2))
-      key = m.group(3)
-      value = m.group(4)
-      change_property(conn, node_ids, link_ids, key, value)
-      continue
+      m = set_property_re.fullmatch(text)
+      if m:
+        node_ids = split(m.group(1))
+        link_ids = split(m.group(2))
+        key = m.group(3)
+        value = m.group(4)
+        change_property(conn, node_ids, link_ids, key, value)
+        continue
 
-    m = unset_property_re.fullmatch(text)
-    if m:
-      node_ids = split(m.group(1))
-      link_ids = split(m.group(2))
-      key = m.group(3)
-      change_property(conn, node_ids, link_ids, key, None)
-      continue
+      m = unset_property_re.fullmatch(text)
+      if m:
+        node_ids = split(m.group(1))
+        link_ids = split(m.group(2))
+        key = m.group(3)
+        change_property(conn, node_ids, link_ids, key, None)
+        continue
 
-    conn.send(f"Unknown command: {text}\n".encode())
-    print(f"unknown command: {text}")
+      conn.send(f"Unknown command: {text}\n".encode())
+      print(f"unknown command: {text}")
+    except Exception as e:
+      conn.send(f"Error: {e}\n".encode())
+      print(f"Error: {e}")
