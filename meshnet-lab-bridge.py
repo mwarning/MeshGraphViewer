@@ -228,83 +228,11 @@ def get_node_info(conn, node_id):
   else:
     print_and_send(conn, f"Node does not exist: {node_id}")
 
-def change_property(conn, node_ids, _link_ids, key, value):
-  if key == "id":
-    print_and_send(conn, f"Bad idea to change id field => denied")
-    return
-
-  link_ids = convert_link_ids(_link_ids)
-
-  if len(node_ids) == 0 and len(link_ids) == 0:
-    print_and_send(conn, f"Nothing selected")
-    return
-
-  graph = get_graph()
-  nodes = get_node_map(graph)
-  links = get_link_map(graph)
-
-  for node_id in node_ids:
-    if node_id not in nodes:
-      print_and_send(conn, f"Node does not exist: {node_id}")
-      return
-
-  for link_id in link_ids:
-    if link_id not in links:
-      print_and_send(conn, f"Link does not exist: {link_id}")
-      return
-
-  def is_float(string):
-    try:
-      float(string)
-      return True
-    except ValueError:
-      return False
-
-  def get_typed_value(value):
-    if value is None:
-      return None
-    elif value.startswith('"') and value.endswith('"'):
-      return value[1:-1]
-    elif value == "{}":
-      return {}
-    elif value == "[]":
-      return []
-    elif value.isnumeric():
-      return int(value)
-    elif is_float(value):
-      return float(value)
-    elif value == "true":
-      return True
-    elif value == "false":
-      return False
-    else:
-      return value
-
-  typed_value = get_typed_value(value)
-
-  for node_id in node_ids:
-    if typed_value is None:
-      del nodes[node_id][key]
-    else:
-      nodes[node_id][key] = typed_value
-
-  for link_id in link_ids:
-    if typed_value is None:
-      print(f"remove link_id: {link_id}, key: {key}")
-      del links[link_id][key]
-    else:
-      links[link_id][key] = typed_value
-
-  update_graph(graph)
-  print_and_send(conn, "done")
-
 connect_nodes_re = re.compile("connect_nodes '(.*)'")
 disconnect_nodes_re = re.compile("disconnect_nodes '(.*)'")
 remove_re = re.compile("remove '(.*)' '(.*)'")
 add_node_re = re.compile("add_node")
 get_node_info_re = re.compile("get_node_info '(.*)'")
-set_property_re = re.compile("set '(.*)' '(.*)' '(.*)' '(.*)'")
-unset_property_re = re.compile("unset '(.*)' '(.*)' '(.*)'")
 
 while True:
   server.listen(1)
@@ -342,23 +270,6 @@ while True:
     if m:
       node_id = m.group(1)
       get_node_info(conn, node_id)
-      continue
-
-    m = set_property_re.fullmatch(text)
-    if m:
-      node_ids = split(m.group(1))
-      link_ids = split(m.group(2))
-      key = m.group(3)
-      value = m.group(4)
-      change_property(conn, node_ids, link_ids, key, value)
-      continue
-
-    m = unset_property_re.fullmatch(text)
-    if m:
-      node_ids = split(m.group(1))
-      link_ids = split(m.group(2))
-      key = m.group(3)
-      change_property(conn, node_ids, link_ids, key, None)
       continue
 
     conn.send(f"Unknown command: {text}\n".encode())
