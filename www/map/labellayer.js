@@ -146,11 +146,7 @@ function createLabelLayer() {
             };
 
             marker.on('click', function (m) {
-                selection.selectNode(id);
-                updateStats();
-
-                // fill info table
-                updateSidebarTable(d.o);
+                selection.selectNode(d.o);
             });
 
             marker.bindTooltip(escape(getNodeName(d.o)));
@@ -197,11 +193,7 @@ function createLabelLayer() {
                 + ' - ' + showTq(target_tq) + '</strong>');
 
             line.on('click', function () {
-                selection.selectLink(d.o.source, d.o.target);
-                updateStats();
-
-                // fill info table
-                updateSidebarTable(d.o);
+                selection.selectLink(d.o);
             });
 
             linkDict[d.id] = line;

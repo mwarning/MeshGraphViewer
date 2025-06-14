@@ -63,14 +63,7 @@
     var my_map;
     var my_data = {nodes:[], links: []};
 
-    function updateSidebarTable(obj) {
-        var div = $('#object_tab div');
-
-        // remove all children
-        while (div.firstChild) {
-            div.removeChild(div.firstChild);
-        }
-
+    function updateSidebarTable(item) {
         function append(parent, name, content) {
             var e = document.createElement(name);
             if ((typeof content === 'string') || (typeof content === 'number')) {
@@ -104,10 +97,18 @@
             }
         }
 
-        if (obj) {
-            toTable(div, obj);
+        var div = $('#object_tab div');
+
+        // remove all children
+        while (div.firstChild) {
+            div.removeChild(div.firstChild);
+        }
+
+        if (item) {
+            toTable(div, item);
         }
     }
+
 
     function showMap() {
         if (my_graph) {
@@ -169,7 +170,6 @@
         if (my_graph) {
             my_graph.redraw();
         }
-        updateStats();
     }
 
     function doClearSelection() {
@@ -177,7 +177,6 @@
         if (my_graph) {
             my_graph.redraw();
         }
-        updateStats();
     }
 
     function handleData(data) {
@@ -225,8 +224,6 @@
                 my_map.setData(json);
                 my_data = json;
             }
-
-            updateStats();
         }
 
         return true;

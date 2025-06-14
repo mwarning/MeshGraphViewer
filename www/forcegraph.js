@@ -348,12 +348,7 @@ function createGraph(parent, selection, sidebar) {
 
     function selectNode (d) {
         // Focus node if no ctrl key pressed
-        const id = getNodeId(d.o);
-        selection.selectNode(id);
-        updateStats();
-
-        // fill info table
-        updateSidebarTable(d.o);
+        selection.selectNode(d.o);
 
         if (!selection.isMetaPressed()) {
             moveTo([d.x, d.y, (ZOOM_MAX + 1) / 2]);
@@ -362,11 +357,7 @@ function createGraph(parent, selection, sidebar) {
 
     function selectLink (d) {
         // Focus link if no ctrl key pressed
-        selection.selectLink(d.o.source, d.o.target);
-        updateStats();
-
-        // fill info table
-        updateSidebarTable(d.o);
+        selection.selectLink(d.o);
 
         if (!selection.isMetaPressed()) {
             moveTo([(d.source.x + d.target.x) / 2, (d.source.y + d.target.y) / 2, (ZOOM_MAX / 2) + ZOOM_MIN]);

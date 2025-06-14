@@ -18,6 +18,7 @@ function createSelection() {
     self.clearSelection = function () {
         selectedNodes = [];
         selectedLinks = [];
+        updateStats();
     };
 
     self.getSelectedNodes = function () {
@@ -75,6 +76,8 @@ function createSelection() {
 
         selectedNodes = Object.keys(selectedNodesDict);
         selectedLinks = Object.keys(selectedLinksDict);
+
+        updateStats();
     }
 
     // Remove selected nodes/links that were deleted
@@ -83,22 +86,24 @@ function createSelection() {
         link_set = new Set();
 
         for (node in nodes) {
-            node_set.add(String(node.id));
+            node_set.add(getNodeId(node));
         }
 
         for (link in links) {
-            link_set.add(link.source + "," + link.target);
+            link_set.add(getLinkId(link));
         }
 
         selectedNodes = selectedNodes.filter(function(e) {
-            const node_id = String(e.id);
+            const node_id = getNodeId(e);
             return node_set.has(node_id);
         });
 
         selectedLinks = selectedLinks.filter(function(e) {
-            const link_id = e.source + "," + e.target
+            const link_id = getLinkId(e);
             return link_set.has(link_id);
         });
+
+        updateStats();
     }
 
     self.isLinkSelected = function (sourceId, targetId) {
@@ -111,8 +116,8 @@ function createSelection() {
         return (selectedNodes.indexOf(id) !== -1);
     }
 
-    self.selectNode = function (nodeId) {
-        const id = String(nodeId);
+    self.selectNode = function (node) {
+        const id = getNodeId(node);
 
         if (self.isMetaPressed()) {
             const i = selectedNodes.indexOf(id);
@@ -127,10 +132,13 @@ function createSelection() {
             selectedNodes = [id];
             selectedLinks = [];
         }
+
+        updateSidebarTable(node);
+        updateStats();
     };
 
-    self.selectLink = function (sourceId, targetId) {
-        const id = sourceId + ',' + targetId;
+    self.selectLink = function (link) {
+        const id = getLinkId(link);
 
         if (self.isMetaPressed()) {
             var i = selectedLinks.indexOf(id);
@@ -143,6 +151,9 @@ function createSelection() {
             selectedNodes = [];
             selectedLinks = [id];
         }
+
+        updateSidebarTable(link);
+        updateStats();
     };
 
     return self;
