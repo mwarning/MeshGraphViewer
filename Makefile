@@ -1,7 +1,7 @@
 CFLAGS ?= -O2
 CFLAGS += -std=gnu99 -Wall -Werror -pedantic -fno-strict-aliasing -Wwrite-strings
 LDFLAGS += -lmicrohttpd
-SRC = src/files.c src/utils.c src/webserver.c src/call.c src/main.c
+SRC = src/files.c src/utils.c src/webserver.c src/call.c src/json.c src/cJSON.c src/main.c
 
 .PHONY: all clean debug src/files.c
 

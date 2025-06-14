@@ -170,16 +170,16 @@ static int handle_call_execute(struct MHD_Connection *connection)
   return send_empty_text(connection);
 }
 
-struct graph_modify_args {
+struct graph_set_args {
   char *node_ids;
   char *link_ids;
   char *key;
   char *value;
 };
 
-static int get_graph_modify_args(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+static int get_graph_set_args(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
-  struct graph_modify_args *args = (struct graph_modify_args*)cls;
+  struct graph_set_args *args = (struct graph_set_args*)cls;
 
   if (!args->node_ids && strcmp(key, "node_ids") == 0) {
     args->node_ids = strdup(value);
@@ -200,11 +200,11 @@ static int get_graph_modify_args(void *cls, enum MHD_ValueKind kind, const char 
   return MHD_YES;
 }
 
-static int handle_graph_modify(struct MHD_Connection *connection)
+static int handle_graph_set(struct MHD_Connection *connection)
 {
-  struct graph_modify_args args = {0};
+  struct graph_set_args args = {0};
 
-  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, (MHD_KeyValueIterator)get_graph_modify_args, &args);
+  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, (MHD_KeyValueIterator)get_graph_set_args, &args);
   if (!args.node_ids || !args.link_ids || !args.key || !args.value) {
     fprintf(stderr, "Missing query arguments for /cmd/graph_modify\n");
     return send_empty_text(connection);
@@ -214,7 +214,7 @@ static int handle_graph_modify(struct MHD_Connection *connection)
   //  args.node_ids, args.link_ids, args.key, args.value);
 
   if (g_graph) {
-    json_replace(g_graph, args.node_ids, args.link_ids, args.key, args.value);
+    json_set(g_graph, args.node_ids, args.link_ids, args.key, args.value);
   }
 
   free(args.node_ids);
@@ -224,6 +224,83 @@ static int handle_graph_modify(struct MHD_Connection *connection)
 
   return send_empty_text(connection);
 }
+
+/*
+struct graph_connect_args {
+  char *node_ids;
+};
+
+static int get_graph_connect_args(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+{
+  struct graph_connect_args *args = (struct graph_connect_args*)cls;
+
+  if (!args->node_ids && strcmp(key, "node_ids") == 0) {
+    args->node_ids = strdup(value);
+  }
+
+  return MHD_YES;
+}
+
+static int handle_graph_connect(struct MHD_Connection *connection)
+{
+  struct graph_connect_args args = {0};
+
+  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, (MHD_KeyValueIterator)get_graph_connect_args, &args);
+  if (!args.node_ids) {
+    fprintf(stderr, "Missing query arguments for /cmd/graph_modify\n");
+    return send_empty_text(connection);
+  }
+
+  //printf("node_ids: %s, link_ids: %s, key: %s, value: %s\n",
+  //  args.node_ids, args.link_ids, args.key, args.value);
+
+  if (g_graph) {
+    json_connect(g_graph, args.node_ids);
+  }
+
+  free(args.node_ids);
+
+  return send_empty_text(connection);
+}
+
+struct graph_disconnect_args {
+  char *node_ids;
+};
+
+static int get_graph_disconnect_args(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+{
+  struct graph_disconnect_args *args = (struct graph_disconnect_args*)cls;
+
+  if (!args->node_ids && strcmp(key, "node_ids") == 0) {
+    args->node_ids = strdup(value);
+  }
+
+  return MHD_YES;
+}
+
+static int handle_graph_disconnect(struct MHD_Connection *connection)
+{
+  struct graph_connect_args args = {0};
+
+  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, (MHD_KeyValueIterator)get_graph_disconnect_args, &args);
+  if (!args.node_ids) {
+    fprintf(stderr, "Missing query arguments for /cmd/graph_modify\n");
+    return send_empty_text(connection);
+  }
+
+  //printf("node_ids: %s, link_ids: %s, key: %s, value: %s\n",
+  //  args.node_ids, args.link_ids, args.key, args.value);
+
+  if (g_graph) {
+    json_disconnect(g_graph, args.node_ids);
+  }
+
+  free(args.node_ids);
+
+  return send_empty_text(connection);
+}
+*/
+
 
 static int handle_graph(struct MHD_Connection *connection, bool force_full_file)
 {
@@ -337,7 +414,7 @@ static int send_response(void *cls, struct MHD_Connection *connection,
   } else if (0 == strcmp(url, "/cmd/graph_update")) {
     return handle_graph(connection, false);
   } else if (0 == strcmp(url, "/cmd/graph_modify")) {
-    return handle_graph_modify(connection);
+    return handle_graph_set(connection);
   } else {
     return handle_content(connection, url);
   }
