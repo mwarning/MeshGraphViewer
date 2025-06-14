@@ -11,6 +11,7 @@
 #include <microhttpd.h>
 
 #include "utils.h"
+#include "json.h"
 #include "call.h"
 #include "main.h"
 #include "files.h" // will be created by Makefile
@@ -169,6 +170,61 @@ static int handle_call_execute(struct MHD_Connection *connection)
   return send_empty_text(connection);
 }
 
+struct graph_modify_args {
+  char *node_ids;
+  char *link_ids;
+  char *key;
+  char *value;
+};
+
+static int get_graph_modify_args(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+{
+  struct graph_modify_args *args = (struct graph_modify_args*)cls;
+
+  if (!args->node_ids && strcmp(key, "node_ids") == 0) {
+    args->node_ids = strdup(value);
+  }
+
+  if (!args->link_ids && strcmp(key, "link_ids") == 0) {
+    args->link_ids = strdup(value);
+  }
+
+  if (!args->key && strcmp(key, "key") == 0) {
+    args->key = strdup(value);
+  }
+
+  if (!args->value && strcmp(key, "value") == 0) {
+    args->value = strdup(value);
+  }
+
+  return MHD_YES;
+}
+
+static int handle_graph_modify(struct MHD_Connection *connection)
+{
+  struct graph_modify_args args = {0};
+
+  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, (MHD_KeyValueIterator)get_graph_modify_args, &args);
+  if (!args.node_ids || !args.link_ids || !args.key || !args.value) {
+    fprintf(stderr, "Missing query arguments for /cmd/graph_modify\n");
+    return send_empty_text(connection);
+  }
+
+  //printf("node_ids: %s, link_ids: %s, key: %s, value: %s\n",
+  //  args.node_ids, args.link_ids, args.key, args.value);
+
+  if (g_graph) {
+    json_replace(g_graph, args.node_ids, args.link_ids, args.key, args.value);
+  }
+
+  free(args.node_ids);
+  free(args.link_ids);
+  free(args.key);
+  free(args.value);
+
+  return send_empty_text(connection);
+}
+
 static int handle_graph(struct MHD_Connection *connection, bool force_full_file)
 {
   if (g_graph == NULL) {
@@ -280,6 +336,8 @@ static int send_response(void *cls, struct MHD_Connection *connection,
     return handle_graph(connection, true);
   } else if (0 == strcmp(url, "/cmd/graph_update")) {
     return handle_graph(connection, false);
+  } else if (0 == strcmp(url, "/cmd/graph_modify")) {
+    return handle_graph_modify(connection);
   } else {
     return handle_content(connection, url);
   }

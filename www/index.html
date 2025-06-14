@@ -340,19 +340,20 @@
         }
     }
 
-    function changeEntry(doSet) {
-        const key = $("#object_add_key").value;
-        const value = $("#object_add_value").value;
+    function setEntry(doSet) {
+        const key = $("#object_set_key").value;
+        const value = doSet ? $("#object_set_value").value : "";
 
         const node_ids = selection.getSelectedNodes();
         const link_ids = selection.getSelectedLinks();
         if (node_ids.length > 0 || link_ids.length > 0) {
             if (key.length > 0) {
-                if (doSet) {
-                    sendCommand("set '" + node_ids.join(",") + "' '" + link_ids.join(",") + "' '" + key + "' '" + value + "'");
-                } else {
-                    sendCommand("unset '" + node_ids.join(",") + "' '" + link_ids.join(",") + "' '" + key + "'");
-                }
+                send("/cmd/graph_modify", {
+                    "node_ids": node_ids.join(","),
+                    "link_ids": link_ids.join(","),
+                    "key": key,
+                    "value": value
+                }, null);
             } else {
                 alert("Key is empty!");
             }
@@ -390,7 +391,7 @@
                 </div>
                 <div><span id="node_count">0</span>nodes and<span id="link_count">0</span>links overall.</div>
                 <div><span id="selected_node_count">0</span>nodes and<span id="selected_link_count">0</span>links selected.</div>
-                <div id="object_edit" class="hidden"><input type="text" value="" id="object_add_key">:<input type="text" value="" id="object_add_value"><input type="button" value="set" onclick="changeEntry(true)" /><input type="button" value="unset" onclick="changeEntry(false)" /></div>
+                <div id="object_edit" class="hidden"><input type="text" value="" id="object_set_key">:<input type="text" value="" id="object_set_value"><input type="button" value="set" onclick="setEntry(true)" /><input type="button" value="unset" onclick="setEntry(false)" /></div>
             </fieldset>
             <fieldset id="actions_tab">
                 <legend>Custom Actions</legend>
