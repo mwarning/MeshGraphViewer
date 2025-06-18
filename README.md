@@ -45,6 +45,8 @@ Arguments:
 
 ## Graph JSON format
 
+The supported JSON formats are [NetJSON](https://netjson.org/) and a very similar format used by the [Meshviewer](https://github.com/ffrgb/meshviewer) project that is used by most [Freifunk](https://freifunk.net/) communities.
+
 Minimal graph example:
 ```
 {
@@ -127,7 +129,7 @@ MeshGraphViewer can be used to interact with [MeshnetLab](https://github.com/mwa
 
 Example with an initial empty graph.
 
-Installation:
+Installation
 ```
 apt install libmicrohttpd-dev xxd
 mkdir project
@@ -138,7 +140,7 @@ cd MeshGraphviewer
 make
 ```
 
-Run:
+Run
 ```
 cd project/MeshGraphviewer
 echo '{"nodes": [], "links": []}' > graph.json
@@ -158,7 +160,6 @@ Shut down the simulation afterwards in the meshnet-lab folder:
 ## Related Software
 
 * [WebView D3](https://github.com/byt3bl33d3r/webview_d3)
-* [MeshViewer](https://github.com/ffrgb/meshviewer)
 * [HopGlass](https://github.com/hopglass/hopglass)
 * [NetJSON NetworkGraph](https://github.com/openwisp/netjsongraph.js)
 * [graph-tool](https://graph-tool.skewed.de/)
@@ -169,7 +170,7 @@ Shut down the simulation afterwards in the meshnet-lab folder:
 
 ## Authors
 
-The base of the JavaScript/CSS code was taken from the [MeshViewer](https://github.com/ffrgb/meshviewer) project.
+The code of the MeshGraphViewer is based on the [MeshViewer](https://github.com/ffrgb/meshviewer) project.
 
 ## License
 
