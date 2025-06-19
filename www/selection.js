@@ -1,10 +1,10 @@
 
 function createSelection() {
-    let self = this;
-
-    let selectedNodes = [];
-    let selectedLinks = [];
-    let meta_pressed = false;
+    const self = {
+        selectedNodes: [],
+        selectedLinks: [],
+        meta_pressed: false,
+    };
 
     window.onmousemove = function (e) {
         if (!e) e = window.event;
@@ -16,22 +16,24 @@ function createSelection() {
     }
 
     self.clearSelection = function () {
-        selectedNodes = [];
-        selectedLinks = [];
+        self.selectedNodes = [];
+        self.selectedLinks = [];
+
+        sidebar.setSidebarItem(undefined);
         updateStats();
-    };
+    }
 
     self.getSelectedNodes = function () {
-        return selectedNodes;
+        return self.selectedNodes;
     }
 
     self.getSelectedLinks = function () {
-        return selectedLinks;
+        return self.selectedLinks;
     }
 
     self.extendSelection = function (data) {
-        let selectedNodesDict = {};
-        let selectedLinksDict = {};
+        let selectedNodesSet = new Set();
+        let selectedLinksSet = new Set();
 
         // Map node id to array of link objects
         let connections = {};
@@ -41,49 +43,49 @@ function createSelection() {
             connections[id] = [];
         });
 
-        data.links.forEach(function(l) {
-            connections[l.source].push(l);
-            connections[l.target].push(l);
+        data.links.forEach(function(link) {
+            connections[link.source].push(link);
+            connections[link.target].push(link);
         });
 
         function selectNode(id) {
-            selectedNodesDict[id] = true;
+            selectedNodesSet.add(id);
             if (id in connections) {
-                connections[id].forEach(function(l) {
-                    const link_id = getLinkId(l);
-                    if (!(link_id in selectedLinksDict)) {
-                        selectedLinksDict[link_id] = true;
+                connections[id].forEach(function(link) {
+                    const link_id = getLinkId(link);
+                    if (!selectedLinksSet.has(link_id)) {
+                        selectedLinksSet.add(link_id);
                     }
-                    if (!(l.source in selectedNodesDict)) {
-                        selectNode(l.source);
+                    if (!selectedNodesSet.has(link.source)) {
+                        selectNode(link.source);
                     }
-                    if (!(l.target in selectedNodesDict)) {
-                        selectNode(l.target);
+                    if (!selectedNodesSet.has(link.target)) {
+                        selectNode(link.target);
                     }
                 });
             }
         }
 
-        selectedNodes.forEach(function (id) {
+        self.selectedNodes.forEach(function (id) {
             selectNode(id);
         });
 
-        selectedLinks.forEach(function (id) {
+        self.selectedLinks.forEach(function (id) {
             const link = id.split(",");
             selectNode(link[0]);
             selectNode(link[1]);
         });
 
-        selectedNodes = Object.keys(selectedNodesDict);
-        selectedLinks = Object.keys(selectedLinksDict);
+        self.selectedNodes = Array.from(selectedNodesSet);
+        self.selectedLinks = Array.from(selectedLinksSet);
 
         updateStats();
     }
 
     // Remove selected nodes/links that were deleted
-    self.filterSelections = function (nodes, links) {
-        node_set = new Set();
-        link_set = new Set();
+    self.setData = function (nodes, links) {
+        let node_set = new Set();
+        let link_set = new Set();
 
         for (node in nodes) {
             node_set.add(getNodeId(node));
@@ -93,12 +95,12 @@ function createSelection() {
             link_set.add(getLinkId(link));
         }
 
-        selectedNodes = selectedNodes.filter(function(e) {
+        self.selectedNodes = self.selectedNodes.filter(function(e) {
             const node_id = getNodeId(e);
             return node_set.has(node_id);
         });
 
-        selectedLinks = selectedLinks.filter(function(e) {
+        self.selectedLinks = self.selectedLinks.filter(function(e) {
             const link_id = getLinkId(e);
             return link_set.has(link_id);
         });
@@ -108,32 +110,32 @@ function createSelection() {
 
     self.isLinkSelected = function (sourceId, targetId) {
         const id = sourceId + "," + targetId;
-        return (selectedLinks.indexOf(id) !== -1);
+        return (self.selectedLinks.indexOf(id) !== -1);
     }
 
     self.isNodeSelected = function (nodeId) {
         const id = String(nodeId);
-        return (selectedNodes.indexOf(id) !== -1);
+        return (self.selectedNodes.indexOf(id) !== -1);
     }
 
     self.selectNode = function (node) {
         const id = getNodeId(node);
 
         if (self.isMetaPressed()) {
-            const i = selectedNodes.indexOf(id);
+            const i = self.selectedNodes.indexOf(id);
             if (i < 0) {
                 // add to selection
-                selectedNodes.push(id);
+                self.selectedNodes.push(id);
             } else {
                 // remove from selection
-                selectedNodes.splice(i, 1);
+                self.selectedNodes.splice(i, 1);
             }
         } else {
-            selectedNodes = [id];
-            selectedLinks = [];
+            self.selectedNodes = [id];
+            self.selectedLinks = [];
         }
 
-        updateSidebarTable(node);
+        sidebar.setSidebarItem(node);
         updateStats();
     };
 
@@ -141,18 +143,18 @@ function createSelection() {
         const id = getLinkId(link);
 
         if (self.isMetaPressed()) {
-            var i = selectedLinks.indexOf(id);
+            var i = self.selectedLinks.indexOf(id);
             if (i < 0) {
-                selectedLinks.push(id);
+                self.selectedLinks.push(id);
             } else {
-                selectedLinks.splice(i, 1);
+                self.selectedLinks.splice(i, 1);
             }
         } else {
-            selectedNodes = [];
-            selectedLinks = [id];
+            self.selectedNodes = [];
+            self.selectedLinks = [id];
         }
 
-        updateSidebarTable(link);
+        sidebar.setSidebarItem(link);
         updateStats();
     };
 

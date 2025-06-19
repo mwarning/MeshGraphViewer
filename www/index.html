@@ -57,58 +57,11 @@
         fullscreenFrame: true
     };
 
-    var sidebar;
-    var selection;
-    var my_graph;
-    var my_map;
-    var my_data = {nodes:[], links: []};
-
-    function updateSidebarTable(item) {
-        function append(parent, name, content) {
-            var e = document.createElement(name);
-            if ((typeof content === 'string') || (typeof content === 'number')) {
-                var text = document.createTextNode(content.toString());
-                e.appendChild(text);
-            }
-            parent.appendChild(e);
-            return e;
-        }
-
-        function toTable(parent, element) {
-            var type = (typeof element);
-            if (type === 'string') {
-                append(parent, 'span', '"' + element.toString() + '"');
-            } else if (type === 'boolean' || type === 'number') {
-                append(parent, 'span', element.toString());
-            } else if (element === null) {
-                append(parent, 'span', 'null');
-            } else if (type === 'object') {
-                var table = append(parent, 'table');
-                for (let [key, value] of Object.entries(element)) {
-                    // <tr><td><span>key</span></td><td><span>value</span></td></tr>
-                    let tr = append(table, 'tr');
-                    let td1 = append(tr, 'td');
-                    append(td1, 'span', key.toString());
-                    let td2 = append(tr, 'td');
-                    toTable(td2, value);
-                }
-            } else {
-                append(parent, 'span', '???');
-            }
-        }
-
-        var div = $('#object_tab div');
-
-        // remove all children
-        while (div.firstChild) {
-            div.removeChild(div.firstChild);
-        }
-
-        if (item) {
-            toTable(div, item);
-        }
-    }
-
+    let sidebar;
+    let selection;
+    let my_graph;
+    let my_map;
+    let my_data = {nodes:[], links: []};
 
     function showMap() {
         if (my_graph) {
@@ -203,27 +156,28 @@
             return false;
         }
 
-        if (json.nodes || json.links) {
-            if (!('nodes' in json)) {
-                json['nodes'] = []
-            }
+        if (!('nodes' in json)) {
+            json['nodes'] = [];
+        }
 
-            if (!('links' in json)) {
-                json['links'] = []
-            }
+        if (!('links' in json)) {
+            json['links'] = [];
+        }
 
-            // remove selected items that do not exist anymore
-            selection.filterSelections(json.nodes, json.links);
+        // remove selected items that do not exist anymore
+        selection.setData(json.nodes, json.links);
 
-            if (my_graph) {
-                my_graph.setData(json, true);
-                my_data = json;
-            }
+        // update selected node/link
+        sidebar.setData(json.nodes, json.links);
 
-            if (my_map) {
-                my_map.setData(json);
-                my_data = json;
-            }
+        if (my_graph) {
+            my_graph.setData(json, true);
+            my_data = json;
+        }
+
+        if (my_map) {
+            my_map.setData(json);
+            my_data = json;
         }
 
         return true;
@@ -290,7 +244,6 @@
 
         if (config.buttons && config.buttons.length) {
             fieldset.classList.remove("hidden");
-            console.log(fieldset);
 
             config.buttons.forEach(function(button) {
                 var input = document.createElement('input');
@@ -309,7 +262,7 @@
     function init() {
         send("/config.json", {}, function(data) {
             config = Object.assign(config, JSON.parse(data));
-            sidebar = createSidebar()();
+            sidebar = createSidebar();
             selection = createSelection();
 
             // extends leaflet with activearea
@@ -340,6 +293,7 @@
         }
     }
 
+    // send command to modify JSON. Depends on external script.
     function changeEntry(doSet) {
         const key = $("#object_add_key").value;
         const value = $("#object_add_value").value;
