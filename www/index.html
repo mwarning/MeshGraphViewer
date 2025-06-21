@@ -132,6 +132,17 @@
         }
     }
 
+    function hideError() {
+        const bar = $('#alert_bar')
+        bar.style.visibility = 'hidden';
+    }
+
+    function showError(e) {
+        const bar = $('#alert_bar')
+        bar.innerText = e
+        bar.style.visibility = 'visible';
+    }
+
     function handleData(data) {
         if (data === undefined || data.length == 0) {
             // invalid data
@@ -143,18 +154,16 @@
             return true;
         }
 
-        let bar = $('#alert_bar')
-        bar.style.visibility = 'hidden';
-
         let json = {};
         try {
             json = JSON.parse(data);
         } catch (e) {
-            bar.innerText = e
-            bar.style.visibility = 'visible';
-            // invalid data
+            // got invalid data
+            showError(e);
             return false;
         }
+
+        hideError();
 
         if (!('nodes' in json)) {
             json['nodes'] = [];
@@ -191,9 +200,14 @@
             const command = force_full ? "/cmd/graph_full" : "/cmd/graph_update";
             // request graph
             send(command, {}, function(data) {
-                // force full data if the previous fetch failed or got invalid data
-                const force_full = !handleData(data);
-                setTimeout(requestGraphData, interval_ms, force_full);
+                if (typeof data === "string") {
+                    // force full data if the previous fetch failed or got invalid data
+                    const force_full = !handleData(data);
+                    setTimeout(requestGraphData, interval_ms, force_full);
+                } else {
+                    showError(data);
+                    setTimeout(requestGraphData, interval_ms, true);
+                }
             });
         }
 
@@ -207,7 +221,9 @@
         function requestCommandReply() {
             // request graph
             send("/cmd/call_receive", {}, function(data) {
-                $("#command_reply").value += data;
+                if (typeof data === "string") {
+                    $("#command_reply").value += data;
+                }
                 setTimeout(requestCommandReply, interval_ms);
             });
         }
