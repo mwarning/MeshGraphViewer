@@ -19,7 +19,6 @@
 
 static struct MHD_Daemon *g_webserver;
 static const char *g_webserver_path;
-static time_t g_graph_mtime = 0;
 
 
 // Lookup files content included by files.h
@@ -169,29 +168,44 @@ static int handle_call_execute(struct MHD_Connection *connection)
   return send_empty_text(connection);
 }
 
+// check graph file was modified seconds ago
+static bool was_graph_modified(int seconds_ago)
+{
+  static time_t last_modified_time = 0;
+  static time_t last_checked_time = 0;
+
+  time_t now = time(0);
+
+  // check at most every second
+  if (last_checked_time != now) {
+    last_checked_time = now;
+
+    // get timestamp
+    struct stat attr;
+    if (stat(g_graph, &attr) == -1) {
+      // graph file not found
+      fprintf(stderr, "stat(): %s %s\n", strerror(errno), g_graph);
+      return true;
+    }
+
+    last_modified_time = attr.st_mtime;
+  }
+
+  return last_modified_time > (now - seconds_ago);
+}
+
 static int handle_graph(struct MHD_Connection *connection, bool force_full_file)
 {
   if (g_graph == NULL) {
     return send_empty_json(connection);
   }
 
-  // get timestamp
-  struct stat attr;
-  if (stat(g_graph, &attr) == -1) {
-    // graph file not found
-    fprintf(stderr, "stat(): %s %s\n", strerror(errno), g_graph);
-    return send_empty_text(connection);
-  }
+  bool modified = was_graph_modified(2);
 
-  if (!force_full_file) {
-    if (attr.st_mtime == g_graph_mtime) {
-      // no change
-      return send_empty_json(connection);
-    }
+  if (!modified && !force_full_file) {
+    // no change
+    return send_empty_json(connection);
   }
-
-  // update global timestamp
-  g_graph_mtime = attr.st_mtime;
 
   if (g_graph == NULL) {
     // no graph file set
@@ -226,11 +240,6 @@ static int handle_content(struct MHD_Connection *connection, const char *url)
 
   if (0 == strcmp(url, "/")) {
     url = "/index.html";
-  }
-
-  // Serve entire graph when site was reloaded
-  if (0 == strcmp(url, "/index.html")) {
-    g_graph_mtime = 0;
   }
 
   if (0 == strcmp(url, "/config.json")) {
