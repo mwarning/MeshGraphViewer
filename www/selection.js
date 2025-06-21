@@ -1,8 +1,8 @@
 
 function createSelection() {
     const self = {
-        selectedNodes: [],
-        selectedLinks: [],
+        selectedNodes: new Set(),
+        selectedLinks: new Set(),
         meta_pressed: false,
     };
 
@@ -16,8 +16,8 @@ function createSelection() {
     }
 
     self.clearSelection = function () {
-        self.selectedNodes = [];
-        self.selectedLinks = [];
+        self.selectedNodes.clear();
+        self.selectedLinks.clear();
 
         sidebar.setSidebarItem(undefined);
         updateStats();
@@ -32,10 +32,6 @@ function createSelection() {
     }
 
     self.extendSelection = function (data) {
-        let selectedNodesSet = new Set();
-        let selectedLinksSet = new Set();
-
-        // Map node id to array of link objects
         let connections = {};
 
         data.nodes.forEach(function(n) {
@@ -43,96 +39,73 @@ function createSelection() {
             connections[id] = [];
         });
 
-        data.links.forEach(function(link) {
-            connections[link.source].push(link);
-            connections[link.target].push(link);
+        data.links.forEach(function(l) {
+            connections[l.source].push(l);
+            connections[l.target].push(l);
         });
 
-        function selectNode(id) {
-            selectedNodesSet.add(id);
+        function addNode(id) {
+            self.selectedNodes.add(id);
             if (id in connections) {
                 connections[id].forEach(function(link) {
-                    const link_id = getLinkId(link);
-                    if (!selectedLinksSet.has(link_id)) {
-                        selectedLinksSet.add(link_id);
+                    self.selectedLinks.add(getLinkId(link));
+                    if (!self.selectedNodes.has(link.source)) {
+                        addNode(link.source);
                     }
-                    if (!selectedNodesSet.has(link.source)) {
-                        selectNode(link.source);
-                    }
-                    if (!selectedNodesSet.has(link.target)) {
-                        selectNode(link.target);
+                    if (!self.selectedNodes.has(link.target)) {
+                        addNode(link.target);
                     }
                 });
             }
         }
 
         self.selectedNodes.forEach(function (id) {
-            selectNode(id);
+            addNode(id);
         });
 
         self.selectedLinks.forEach(function (id) {
             const link = id.split(",");
-            selectNode(link[0]);
-            selectNode(link[1]);
+            addNode(link[0]);
+            addNode(link[1]);
         });
-
-        self.selectedNodes = Array.from(selectedNodesSet);
-        self.selectedLinks = Array.from(selectedLinksSet);
 
         updateStats();
     }
 
     // Remove selected nodes/links that were deleted
     self.setData = function (nodes, links) {
-        let node_set = new Set();
-        let link_set = new Set();
+        let node_set = new Set(nodes.map(n => getNodeId(n)));
+        let link_set = new Set(links.map(l => getLinkId(l)));
 
-        for (node in nodes) {
-            node_set.add(getNodeId(node));
-        }
-
-        for (link in links) {
-            link_set.add(getLinkId(link));
-        }
-
-        self.selectedNodes = self.selectedNodes.filter(function(e) {
-            const node_id = getNodeId(e);
-            return node_set.has(node_id);
-        });
-
-        self.selectedLinks = self.selectedLinks.filter(function(e) {
-            const link_id = getLinkId(e);
-            return link_set.has(link_id);
-        });
+        self.selectedNodes = self.selectedNodes.intersection(node_set);
+        self.selectedLinks = self.selectedLinks.intersection(link_set);
 
         updateStats();
     }
 
     self.isLinkSelected = function (sourceId, targetId) {
         const id = sourceId + "," + targetId;
-        return (self.selectedLinks.indexOf(id) !== -1);
+        return self.selectedLinks.has(id);
     }
 
     self.isNodeSelected = function (nodeId) {
         const id = String(nodeId);
-        return (self.selectedNodes.indexOf(id) !== -1);
+        return self.selectedNodes.has(id);
     }
 
     self.selectNode = function (node) {
         const id = getNodeId(node);
 
         if (self.isMetaPressed()) {
-            const i = self.selectedNodes.indexOf(id);
-            if (i < 0) {
-                // add to selection
-                self.selectedNodes.push(id);
+            if (self.selectedNodes.has(id)) {
+                self.selectedNodes.delete(id);
             } else {
-                // remove from selection
-                self.selectedNodes.splice(i, 1);
+                self.selectedNodes.add(id);
             }
         } else {
-            self.selectedNodes = [id];
-            self.selectedLinks = [];
+            self.selectedNodes.clear();
+            self.selectedLinks.clear();
+            self.selectedNodes.add(id)
         }
 
         sidebar.setSidebarItem(node);
@@ -143,15 +116,15 @@ function createSelection() {
         const id = getLinkId(link);
 
         if (self.isMetaPressed()) {
-            var i = self.selectedLinks.indexOf(id);
-            if (i < 0) {
-                self.selectedLinks.push(id);
+            if (self.selectedLinks.has(id)) {
+                self.selectedLinks.delete(id);
             } else {
-                self.selectedLinks.splice(i, 1);
+                self.selectedLinks.add(id);
             }
         } else {
-            self.selectedNodes = [];
-            self.selectedLinks = [id];
+            self.selectedNodes.clear();
+            self.selectedLinks.clear();
+            self.selectedLinks.add(id);
         }
 
         sidebar.setSidebarItem(link);
