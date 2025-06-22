@@ -33,19 +33,6 @@ print(f"listen on {socket_path}")
 def split(s):
     return [x for x in s.split(",") if x]
 
-def node_exists(node_id, graph):
-  for node in graph["nodes"]:
-    if node["id"] == node_id:
-      return True
-  return False
-
-def filter_nodes(node_ids, graph):
-  filtered = []
-  for node_id in node_ids:
-    if node_exists(node_id, graph):
-      fitlered.append(node_id)
-  return filtered
-
 def get_link_id(link):
   s = link["source"]
   t = link["target"]
@@ -83,16 +70,16 @@ def update_graph(conn, graph_new):
   node_ids_remove = node_ids_old_set.difference(node_ids_new_set)
   node_ids_create = node_ids_new_set.difference(node_ids_old_set)
 
-  #print(f"node_ids_create: {list(node_ids_create)}, node_ids_remove: {list(node_ids_remove)}")
-
   with open(json_path, "w") as file:
     json.dump(graph_new, file, indent='  ', sort_keys=True)
 
+  # remove nodes => stop batman
   if len(node_ids_remove) > 0:
     subprocess.run([f"{meshnetlab_path}/software.py", "stop", "batman-adv"] + list(node_ids_remove))
 
   subprocess.run([f"{meshnetlab_path}/network.py", "apply", json_path])
 
+  # create nodes => start batman
   if len(node_ids_create) > 0:
     subprocess.run([f"{meshnetlab_path}/software.py", "start", "batman-adv"] + list(node_ids_create))
 
