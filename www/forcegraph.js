@@ -283,8 +283,9 @@ function createGraph(parent, selection, sidebar) {
                 let n = {};
                 nodeDict[id] = n;
                 // intialize node position with center offset + geo position
-                n.x = node.x + px;
-                n.y = node.y + py;
+                // rotate to match map view
+                n.x = +1 * (getNodeLongitude(node) + px);
+                n.y = -1 * (getNodeLatitude(node) + py);
                 n.o = node;
                 intNodes.push(n);
                 return n;
