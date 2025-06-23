@@ -139,6 +139,21 @@ static int get_query(void *cls, enum MHD_ValueKind kind, const char *key, const 
   return MHD_YES;
 }
 
+static int get_modified_since_ms(void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+{
+  uint64_t *args = (uint64_t*)cls;
+
+  if (args != NULL && strcmp(key, "modified_since_ms") == 0) {
+    char *endptr = NULL;
+    uint64_t since_ms = strtoll(value, &endptr, 10);
+    if (endptr == (value + strlen(value))) {
+      *args = since_ms;
+    }
+  }
+
+  return MHD_YES;
+}
+
 static int handle_call_receive(struct MHD_Connection *connection)
 {
   // send new buffer content and clear
@@ -168,13 +183,22 @@ static int handle_call_execute(struct MHD_Connection *connection)
   return send_empty_text(connection);
 }
 
+/*
+static uint64_t get_time_ms()
+{
+  struct timespec now;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+  return (now.tv_sec) * 1000000 + (now.tv_nsec) / 1000;
+}
+*/
+
 // check graph file was modified seconds ago
-static bool was_graph_modified(int seconds_ago)
+static bool was_graph_modified(uint64_t modified_ago_ms)
 {
   static time_t last_modified_time = 0;
   static time_t last_checked_time = 0;
 
-  time_t now = time(0);
+  uint64_t now = time(0);
 
   // check at most every second
   if (last_checked_time != now) {
@@ -191,18 +215,29 @@ static bool was_graph_modified(int seconds_ago)
     last_modified_time = attr.st_mtime;
   }
 
-  return last_modified_time > (now - seconds_ago);
+  // in seconds and rounded up
+  uint64_t modified_ago = (modified_ago_ms + 500) / 1000;
+
+  if (modified_ago > now) {
+    return true;
+  }
+
+  return last_modified_time >= (now - modified_ago);
 }
 
-static int handle_graph(struct MHD_Connection *connection, bool force_full_file)
+static int handle_graph(struct MHD_Connection *connection)
 {
   if (g_graph == NULL) {
     return send_empty_json(connection);
   }
 
-  bool modified = was_graph_modified(2);
+  uint64_t modified_since_ms = UINT64_MAX;
+  MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, (MHD_KeyValueIterator)get_modified_since_ms, &modified_since_ms);
+  bool modified = was_graph_modified(modified_since_ms);
 
-  if (!modified && !force_full_file) {
+  //printf("modified: %s\n", modified ? "true" : "false");
+
+  if (!modified) {
     // no change
     return send_empty_json(connection);
   }
@@ -285,10 +320,8 @@ static int send_response(void *cls, struct MHD_Connection *connection,
     return handle_call_execute(connection);
   } else if (0 == strcmp(url, "/cmd/call_receive")) {
     return handle_call_receive(connection);
-  } else if (0 == strcmp(url, "/cmd/graph_full")) {
-    return handle_graph(connection, true);
   } else if (0 == strcmp(url, "/cmd/graph_update")) {
-    return handle_graph(connection, false);
+    return handle_graph(connection);
   } else {
     return handle_content(connection, url);
   }

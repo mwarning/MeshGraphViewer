@@ -163,8 +163,6 @@
             return false;
         }
 
-        hideError();
-
         if (!('nodes' in json)) {
             json['nodes'] = [];
         }
@@ -194,19 +192,25 @@
 
     // fetch graph update
     function runFetchGraphDataLoop() {
-        const interval_ms = 500;
+        const interval_ms = 1000;
+        let last_request_ms = 0; // last successfull request
 
-        function requestGraphData(force_full) {
-            const command = force_full ? "/cmd/graph_full" : "/cmd/graph_update";
+        function requestGraphData() {
+            const now = Date.now();
+            const modified_since_ms = now - last_request_ms;
+
             // request graph
-            send(command, {}, function(data) {
+            send("/cmd/graph_update", {"modified_since_ms": modified_since_ms}, function(data) {
                 if (typeof data === "string") {
-                    // force full data if the previous fetch failed or got invalid data
-                    const force_full = !handleData(data);
-                    setTimeout(requestGraphData, interval_ms, force_full);
+                    hideError();
+                    if (handleData(data)) {
+                        // data was valid
+                        last_request_ms = Date.now();
+                    }
+                    setTimeout(requestGraphData, interval_ms);
                 } else {
                     showError(data);
-                    setTimeout(requestGraphData, interval_ms, true);
+                    setTimeout(requestGraphData, interval_ms);
                 }
             });
         }
@@ -216,7 +220,7 @@
 
     // get content from the call program/path
     function runCommandReplyLoop() {
-        var interval_ms = 500;
+        var interval_ms = 1000;
 
         function requestCommandReply() {
             // request graph
