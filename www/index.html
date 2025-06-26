@@ -112,8 +112,8 @@
     }
 
     function updateStats() {
-        $("#selected_node_count").innerText = selection.getSelectedNodes().length;
-        $("#selected_link_count").innerText = selection.getSelectedLinks().length;
+        $("#selected_node_count").innerText = selection.getSelectedNodes().size;
+        $("#selected_link_count").innerText = selection.getSelectedLinks().size;
         $("#node_count").innerText = my_data.links.length;
         $("#link_count").innerText = my_data.nodes.length;
     }
@@ -245,12 +245,12 @@
         }
 
         if (query.indexOf("%selected_nodes%") !== -1) {
-            var node_ids = selection.getSelectedNodes();
+            var node_ids = Array.from(selection.getSelectedNodes());
             query = query.replace("%selected_nodes%", node_ids.join(","));
         }
 
         if (query.indexOf("%selected_links%") !== -1) {
-            var link_ids = selection.getSelectedLinks();
+            var link_ids = Array.from(selection.getSelectedLinks());
             query = query.replace("%selected_links%", link_ids.join(","));
         }
 
@@ -318,8 +318,8 @@
         const key = $("#object_add_key").value;
         const value = $("#object_add_value").value;
 
-        const node_ids = selection.getSelectedNodes();
-        const link_ids = selection.getSelectedLinks();
+        const node_ids = Array.from(selection.getSelectedNodes());
+        const link_ids = Array.from(selection.getSelectedLinks());
         if (node_ids.length > 0 || link_ids.length > 0) {
             if (key.length > 0) {
                 if (doSet) {
