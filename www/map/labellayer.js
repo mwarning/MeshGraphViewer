@@ -158,24 +158,23 @@ function createLabelLayer() {
     }
 
     function addLinksToMap(linkDict, linkScale, graph) {
-        let linkStyle = {
-            weight: 4,
-        };
-
-        let linkStyleSelected = {
-            weight: 6,
-            opacity: 0.6,
-            fillOpacity: 1,
-            color: config.map_selectedColor
-        };
-
         return graph.map(function (d) {
             const source_tq = try_get(d.o, 'source_tq', 1.0);
             const target_tq = try_get(d.o, 'target_tq', 1.0);
 
+            let linkStyleSelected = {
+                weight: 6,
+                opacity: 0.6,
+                fillOpacity: 1,
+                color: config.map_selectedColor
+            };
+
+            let linkStyle = {
+                weight: 4,
+            };
+
             let color = d.o.color || linkScale((source_tq + target_tq) / 2);
             linkStyle.color = color;
-            //linkStyleSelected.color = color;
 
             const latlngs = [L.latLng(d.source.x, d.source.y), L.latLng(d.target.x, d.target.y)];
             let line = L.polyline(latlngs, linkStyle);
