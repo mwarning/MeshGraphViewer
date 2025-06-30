@@ -38,7 +38,7 @@ function createDraw(selection) {
             if (label !== undefined) {
                 ctx.beginPath();
                 ctx.textAlign = 'center';
-                ctx.fillStyle = 'black';
+                ctx.fillStyle = '#FFF8DC';
                 ctx.fillText(d.o.label, d.x, d.y + 3.5);
             }
         }
@@ -134,7 +134,7 @@ function createDraw(selection) {
         if (label !== undefined) {
             ctx.beginPath();
             ctx.textAlign = 'center';
-            ctx.fillStyle = 'black';
+            ctx.fillStyle = '#FFF8DC';
             ctx.fillText(label, (link.source.x + to[0]) / 2, (link.source.y + to[1]) / 2 + 3);
         }
     };
