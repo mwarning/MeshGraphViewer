@@ -12,8 +12,6 @@ function createDraw(selection) {
     var selectedLinks = [];
 
     var linkScale = d3.interpolate('#F02311', '#04C714');
-    var bandwidthWidthScale = d3.interpolateNumber(1.0, 3.0);
-    var bandwidthAlphaScale = d3.interpolateNumber(0.1, 0.8);
 
     var NODE_RADIUS = 15;
     var LINE_RADIUS = 12;
@@ -32,7 +30,7 @@ function createDraw(selection) {
             if (name !== undefined) {
                 ctx.beginPath();
                 ctx.textAlign = 'center';
-                ctx.fillStyle = config.graph_defaultNodeColor
+                ctx.fillStyle = 'white';
                 ctx.fillText(name, d.x, d.y + 20);
             }
 
@@ -88,43 +86,56 @@ function createDraw(selection) {
         drawDetailNode(d);
     };
 
-    self.drawLink = function (d) {
-        const zero = transform.invert([0, 0]);
-        const area = transform.invert([width, height]);
-        if (d.source.x < zero[0] && d.target.x < zero[0] || d.source.y < zero[1] && d.target.y < zero[1] ||
-                d.source.x > area[0] && d.target.x > area[0] || d.source.y > area[1] && d.target.y > area[1]) {
-            return;
+    self.drawLink = function (link) {
+        let zero = transform.invert([0, 0]);
+        let area = transform.invert([width, height]);
+        if (
+          (link.source.x < zero[0] && link.target.x < zero[0]) ||
+          (link.source.y < zero[1] && link.target.y < zero[1]) ||
+          (link.source.x > area[0] && link.target.x > area[0]) ||
+          (link.source.y > area[1] && link.target.y > area[1])
+        ) {
+          return;
         }
         ctx.beginPath();
-        ctx.moveTo(d.source.x, d.source.y);
+        ctx.moveTo(link.source.x, link.source.y);
+        let to = [link.target.x, link.target.y];
 
-        const to = drawSelectedLink(d, [d.target.x, d.target.y]);
+        to = drawSelectedLink(link, to);
 
         ctx.lineCap = 'round';
-        if ('color' in d.o) {
-            ctx.strokeStyle = d.o.color;
+        if ('color' in link.o) {
+            ctx.strokeStyle = link.o.color;
         } else {
             // show link quality color gradient
-            var grd = ctx.createLinearGradient(d.source.x, d.source.y, d.target.x, d.target.y);
-            grd.addColorStop(0.45, linkScale(try_get(d.o, 'source_tq', 1.0)));
-            grd.addColorStop(0.55, linkScale(try_get(d.o, 'target_tq', 1.0)));
+            var grd = ctx.createLinearGradient(link.source.x, link.source.y, link.target.x, link.target.y);
+            grd.addColorStop(0.45, linkScale(try_get(link.o, 'source_tq', 1.0)));
+            grd.addColorStop(0.55, linkScale(try_get(link.o, 'target_tq', 1.0)));
             ctx.strokeStyle = grd;
         }
 
         ctx.lineTo(to[0], to[1]);
-        ctx.lineWidth = bandwidthWidthScale(1.0);
-        ctx.globalAlpha = bandwidthAlphaScale(1.0);
+        ctx.strokeStyle = grd;
+
+        /*
+        if (link.o.type.indexOf("vpn") === 0) {
+          ctx.globalAlpha = 0.2;
+          ctx.lineWidth = 1.5;
+        } else {
+        */
+          ctx.globalAlpha = 0.8;
+          ctx.lineWidth = 2.5;
+        //}
 
         ctx.stroke();
-        ctx.globalAlpha = 0.8;
-        ctx.lineWidth = 2.5;
+        ctx.globalAlpha = 1;
 
-        const label = getLinkLabel(d.o);
+        const label = getLinkLabel(link.o);
         if (label !== undefined) {
             ctx.beginPath();
             ctx.textAlign = 'center';
             ctx.fillStyle = 'black';
-            ctx.fillText(label, (d.source.x + to[0]) / 2, (d.source.y + to[1]) / 2 + 3);
+            ctx.fillText(label, (link.source.x + to[0]) / 2, (link.source.y + to[1]) / 2 + 3);
         }
     };
 
