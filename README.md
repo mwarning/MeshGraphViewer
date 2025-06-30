@@ -125,7 +125,7 @@ In the command line, the variables `%selected_nodes%` and `%selected_links%` wil
 
 ## Connection to MeshnetLab
 
-MeshGraphViewer can be used to interact with [MeshnetLab](https://github.com/mwarning/meshnet-lab/), a mesh network simulation and test framework. This allows to run a virtual mesh network that can be viewed, edited and controlled via MeshGraphViewer.
+MeshGraphViewer can be used to interact with [MeshnetLab](https://github.com/mwarning/meshnet-lab/), a mesh network simulation and test framework. This allows to run a virtual mesh network that can be viewed, edited and controlled via MeshGraphViewer. The connection between both is handled with [meshnet-lab-bridge.py](meshnet-lab-bridge.py).
 
 Example with an initial empty graph.
 
