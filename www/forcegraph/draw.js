@@ -13,7 +13,7 @@ function createDraw(selection) {
 
     var linkScale = d3.interpolate('#F02311', '#04C714');
 
-    var NODE_RADIUS = 15;
+    var NODE_RADIUS = 12;
     var LINE_RADIUS = 12;
 
     function drawDetailNode(d) {
@@ -38,7 +38,7 @@ function createDraw(selection) {
             if (label !== undefined) {
                 ctx.beginPath();
                 ctx.textAlign = 'center';
-                ctx.fillStyle = '#FFF8DC';
+                ctx.fillStyle = 'black';
                 ctx.fillText(d.o.label, d.x, d.y + 3.5);
             }
         }
@@ -47,7 +47,7 @@ function createDraw(selection) {
     function drawSelectedNode(d) {
         const id = getNodeId(d.o);
         if (selection.isNodeSelected(id)) {
-            ctx.arc(d.x, d.y, NODE_RADIUS * 1.5, 0, 2 * Math.PI);
+            ctx.arc(d.x, d.y, NODE_RADIUS * 2.0, 0, 2 * Math.PI);
             ctx.fillStyle = config.graph_selectColor;
             ctx.fill();
             ctx.beginPath();
@@ -77,7 +77,7 @@ function createDraw(selection) {
         drawSelectedNode(d);
 
         const color = try_get(d.o, 'color', config.graph_defaultNodeColor);
-        const radius = try_get(d.o, 'radius', 7);
+        const radius = try_get(d.o, 'radius', NODE_RADIUS);
 
         ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
         ctx.fillStyle = color;
