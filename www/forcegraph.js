@@ -241,20 +241,18 @@ function createGraph(parent, selection, sidebar) {
     */
     self.setData = function (data, is_update = false) {
         // For fast node/link lookup
-        let nodeDict = {};
-        let linkDict = {};
+        let intNodesDict = {};
+        let intLinksDict = {};
 
         if (is_update) {
             // Keep existing data
-            let dnodes = {};
-            data.nodes.forEach(function (d) {
-                const id = getNodeId(d);
-                dnodes[id] = d;
-            });
-            intNodes.forEach(function (e) {
-                const id = getNodeId(e);
-                if (id in dnodes) {
-                    nodeDict[id] = e;
+            const nodeSet = data.nodes
+                .map(d => getNodeId(d))
+                .reduce((set, id) => set.add(id), new Set());
+            intNodes.forEach(function(e) {
+                const id = getNodeId(e.o);
+                if (nodeSet.has(id)) {
+                    intNodesDict[id] = e;
                 }
             });
         }
@@ -273,15 +271,15 @@ function createGraph(parent, selection, sidebar) {
         function addNode(node) {
             const id = getNodeId(node);
 
-            if (id in nodeDict) {
-                let n = nodeDict[id];
+            if (id in intNodesDict) {
+                let n = intNodesDict[id];
                 // Update existing node (keep position)
                 n.o = node;
                 intNodes.push(n);
                 return n;
             } else {
                 let n = {};
-                nodeDict[id] = n;
+                intNodesDict[id] = n;
                 // intialize node position with center offset + geo position
                 // rotate to match map view
                 n.x = +1 * (getNodeLongitude(node) + px);
@@ -296,26 +294,28 @@ function createGraph(parent, selection, sidebar) {
             const sid = String(link.source);
             const tid = String(link.target);
 
-            if (!(sid in nodeDict)) {
+            if (!(sid in intNodesDict)) {
                 addNode({'id': sid});
             }
 
-            if (!(tid in nodeDict)) {
+            if (!(tid in intNodesDict)) {
                 addNode({'id': tid});
             }
 
-            const source = nodeDict[sid];
-            const target = nodeDict[tid];
+            const source = intNodesDict[sid];
+            const target = intNodesDict[tid];
             const id = getLinkId(link);
 
-            if (id in linkDict) {
-                let l = linkDict[id];
+            if (id in intLinksDict) {
                 // Update existing link
+                let l = intLinksDict[id];
+                l.source = source;
+                l.target = target;
                 l.o = link;
                 intLinks.push(l);
             } else {
                 let l = {};
-                linkDict[id] = l;
+                intLinksDict[id] = l;
                 l.source = source;
                 l.target = target;
                 l.o = link;
@@ -323,8 +323,8 @@ function createGraph(parent, selection, sidebar) {
             }
         }
 
-        data.nodes.map(addNode);
-        data.links.map(addLink);
+        data.nodes.forEach(addNode);
+        data.links.forEach(addLink);
 
         force.nodes(intNodes);
         forceLink.links(intLinks);
