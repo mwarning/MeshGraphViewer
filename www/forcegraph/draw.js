@@ -13,7 +13,7 @@ function createDraw(selection) {
 
     var linkScale = d3.interpolate('#F02311', '#04C714');
 
-    var NODE_RADIUS = 12;
+    var NODE_RADIUS = 8;
     var LINE_RADIUS = 12;
 
     function drawDetailNode(d) {
