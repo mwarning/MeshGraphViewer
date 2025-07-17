@@ -118,8 +118,17 @@ class Map {
             });
         });
 
+        this.printer = L.easyPrint({
+            exportOnly: true,
+            hideControlContainer: true,
+        }).addTo(this.map);
+
         this.nodeDict = {};
         this.linkDict = {};
+    }
+
+    savePNG(fileName) {
+        this.printer.printMap('CurrentSize', fileName);
     }
 
     static contextMenuOpenLayerMenu() {

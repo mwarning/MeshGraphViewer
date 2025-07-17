@@ -31,6 +31,7 @@
     <script src="map/activearea.js"></script>
     <script src="map/clientlayer.js"></script>
     <script src="map/labellayer.js"></script>
+    <script src="leaflet-easyPrint.js"></script>
 
     <script>
         var config = {
@@ -101,13 +102,16 @@
     }
 
     function saveScreenshot() {
+        const fileNameBase = (new Date).toISOString().slice(0,-5);
         if (my_graph) {
             const canvas = document.getElementById("graph").firstChild;
-            const fileName = (new Date).toISOString().slice(0,-5) + ".png";
             const link = document.createElement('a');
-            link.setAttribute('download', fileName);
+            link.setAttribute('download', fileNameBase + "_graph.png");
             link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
             link.click();
+        } else {
+            // print map
+            my_map.savePNG(fileNameBase + "_map"); // easyPrint appends .png
         }
     }
 
@@ -342,7 +346,7 @@
         <div id="buttons">
             <button class="button ion-eye" title="Toggle View" onclick="toggleView(this)"></button>
             <button class="button ion-outline" title="Toggle Fullscreen" onclick="toggleFullscreen(this)"></button>
-            <button class="button ion-camera hidden" title="Save Screeshot" onclick="saveScreenshot(this)"></button>
+            <button class="button ion-camera" title="Save Screenshot" onclick="saveScreenshot(this)"></button>
             <button class="button ion-locate hidden" title="Location Picker"></button>
         </div>
     </div>
